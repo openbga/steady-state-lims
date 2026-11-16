@@ -143,7 +143,7 @@ Admitted by the user for ticket #4555, step 3 (SFTP connections in Interfaces). 
 | Tool | Purpose |
 | --- | --- |
 | `cargo-deny` 0.20 | Licenses, advisories, bans and sources (`deny.toml`) |
-| `cargo-machete` | Unused Rust dependencies |
+| `cargo-machete` 0.9.2 | Unused Rust dependencies. Pinned in CI: 0.10.1 uses a library feature that is unstable on the Rust version `rust-toolchain.toml` pins |
 | `rustfmt`, `clippy` | Pinned through `rust-toolchain.toml` |
 | Python 3.11+ standard library | Change selection, repository metadata/link checks and their regression tests; no Python packages or application runtime dependency. Shares one selector between local work and CI. |
 | `actionlint` 1.7.12 | Development-only GitHub Actions syntax/expression checks, using the maintainer's versioned Docker image in CI; no app dependency. License: [MIT](https://github.com/rhysd/actionlint/blob/v1.7.12/LICENSE.txt), checked 2026-10-14; maintained release and interface evidence: [ENG-279](../research/sources-engineering.md#change-sensitive-verification-sources-2026-10-14). |
