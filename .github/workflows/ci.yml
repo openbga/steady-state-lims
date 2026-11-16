@@ -128,7 +128,8 @@ jobs:
       - name: Unused Rust dependencies
         if: runner.os == 'Linux'
         run: |
-          cargo install cargo-machete --locked
+          # 0.10.1 needs a newer Rust than rust-toolchain.toml pins (unstable `Path::is_empty`).
+          cargo install cargo-machete --version 0.9.2 --locked
           cargo machete
       - name: Rust duplication and file-length limits
         if: runner.os == 'Linux' && needs.select.outputs.ui != 'true'
