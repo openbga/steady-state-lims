@@ -73,14 +73,23 @@ fn named_deferrals(
     input: ListIntakeDeferralsInput,
 ) -> Result<Vec<IntakeDeferralView>, lis_identity::IdentityError> {
     let mut rows = lis_identity::list_intake_deferrals(conn, input)?;
+    name_intake_people(conn, &mut rows)?;
+    Ok(rows)
+}
+
+/// Names who recorded and who disposed of each intake, looked up once for all rows.
+pub(crate) fn name_intake_people(
+    conn: &rusqlite::Connection,
+    rows: &mut [IntakeDeferralView],
+) -> Result<(), lis_identity::IdentityError> {
     let ids = rows.iter().flat_map(|row| {
         std::iter::once(row.recorded_by.as_str()).chain(row.disposed_by.as_deref())
     });
     let names = display_names(conn, ids)?;
-    for row in &mut rows {
+    for row in rows {
         row.recorded_by_display = name_of(&names, &row.recorded_by);
         let disposed_by = row.disposed_by.as_deref();
         row.disposed_by_display = disposed_by.and_then(|id| name_of(&names, id));
     }
-    Ok(rows)
+    Ok(())
 }

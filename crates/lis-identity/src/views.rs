@@ -6,6 +6,7 @@ use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
 use serde::Serialize;
 use ts_rs::TS;
 
+use crate::intake::IntakeDeferralView;
 use crate::model::{
     ClientId, ClientLocationId, IdentityAssertionId, IdentityHoldId, LaboratoryProfileId, Npi,
     PractitionerId, SubjectId, SubjectIdentifierId,
@@ -27,6 +28,8 @@ pub struct SubjectView {
     pub identifiers: Vec<IdentifierView>,
     /// Open identity holds on the subject or listing it as a candidate.
     pub open_holds: Vec<IdentityHoldView>,
+    /// Incomplete identity intake resolved with this subject, oldest resolution first.
+    pub resolved_intakes: Vec<IntakeDeferralView>,
 }
 
 /// One demographic assertion as provided.

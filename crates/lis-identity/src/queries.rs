@@ -194,8 +194,8 @@ pub fn find_subject_matches(
     Ok(matches)
 }
 
-/// A subject with all assertions and identifiers. PHI: an audited read
-/// (capability `enter_orders`).
+/// A subject with all assertions, identifiers and the incomplete intake resolved with it.
+/// PHI: an audited read (capability `enter_orders`).
 pub fn get_subject(conn: &Connection, subject_id: SubjectId) -> Result<SubjectView, IdentityError> {
     let revision =
         subjects::subject_revision(conn, subject_id)?.ok_or(IdentityError::NotFound("subject"))?;
@@ -205,6 +205,7 @@ pub fn get_subject(conn: &Connection, subject_id: SubjectId) -> Result<SubjectVi
         assertions: subjects::assertions(conn, subject_id)?,
         identifiers: subjects::identifiers(conn, subject_id)?,
         open_holds: list_open_identity_holds(conn, subject_id)?,
+        resolved_intakes: crate::intake::resolved_intakes(conn, subject_id)?,
     })
 }
 

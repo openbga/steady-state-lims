@@ -108,6 +108,19 @@ pub fn list_intake_deferrals(
 ) -> Result<Vec<IntakeDeferralView>, IdentityError> {
     Ok(conn.prepare(&format!("{COLUMNS} WHERE (?1 OR x.id IS NULL) AND (?2 IS NULL OR d.id > ?2) ORDER BY d.id LIMIT 50"))?.query_map(params![input.include_closed,input.after_id],row)?.collect::<Result<_,_>>()?)
 }
+/// Intake resolved with `subject_id`, oldest resolution first; empty for most subjects.
+/// PHI: read only as part of the subject's audited read.
+pub(crate) fn resolved_intakes(
+    conn: &Connection,
+    subject_id: SubjectId,
+) -> Result<Vec<IntakeDeferralView>, IdentityError> {
+    Ok(conn
+        .prepare(&format!(
+            "{COLUMNS} WHERE x.disposition='resolved' AND x.subject_id=?1 ORDER BY x.recorded_at, d.id"
+        ))?
+        .query_map([subject_id], row)?
+        .collect::<Result<_, _>>()?)
+}
 pub fn record_intake_deferral(
     ctx: &mut CommandContext<'_>,
     input: RecordIntakeDeferralInput,
