@@ -318,9 +318,9 @@
           "rules": "All patients named by an open hold are prevented from result release."
         },
         {
-          "name": "Identity history: Resolved from incomplete intake / Intake / supplied as / birth information / Resolved / by / source",
+          "name": "Identity history: Resolved from incomplete intake / Supplied as / Birth information / Resolved / Source",
           "meaning": "Incomplete identity intake that was resolved by choosing this patient on Incomplete identity intake: what was supplied at first, and when, by whom and from what verification source it was resolved.",
-          "values": "Read-only. Intake shows the intake’s source reference; supplied as shows the name exactly as supplied; birth information shows Unknown, or Partial date or Supplied age followed by the exact supplied text (for example Partial date: 1985). Resolved shows the resolution time in the laboratory time zone, by shows the account that recorded it, and source shows the verification source entered when resolving. One entry per resolved intake, oldest resolution first.",
+          "values": "Read-only. Each intake starts with the Resolved from incomplete intake badge and the intake’s source reference. Supplied as shows the name exactly as supplied; Birth information shows Unknown, or Partial date or Supplied age followed by the exact supplied text (for example Partial date: 1985); Resolved shows the resolution time in the laboratory time zone and the account that recorded it; Source shows the verification source entered when resolving. One block per resolved intake, separated by a rule, oldest resolution first.",
           "rules": "The section appears only when at least one intake was resolved with this patient; declined and still-open intake never appear here. The supplied evidence is kept as it arrived and is never copied into the patient’s details or demographic history."
         },
         {
@@ -645,7 +645,7 @@
         },
         {
           "name": "View in audit trail",
-          "does": "Opens the audit trail filtered on that intake record: its recording and its resolution.",
+          "does": "Opens the audit trail filtered on that intake record: its recording and its resolution. Shown under each intake’s facts.",
           "availableWhen": "Audit-view authority; otherwise the link is not shown.",
           "result": "Lists the intake’s audit events, newest first, across every stream. Viewing the trail is recorded."
         },

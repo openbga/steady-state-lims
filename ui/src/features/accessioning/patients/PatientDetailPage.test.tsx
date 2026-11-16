@@ -63,12 +63,12 @@ describe("PatientDetailPage (REQ-IDN-001)", () => {
     const heading = await screen.findByRole("heading", { name: "Identity history" });
     const section = heading.closest("section") ?? document.body;
     expect(within(section).getByText("Resolved from incomplete intake")).toBeTruthy();
-    expect(within(section).getByText("TEST, Partial")).toBeTruthy();
-    expect(within(section).getByText("Partial date: 1985")).toBeTruthy();
-    expect(
-      within(section).getByText(/source: Phone call to clinic, full DOB confirmed/),
-    ).toBeTruthy();
-    expect(within(section).getByText(/by Test Accessioner/)).toBeTruthy();
+    // One label/value row per fact.
+    const fact = (label: string) => within(section).getByText(label).nextElementSibling;
+    expect(fact("Supplied as")?.textContent).toBe("TEST, Partial");
+    expect(fact("Birth information")?.textContent).toBe("Partial date: 1985");
+    expect(fact("Resolved")?.textContent).toMatch(/ by Test Accessioner$/);
+    expect(fact("Source")?.textContent).toBe("Phone call to clinic, full DOB confirmed");
     const intake = within(section).getByRole("link", { name: "REQ-TEST-001" });
     expect(intake.getAttribute("href")).toBe(
       `/patients/incomplete-intake?show=resolved&open=${RESOLVED_INTAKE.intakeId}`,
