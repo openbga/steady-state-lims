@@ -52,6 +52,7 @@ export function IntakeToolbar({ query, search, onSearch, show, onShow }: IntakeT
       <FindField
         label="Find intake by name as supplied or source reference"
         placeholder="Name or source reference"
+        isLabelHidden
         value={search}
         onChange={onSearch}
       />
