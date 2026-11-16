@@ -47,10 +47,15 @@ and OpenBGA contributors.` and the statement that Steady State LIMS, OpenBGA and
 logos are trademarks of BGASoft Inc. that the license does not grant (AGPL-3.0 section
 7(e)), except as needed to describe the origin of the software.
 
-**Open-source preparation — user instruction, 2026-10-20.** Keep the free clinical
-toxicology LIS scope explicit. Keep project pricing,
-business-model material and other LIS organizations' names and brands out of
-tracked documents. Exception (user instruction, 2026-11-11): the README and the
+**Open-source preparation — user instruction, 2026-10-20; updated 2026-11-11.** Keep the
+free clinical toxicology LIS scope explicit. Keep project pricing, business-model material
+and other LIS organizations' names and brands out of tracked documents. The project
+owner's decision of 2026-11-11 extends this: tracked material must not name, compare,
+evaluate or research other LIMS, LIS, middleware or interface-engine products or vendors
+(no competitor analysis, market research, feature comparisons, alternatives lists, or
+screenshots or notes of other systems). Regulatory and standards sources, third-party
+dependency notices and the instruments and data formats an implemented feature directly
+supports are not affected. Exception (user instruction, 2026-11-11): the README and the
 website each carry one small notice: “Are you looking for support? Contact
 bgasoft.com.” Link `bgasoft.com` to <https://bgasoft.com>, with no pricing or
 offer terms. Tracked documents describe current decisions and open
