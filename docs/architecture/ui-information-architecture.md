@@ -61,7 +61,7 @@ Versioned record pages show the version in effect and any open draft in the head
 | Record or work item | Home and view | Relevant boundary |
 | --- | --- | --- |
 | Patient | Front desk › Patients → page | Order-entry or quality staff may read; patient/order creation and standing-authority actions retain their own permissions |
-| Incomplete identity intake | Front desk › Incomplete identity intake | Retains uncertain DOB evidence for explicit resolution or decline; does not invent demographics or create an order |
+| Incomplete identity intake | Front desk › Incomplete identity intake | Retains uncertain DOB evidence for explicit resolution or decline; does not invent demographics or create an order. Find, a Show filter with counts (`?show=awaiting`, `resolved`, `declined` or `all`) and Waiting; an intake opens in the side panel |
 | Order | Front desk › Orders → page | Supplied evidence revisions, cancellation decisions and billing context remain attributable |
 | Accession and container | Order page, scan field or Container lookup → page | Connected intake preserves patient/order context; receiving, allocation, collection facts and label decisions are explicit |
 | Run | Bench › Runs → page | Positions, QC and expected results remain linked to their exact run |

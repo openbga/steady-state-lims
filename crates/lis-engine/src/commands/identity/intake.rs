@@ -8,7 +8,7 @@ use crate::{
 };
 use lis_core::CommandError;
 use lis_identity::{
-    IntakeDeferralView, ListIntakeDeferralsInput, RecordIntakeDeferralInput,
+    IntakeDeferralPage, IntakeDeferralView, ListIntakeDeferralsInput, RecordIntakeDeferralInput,
     ResolveIntakeDeferralInput,
 };
 pub(crate) const RECORD_INTAKE_DEFERRAL: CommandSpec = spec(
@@ -54,7 +54,7 @@ impl Engine {
     pub async fn list_intake_deferrals(
         &self,
         input: ListIntakeDeferralsInput,
-    ) -> Result<Vec<IntakeDeferralView>, CommandError> {
+    ) -> Result<IntakeDeferralPage, CommandError> {
         self.run(&LIST_INTAKE_DEFERRALS, |call| async move {
             self.audited_read(
                 &call,
@@ -67,20 +67,20 @@ impl Engine {
     }
 }
 
-/// Deferrals, with who recorded and who disposed of each named on every read.
+/// A page of deferrals, with who recorded and who disposed of each named on every read.
 fn named_deferrals(
     conn: &rusqlite::Connection,
     input: ListIntakeDeferralsInput,
-) -> Result<Vec<IntakeDeferralView>, lis_identity::IdentityError> {
-    let mut rows = lis_identity::list_intake_deferrals(conn, input)?;
-    let ids = rows.iter().flat_map(|row| {
+) -> Result<IntakeDeferralPage, lis_identity::IdentityError> {
+    let mut page = lis_identity::list_intake_deferrals(conn, input)?;
+    let ids = page.rows.iter().flat_map(|row| {
         std::iter::once(row.recorded_by.as_str()).chain(row.disposed_by.as_deref())
     });
     let names = display_names(conn, ids)?;
-    for row in &mut rows {
+    for row in &mut page.rows {
         row.recorded_by_display = name_of(&names, &row.recorded_by);
         let disposed_by = row.disposed_by.as_deref();
         row.disposed_by_display = disposed_by.and_then(|id| name_of(&names, id));
     }
-    Ok(rows)
+    Ok(page)
 }

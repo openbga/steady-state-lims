@@ -1,47 +1,11 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { IntakeDeferralView } from "@/generated/IntakeDeferralView";
 import { openRow } from "@/lib/test/grid";
-import { mockCommands } from "@/lib/test/ipc";
 import { chooseWithKeyboard, WALKTHROUGH_TIMEOUT_MS } from "@/lib/test/keyboard";
 import { mockGridLayout } from "@/lib/test/layout";
-import { renderRoutes } from "@/lib/test/router";
-import { SUMMARY, sessionWith } from "../testData";
-import { IncompleteIntakePage } from "./IncompleteIntakePage";
+import { SUMMARY } from "../testData";
+import { CLERK, INTAKE, intakePage, REVIEWER, renderIntake } from "./intakeTestData";
 
-const CLERK = "00000000-0000-7000-8000-000000000e31";
-const REVIEWER = "00000000-0000-7000-8000-000000000e32";
-
-const INTAKE: IntakeDeferralView = {
-  intakeId: "synthetic-intake",
-  revision: 1,
-  suppliedName: "Incomplete Person",
-  birthEvidenceKind: "unknown",
-  birthEvidenceText: null,
-  sourceReference: "Synthetic source 42",
-  reason: "Complete birth date not supplied",
-  recordedBy: CLERK,
-  recordedByDisplay: "Test Intake Clerk",
-  recordedAt: "2026-10-14T10:00:00Z",
-  disposition: null,
-  subjectId: null,
-  dispositionSource: null,
-  dispositionReason: null,
-  disposedBy: null,
-  disposedAt: null,
-};
-function renderIntake(commands: Record<string, (args: unknown) => unknown> = {}) {
-  mockCommands({
-    current_session: () => sessionWith(["enter_orders"]),
-    list_intake_deferrals: () => [INTAKE],
-    search_subjects: () => [SUMMARY],
-    ...commands,
-  });
-  return renderRoutes(
-    [{ path: "/patients/incomplete", element: <IncompleteIntakePage /> }],
-    "/patients/incomplete",
-  );
-}
 describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT_MS }, () => {
   beforeEach(mockGridLayout);
   it("retains unknown birth information without constructing a DOB or creating a patient", async () => {
@@ -76,6 +40,33 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
     });
     expect(register).not.toHaveBeenCalled();
   });
+  it("shows birth information and disposition with the form's labels", async () => {
+    renderIntake({
+      list_intake_deferrals: () =>
+        intakePage([
+          INTAKE,
+          {
+            ...INTAKE,
+            intakeId: "partial",
+            birthEvidenceKind: "partial_date",
+            birthEvidenceText: "1985",
+          },
+          {
+            ...INTAKE,
+            intakeId: "age",
+            birthEvidenceKind: "supplied_age",
+            birthEvidenceText: "About 40",
+            disposition: "declined",
+          },
+        ]),
+    });
+    const grid = await screen.findByRole("grid", { name: "Incomplete intake records" });
+    for (const text of ["Unknown", "Partial date: 1985", "Supplied age: About 40", "Declined"]) {
+      expect(within(grid).getByText(text)).toBeTruthy();
+    }
+    expect(within(grid).getAllByText("Awaiting verified identity")).toHaveLength(2);
+    expect(within(grid).queryByText(/partial date|supplied age|declined|unknown:/)).toBeNull();
+  });
   it("clears a chosen birth information, which is then asked for again", async () => {
     const record = vi.fn(() => INTAKE);
     const { user } = renderIntake({ record_intake_deferral: record });
@@ -94,6 +85,39 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
     await user.click(within(dialog).getByRole("button", { name: "Retain incomplete intake" }));
     expect(await within(dialog).findByText("Choose available birth information.")).toBeTruthy();
     expect(record).not.toHaveBeenCalled();
+  });
+  it("requires the supplied text for a partial date before saving, and not for Unknown", async () => {
+    const record = vi.fn(() => INTAKE);
+    const { user } = renderIntake({ record_intake_deferral: record });
+    await user.click(await screen.findByRole("button", { name: "Record incomplete intake" }));
+    const dialog = await screen.findByRole("dialog", { name: "Record incomplete identity intake" });
+    const text = within(dialog).getByRole("textbox", { name: /Exact supplied date or age text/ });
+    expect(text.getAttribute("aria-required")).not.toBe("true");
+    await chooseWithKeyboard(user, /Available birth information$/, "Partial date");
+    expect(text.getAttribute("aria-required")).toBe("true");
+    await user.type(
+      within(dialog).getByRole("textbox", { name: /Name as supplied/ }),
+      "TEST, Name",
+    );
+    await user.type(
+      within(dialog).getByRole("textbox", { name: /Source reference/ }),
+      "TEST-REQ-1",
+    );
+    await user.type(
+      within(dialog).getByRole("textbox", { name: /Reason intake is deferred/ }),
+      "Birth date incomplete on requisition",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Retain incomplete intake" }));
+    expect(
+      await within(dialog).findByText("Enter the partial date or age exactly as supplied."),
+    ).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+    expect(within(dialog).queryByText("Not recorded")).toBeNull();
+    await user.click(
+      within(dialog).getByRole("button", { name: /Available birth information$/, expanded: false }),
+    );
+    await user.click(await screen.findByRole("option", { name: "Unknown" }));
+    expect(text.getAttribute("aria-required")).not.toBe("true");
   });
   it("resolves only after an explicit existing-patient choice and source-backed disposition", async () => {
     const resolve = vi.fn(() => ({
@@ -132,36 +156,68 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
       },
     });
   });
-  it("refreshes away from a stale open selection before reviewing a concurrent disposition", async () => {
+  it("shows a concurrent disposition in the open intake after Refresh, without its actions", async () => {
     const list = vi
       .fn()
-      .mockReturnValueOnce([INTAKE])
-      .mockReturnValue([
-        {
-          ...INTAKE,
-          revision: 2,
-          disposition: "declined",
-          dispositionReason: "Source withdrew intake",
-          dispositionSource: "Synthetic source",
-          disposedBy: REVIEWER,
-          disposedByDisplay: "Test Intake Reviewer",
-          disposedAt: "2026-10-14T11:00:00Z",
-        },
-      ]);
+      .mockReturnValueOnce(intakePage([INTAKE]))
+      .mockReturnValue(
+        intakePage([
+          {
+            ...INTAKE,
+            revision: 2,
+            disposition: "declined",
+            dispositionReason: "Source withdrew intake",
+            dispositionSource: "Synthetic source",
+            disposedBy: REVIEWER,
+            disposedByDisplay: "Test Intake Reviewer",
+            disposedAt: "2026-11-05T11:00:00.000000000Z",
+          },
+        ]),
+      );
     const { user } = renderIntake({ list_intake_deferrals: list });
     await openRow(user, "Incomplete Person");
+    const panel = await screen.findByRole("region", { name: "Intake: Incomplete Person" });
     expect(
-      await screen.findByRole("button", { name: "Resolve with verified patient" }),
+      within(panel).getByRole("button", { name: "Resolve with verified patient" }),
     ).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Refresh" }));
     await vi.waitFor(() => expect(list).toHaveBeenCalledTimes(2));
-    expect(screen.queryByRole("button", { name: "Resolve with verified patient" })).toBeNull();
-    await openRow(user, "Incomplete Person");
-    expect(await screen.findByText(/Source withdrew intake/)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Record declined intake" })).toBeNull();
+    expect(await within(panel).findByText("Source withdrew intake")).toBeTruthy();
+    expect(within(panel).getByText("Declined")).toBeTruthy();
+    expect(
+      within(panel).queryByRole("button", { name: "Resolve with verified patient" }),
+    ).toBeNull();
+    expect(within(panel).queryByRole("button", { name: "Record declined intake" })).toBeNull();
     // Both actors show by account name, never by account ID.
-    expect(screen.getByText(/Recorded by Test Intake Clerk/)).toBeTruthy();
-    expect(screen.getByText(/Recorded by Test Intake Reviewer/)).toBeTruthy();
+    expect(within(panel).getByText(/by Test Intake Clerk/)).toBeTruthy();
+    expect(within(panel).getByText(/by Test Intake Reviewer/)).toBeTruthy();
     expect(screen.queryByText(new RegExp(`${CLERK}|${REVIEWER}`))).toBeNull();
+  });
+  it("opens intake in the side panel, moves with Previous and Next, and closes with X or Escape", async () => {
+    const other = { ...INTAKE, intakeId: "synthetic-intake-2", suppliedName: "Second Person" };
+    const { user, router } = renderIntake({
+      list_intake_deferrals: () => intakePage([INTAKE, other]),
+    });
+    await openRow(user, "Incomplete Person");
+    expect(router.state.location.search).toBe("?open=synthetic-intake");
+    const panel = screen.getByRole("region", { name: "Intake: Incomplete Person" });
+    expect(within(panel).getByText("Awaiting verified identity")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Close intake" })).toBeNull();
+    await user.click(within(panel).getByRole("button", { name: "Next" }));
+    const second = screen.getByRole("region", { name: "Intake: Second Person" });
+    await user.click(within(second).getByRole("button", { name: "Previous" }));
+    await user.click(
+      within(screen.getByRole("region", { name: "Intake: Incomplete Person" })).getByRole(
+        "button",
+        { name: "Close" },
+      ),
+    );
+    await waitFor(() => expect(screen.queryByRole("region", { name: /^Intake:/ })).toBeNull());
+    await openRow(user, "Second Person");
+    // Escape closes the panel while focus is in it.
+    const opened = screen.getByRole("region", { name: "Intake: Second Person" });
+    await user.click(within(opened).getByRole("button", { name: "Previous" }));
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("region", { name: /^Intake:/ })).toBeNull());
   });
 });

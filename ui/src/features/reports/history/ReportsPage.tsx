@@ -15,11 +15,11 @@ import { choiceOf, optionalText } from "@/lib/choices";
 import { useFindParam } from "@/lib/findParam";
 import { useOpenRecordPage } from "@/lib/recordSequence";
 import { useSearchParam } from "@/lib/searchParam";
+import { useCursorPages } from "@/lib/useCursorPages";
 import styles from "@/styles/layout.module.css";
 import { LIST_LIMIT, LIST_REPORTS, type ReportSummary } from "../contract";
 import { REPORT_FILTERS } from "../labels";
 import { reportPath } from "../paths";
-import { useCursorPages } from "../useCursorPages";
 import { statusColumns } from "./columns";
 
 const COLUMNS: readonly DataGridColumn<ReportSummary>[] = [

@@ -21,6 +21,20 @@ fn record(t: &TestDatabase, value: RecordIntakeDeferralInput) -> IntakeDeferralV
     )
     .unwrap()
 }
+fn list(
+    t: &TestDatabase,
+    show: IntakeShow,
+    search: Option<&str>,
+    after_id: Option<IntakeDeferralId>,
+) -> IntakeDeferralPage {
+    let value = ListIntakeDeferralsInput {
+        show,
+        search: search.map(|text| Phi::new(text.into())),
+        after_id,
+    };
+    t.db.read_blocking(move |conn| list_intake_deferrals(conn, value))
+        .unwrap()
+}
 #[test]
 fn intake_retains_unknown_partial_and_age_without_creating_subjects() {
     let t = TestDatabase::open(&[SCHEMA]).unwrap();
@@ -88,18 +102,8 @@ fn intake_resolution_is_attributable_terminal_and_never_erases_original() {
         )
         .unwrap_err();
     assert_eq!(stale.code(), ErrorCode::Conflict);
-    let open =
-        t.db.read_blocking(|conn| {
-            list_intake_deferrals(
-                conn,
-                ListIntakeDeferralsInput {
-                    include_closed: false,
-                    after_id: None,
-                },
-            )
-        })
-        .unwrap();
-    assert!(open.is_empty());
+    let open = list(&t, IntakeShow::Awaiting, None, None);
+    assert!(open.rows.is_empty());
     t.db.read_blocking(move |conn| -> Result<(), IdentityError> {
         assert!(
             conn.execute(
@@ -118,32 +122,18 @@ fn intake_pages_reach_all_records() {
     for _ in 0..51 {
         record(&t, input(BirthEvidenceKind::Unknown, None));
     }
-    let page =
-        t.db.read_blocking(|conn| {
-            list_intake_deferrals(
-                conn,
-                ListIntakeDeferralsInput {
-                    include_closed: false,
-                    after_id: None,
-                },
-            )
-        })
-        .unwrap();
-    assert_eq!(page.len(), 50);
-    let after = page.last().unwrap().intake_id;
-    let rest =
-        t.db.read_blocking(move |conn| {
-            list_intake_deferrals(
-                conn,
-                ListIntakeDeferralsInput {
-                    include_closed: false,
-                    after_id: Some(after),
-                },
-            )
-        })
-        .unwrap();
-    assert_eq!(rest.len(), 1);
-    assert!(!page.iter().any(|row| row.intake_id == rest[0].intake_id));
+    let page = list(&t, IntakeShow::Awaiting, None, None);
+    assert_eq!(page.rows.len(), 50);
+    assert_eq!(page.counts.awaiting, 51);
+    let after = page.rows.last().unwrap().intake_id;
+    let rest = list(&t, IntakeShow::Awaiting, None, Some(after));
+    assert_eq!(rest.rows.len(), 1);
+    assert!(
+        !page
+            .rows
+            .iter()
+            .any(|row| row.intake_id == rest.rows[0].intake_id)
+    );
 }
 
 #[test]
@@ -235,18 +225,8 @@ fn intake_disposition_denial_is_atomic_and_audit_records_actual_authority() {
         .code(),
         ErrorCode::Forbidden
     );
-    let open =
-        t.db.read_blocking(|conn| {
-            list_intake_deferrals(
-                conn,
-                ListIntakeDeferralsInput {
-                    include_closed: false,
-                    after_id: None,
-                },
-            )
-        })
-        .unwrap();
-    assert_eq!(open.len(), 1);
+    let open = list(&t, IntakeShow::Awaiting, None, None);
+    assert_eq!(open.rows.len(), 1);
     let actor = principal(&[Capability::EnterOrders]);
     let who = actor.actor().id_text();
     let correlation = CorrelationId::generate();
@@ -273,4 +253,98 @@ fn intake_disposition_denial_is_atomic_and_audit_records_actual_authority() {
         Ok(())
     })
     .unwrap();
+}
+
+/// Three intake records for the list test: TEST, Unknown and TEST, Partial awaiting verified
+/// identity (source REQ-TEST-001) and TEST, Age declined (source TEST-REQ-001).
+fn three_intakes_one_declined(t: &TestDatabase) {
+    let named = |name: &str, source: &str, kind: BirthEvidenceKind, text: Option<&str>| {
+        RecordIntakeDeferralInput {
+            supplied_name: Phi::new(name.into()),
+            source_reference: source.into(),
+            ..input(kind, text)
+        }
+    };
+    record(
+        t,
+        named(
+            "TEST, Unknown",
+            "REQ-TEST-001",
+            BirthEvidenceKind::Unknown,
+            None,
+        ),
+    );
+    let partial = BirthEvidenceKind::PartialDate;
+    record(
+        t,
+        named("TEST, Partial", "REQ-TEST-001", partial, Some("1985")),
+    );
+    let age = BirthEvidenceKind::SuppliedAge;
+    let id = record(t, named("TEST, Age", "TEST-REQ-001", age, Some("About 40"))).intake_id;
+    let decline = ResolveIntakeDeferralInput {
+        intake_id: id,
+        expected_revision: 1,
+        disposition: IntakeDisposition::Declined,
+        subject_id: None,
+        source_reference: "synthetic-decline".into(),
+        reason: "Source withdrew intake".into(),
+    };
+    t.db.write_blocking(
+        principal(&[Capability::EnterOrders]),
+        CorrelationId::generate(),
+        move |ctx| resolve_intake_deferral(ctx, decline),
+    )
+    .unwrap();
+}
+
+/// The supplied names a page lists, in order.
+fn names(page: &IntakeDeferralPage) -> Vec<String> {
+    page.rows
+        .iter()
+        .map(|row| row.supplied_name.expose().clone())
+        .collect()
+}
+
+#[test]
+fn intake_list_finds_filters_and_counts_before_paging() {
+    let t = TestDatabase::open(&[SCHEMA]).unwrap();
+    three_intakes_one_declined(&t);
+    let every = IntakeDeferralCounts {
+        awaiting: 2,
+        resolved: 0,
+        declined: 1,
+    };
+    let open = list(&t, IntakeShow::Awaiting, None, None);
+    assert_eq!(names(&open), ["TEST, Unknown", "TEST, Partial"]);
+    assert_eq!(open.counts, every);
+    let declined = list(&t, IntakeShow::Declined, Some("  "), None);
+    assert_eq!(names(&declined), ["TEST, Age"]);
+    assert_eq!(declined.counts, every);
+    // Nothing resolved: no rows, and the counts still offer the other states.
+    let resolved = list(&t, IntakeShow::Resolved, None, None);
+    assert!(resolved.rows.is_empty());
+    assert_eq!(resolved.counts, every);
+    // Find matches part of the source reference or of the name, ignoring case, and the
+    // counts follow it.
+    let by_source = list(&t, IntakeShow::All, Some("req-test"), None);
+    assert_eq!(names(&by_source), ["TEST, Unknown", "TEST, Partial"]);
+    assert_eq!(by_source.counts.declined, 0);
+    let by_name = list(&t, IntakeShow::All, Some("age"), None);
+    assert_eq!(names(&by_name), ["TEST, Age"]);
+    assert_eq!(by_name.counts.awaiting, 0);
+    assert!(list(&t, IntakeShow::All, Some("%"), None).rows.is_empty());
+    let long = "x".repeat(201);
+    let refused =
+        t.db.read_blocking(move |conn| {
+            list_intake_deferrals(
+                conn,
+                ListIntakeDeferralsInput {
+                    show: IntakeShow::All,
+                    search: Some(Phi::new(long)),
+                    after_id: None,
+                },
+            )
+        })
+        .unwrap_err();
+    assert_eq!(refused.code(), ErrorCode::Validation);
 }
