@@ -62,14 +62,14 @@
           "rules": "Stored on the original immutable intake record; not copied into diagnostic logs."
         },
         {
-          "name": "Original record and disposition details",
-          "meaning": "Original evidence/source/reason/actor/time and any terminal decision/source/reason/actor/time.",
-          "values": "Read-only. Pending, resolved or declined.",
+          "name": "Intake side panel",
+          "meaning": "Clicking an intake, or pressing Enter on it, opens it in a side panel titled \u201cIntake: <name as supplied>\u201d with its Disposition badge: Birth information, Source reference, Reason and Recorded (time and person); after a disposition, also Disposition source, Disposition reason, Disposition recorded and, for a resolved intake, Patient.",
+          "values": "Read-only. The open intake is kept in the address (?open=), so Back and reload keep it open.",
           "rules": "Resolution preserves original unknown/partial/age evidence. Issued artifacts and patient identity holds do not change."
         },
         {
           "name": "Choose verified patient",
-          "meaning": "Explicit selection of an existing patient after obtaining source-backed complete identity.",
+          "meaning": "The dialog opened by Resolve with verified patient: explicit selection of an existing patient after obtaining source-backed complete identity.",
           "values": "Existing patient directory search with name/date/identifiers; no patient preselected.",
           "rules": "Register verified patient opens normal matching/registration. Return and choose it explicitly; no link is inferred from the intake name."
         },
@@ -91,7 +91,7 @@
           "name": "Resolve with verified patient / Register verified patient",
           "does": "Find a verified record or use the existing registration workflow after obtaining a full source-backed identity.",
           "availableWhen": "Pending intake.",
-          "result": "Selection is reviewed in the identity banner; Record disposition is still required."
+          "result": "Opens Choose verified patient; choosing a patient opens Resolve incomplete identity intake, where the selection is reviewed in the identity banner and Record disposition is still required."
         },
         {
           "name": "Record declined intake / Record disposition",
@@ -103,12 +103,12 @@
           "name": "Refresh / Load more intake records",
           "does": "Reconcile the list or load the next50records.",
           "availableWhen": "Read authority; more rows for Load more.",
-          "result": "Refresh clears the selected record so current disposition must be reviewed again. Equal timestamps do not remove records from traversal."
+          "result": "Refresh reloads the list and the open intake, so a disposition recorded meanwhile shows at once and its actions disappear. Equal timestamps do not remove records from traversal."
         },
         {
-          "name": "Close intake / Cancel",
-          "does": "Close the selected history or abandon unsaved dialog fields.",
-          "availableWhen": "No mutation in progress.",
+          "name": "Close (X), Escape, Previous / Next, Back to list, Cancel",
+          "does": "Close (X) or Escape closes the side panel; Previous and Next open the intake before or after it in the list's current order; on a narrow window the panel replaces the list and Back to list returns to it. Cancel abandons unsaved dialog fields.",
+          "availableWhen": "An intake is open; Escape works while focus is in the panel. Previous and Next are disabled at the ends of the list.",
           "result": "No clinical data is removed. A pending intake remains pending."
         },
         {

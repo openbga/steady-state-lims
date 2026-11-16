@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { IntakeDeferralView } from "@/generated/IntakeDeferralView";
 import { openRow } from "@/lib/test/grid";
@@ -170,7 +170,7 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
       },
     });
   });
-  it("refreshes away from a stale open selection before reviewing a concurrent disposition", async () => {
+  it("shows a concurrent disposition in the open intake after Refresh, without its actions", async () => {
     const list = vi
       .fn()
       .mockReturnValueOnce([INTAKE])
@@ -188,18 +188,46 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
       ]);
     const { user } = renderIntake({ list_intake_deferrals: list });
     await openRow(user, "Incomplete Person");
+    const panel = await screen.findByRole("region", { name: "Intake: Incomplete Person" });
     expect(
-      await screen.findByRole("button", { name: "Resolve with verified patient" }),
+      within(panel).getByRole("button", { name: "Resolve with verified patient" }),
     ).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Refresh" }));
     await vi.waitFor(() => expect(list).toHaveBeenCalledTimes(2));
-    expect(screen.queryByRole("button", { name: "Resolve with verified patient" })).toBeNull();
-    await openRow(user, "Incomplete Person");
-    expect(await screen.findByText(/Source withdrew intake/)).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Record declined intake" })).toBeNull();
+    expect(await within(panel).findByText("Source withdrew intake")).toBeTruthy();
+    expect(within(panel).getByText("Declined")).toBeTruthy();
+    expect(
+      within(panel).queryByRole("button", { name: "Resolve with verified patient" }),
+    ).toBeNull();
+    expect(within(panel).queryByRole("button", { name: "Record declined intake" })).toBeNull();
     // Both actors show by account name, never by account ID.
-    expect(screen.getByText(/Recorded by Test Intake Clerk/)).toBeTruthy();
-    expect(screen.getByText(/Recorded by Test Intake Reviewer/)).toBeTruthy();
+    expect(within(panel).getByText(/by Test Intake Clerk/)).toBeTruthy();
+    expect(within(panel).getByText(/by Test Intake Reviewer/)).toBeTruthy();
     expect(screen.queryByText(new RegExp(`${CLERK}|${REVIEWER}`))).toBeNull();
+  });
+  it("opens intake in the side panel, moves with Previous and Next, and closes with X or Escape", async () => {
+    const other = { ...INTAKE, intakeId: "synthetic-intake-2", suppliedName: "Second Person" };
+    const { user, router } = renderIntake({ list_intake_deferrals: () => [INTAKE, other] });
+    await openRow(user, "Incomplete Person");
+    expect(router.state.location.search).toBe("?open=synthetic-intake");
+    const panel = screen.getByRole("region", { name: "Intake: Incomplete Person" });
+    expect(within(panel).getByText("Awaiting verified identity")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Close intake" })).toBeNull();
+    await user.click(within(panel).getByRole("button", { name: "Next" }));
+    const second = screen.getByRole("region", { name: "Intake: Second Person" });
+    await user.click(within(second).getByRole("button", { name: "Previous" }));
+    await user.click(
+      within(screen.getByRole("region", { name: "Intake: Incomplete Person" })).getByRole(
+        "button",
+        { name: "Close" },
+      ),
+    );
+    await waitFor(() => expect(screen.queryByRole("region", { name: /^Intake:/ })).toBeNull());
+    await openRow(user, "Second Person");
+    // Escape closes the panel while focus is in it.
+    const opened = screen.getByRole("region", { name: "Intake: Second Person" });
+    await user.click(within(opened).getByRole("button", { name: "Previous" }));
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("region", { name: /^Intake:/ })).toBeNull());
   });
 });

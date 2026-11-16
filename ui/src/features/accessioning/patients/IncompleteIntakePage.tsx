@@ -1,35 +1,68 @@
 import { useState } from "react";
-import { useWatch } from "react-hook-form";
-import { useNavigate } from "react-router";
 import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
-import { DataGrid } from "@/components/DataGrid";
-import { ChoiceInput, TextInput } from "@/components/FormFields";
+import { DataGrid, type DataGridColumn } from "@/components/DataGrid";
+import { DetailLayout } from "@/components/DetailPanel";
 import { Page, PageHeader } from "@/components/Page";
 import { QueryContent } from "@/components/QueryContent";
 import { RefreshControl } from "@/components/RefreshControl";
-import { Section } from "@/components/Section";
 import { Timestamp } from "@/components/Timestamp";
 import type { IntakeDeferralView } from "@/generated/IntakeDeferralView";
-import type { RecordIntakeDeferralInput } from "@/generated/RecordIntakeDeferralInput";
-import type { ResolveIntakeDeferralInput } from "@/generated/ResolveIntakeDeferralInput";
-import type { SubjectSummary } from "@/generated/SubjectSummary";
-import { CommandDialog } from "@/lib/CommandDialog";
-import { optionalText } from "@/lib/choices";
+import { allowedActionItems } from "@/lib/allowedActions";
 import { useCommandPages } from "@/lib/commands";
-import { IdentityBanner } from "@/lib/IdentityBanner";
-import { usePersonText } from "@/lib/person";
-import {
-  BIRTH_EVIDENCE_KINDS,
-  birthEvidence,
-  IntakeStateBadge,
-  intakeStateLabel,
-} from "./intakeLabels";
-import { PatientDirectory } from "./PatientDirectory";
+import { useOpenRecord } from "@/lib/openRecord";
+import { openRecordPanel } from "@/lib/openRecordPanel";
+import { DispositionDialogs, type DispositionStep, RecordIntakeDialog } from "./IntakeDialogs";
+import { IntakePanel } from "./IntakePanel";
+import { birthEvidence, IntakeStateBadge, intakeStateLabel } from "./intakeLabels";
 
+const intakeId = (row: IntakeDeferralView) => row.intakeId;
+
+const COLUMNS: readonly DataGridColumn<IntakeDeferralView>[] = [
+  {
+    id: "name",
+    header: "Name as supplied",
+    cell: (row) => row.suppliedName,
+    sortValue: (row) => row.suppliedName,
+    identifier: true,
+  },
+  { id: "evidence", header: "Birth information", cell: birthEvidence, sortValue: birthEvidence },
+  {
+    id: "source",
+    header: "Source reference",
+    cell: (row) => row.sourceReference,
+    sortValue: (row) => row.sourceReference,
+  },
+  {
+    id: "time",
+    header: "Received",
+    cell: (row) => <Timestamp value={row.recordedAt} />,
+    sortValue: (row) => row.recordedAt,
+    width: 190,
+  },
+  {
+    id: "state",
+    header: "Disposition",
+    cell: (row) => <IntakeStateBadge intake={row} />,
+    sortValue: intakeStateLabel,
+    width: 240,
+  },
+];
+
+/** The dispositions of open intake, in the order the panel shows them. */
+const ACTIONS = [
+  { id: "resolved", label: "Resolve with verified patient" },
+  { id: "declined", label: "Record declined intake" },
+] as const;
+
+/**
+ * Incomplete identity intake (DM-06): supplied identity evidence retained while a complete
+ * birth date is unavailable. These records never authorize orders or testing. An intake opens
+ * in a side panel (`?open=`); open intake is resolved to a verified patient or declined, each
+ * with its source and reason.
+ */
 export function IncompleteIntakePage() {
-  const navigate = useNavigate();
-  const person = usePersonText();
+  const record = useOpenRecord();
   const [includeClosed, setIncludeClosed] = useState(false);
   const query = useCommandPages<IntakeDeferralView, string>("list_intake_deferrals", {
     key: { includeClosed },
@@ -37,18 +70,25 @@ export function IncompleteIntakePage() {
     nextCursor: (page) => (page.length === 50 ? page.at(-1)?.intakeId : undefined),
   });
   const [recording, setRecording] = useState(false);
-  const [selected, setSelected] = useState<IntakeDeferralView | null>(null);
-  const [resolving, setResolving] = useState<"declined" | "resolved" | null>(null);
-  const [patient, setPatient] = useState<SubjectSummary | null>(null);
-  const dispositionSubjectId = resolving === "declined" ? null : patient?.subjectId;
-  const close = () => {
-    setResolving(null);
-    setPatient(null);
-    setSelected(null);
-  };
-  const rows = query.data?.pages.flat() ?? [];
+  const [step, setStep] = useState<DispositionStep | null>(null);
+  const rows = query.data?.pages.flat();
+  // Engine request: `allowedActions` on `IntakeDeferralView` would replace this condition;
+  // reading the list and recording a disposition need the same capability.
+  const actionsOf = (intake: IntakeDeferralView) =>
+    allowedActionItems(ACTIONS, intake.disposition === null ? ["resolved", "declined"] : [], (id) =>
+      setStep({ intake, disposition: id }),
+    );
+  const panel = openRecordPanel(record, rows, intakeId, (intake) => (
+    <IntakePanel
+      intake={intake}
+      actions={actionsOf(intake)}
+      onClose={record.close}
+      onPrevious={record.previous}
+      onNext={record.next}
+    />
+  ));
   return (
-    <Page>
+    <Page layout="collection">
       <PageHeader
         title="Incomplete identity intake"
         breadcrumbs={[{ label: "Patients", href: "/patients" }]}
@@ -59,178 +99,33 @@ export function IncompleteIntakePage() {
           </Button>
         }
       />
-      <Checkbox isSelected={includeClosed} onChange={setIncludeClosed}>
-        Include resolved and declined intake
-      </Checkbox>
-      <RefreshControl
-        query={{
-          ...query,
-          refetch: () => {
-            close();
-            return query.refetch();
-          },
-        }}
-      />
-      <QueryContent query={query} what="incomplete intake">
-        {() => (
-          <>
+      <DetailLayout panel={panel}>
+        <Checkbox isSelected={includeClosed} onChange={setIncludeClosed}>
+          Include resolved and declined intake
+        </Checkbox>
+        <RefreshControl query={query} />
+        <QueryContent query={query} what="incomplete intake">
+          {() => (
             <DataGrid
               label="Incomplete intake records"
-              rows={rows}
-              getRowId={(r) => r.intakeId}
-              onRowAction={(r) => {
-                setSelected(r);
-                setResolving(null);
-                setPatient(null);
-              }}
-              columns={[
-                { id: "name", header: "Name as supplied", cell: (r) => r.suppliedName },
-                { id: "evidence", header: "Birth information", cell: birthEvidence },
-                { id: "source", header: "Source reference", cell: (r) => r.sourceReference },
-                { id: "time", header: "Received", cell: (r) => <Timestamp value={r.recordedAt} /> },
-                {
-                  id: "state",
-                  header: "Disposition",
-                  cell: (r) => <IntakeStateBadge intake={r} />,
-                  sortValue: intakeStateLabel,
-                },
-              ]}
+              columns={COLUMNS}
+              rows={rows ?? []}
+              getRowId={intakeId}
+              openRowId={record.openId}
+              onOrderChange={record.followOrder}
+              onRowAction={(row, order) => record.open(row.intakeId, order)}
+              fill
             />
-            {query.hasNextPage && (
-              <Button
-                isPending={query.isFetchingNextPage}
-                onPress={() => void query.fetchNextPage()}
-              >
-                Load more intake records
-              </Button>
-            )}
-          </>
-        )}
-      </QueryContent>
-      {selected && (
-        <Section
-          title={`Intake: ${selected.suppliedName}`}
-          actions={<Button onPress={close}>Close intake</Button>}
-        >
-          <p>
-            Birth information: {birthEvidence(selected)}. Source: {selected.sourceReference}.
-            Recorded by {person(selected.recordedBy, selected.recordedByDisplay)}. Reason:{" "}
-            {selected.reason}.
-          </p>
-          {selected.disposition ? (
-            <>
-              <p>
-                {intakeStateLabel(selected)}: {selected.dispositionReason}. Source:{" "}
-                {selected.dispositionSource}. Recorded by{" "}
-                {selected.disposedBy && person(selected.disposedBy, selected.disposedByDisplay)}{" "}
-                {selected.disposedAt && <Timestamp value={selected.disposedAt} />}.
-              </p>
-              {selected.subjectId && (
-                <Button onPress={() => navigate(`/patients/${selected.subjectId}`)}>
-                  Open resolved patient
-                </Button>
-              )}
-            </>
-          ) : (
-            <>
-              <Button onPress={() => setResolving("resolved")}>
-                Resolve with verified patient
-              </Button>
-              <Button onPress={() => setResolving("declined")}>Record declined intake</Button>
-              {resolving === "resolved" && !patient && (
-                <Section title="Choose verified patient">
-                  <p>
-                    First obtain source-backed complete identity. Register a patient separately if
-                    needed, then return here and explicitly select the verified record. Never derive
-                    a date from age or partial dates.
-                  </p>
-                  <Button onPress={() => navigate("/patients/register")}>
-                    Register verified patient
-                  </Button>
-                  <PatientDirectory onChoose={setPatient} />
-                </Section>
-              )}
-            </>
           )}
-        </Section>
-      )}
-      {recording && (
-        <CommandDialog<RecordIntakeDeferralInput, RecordIntakeDeferralInput>
-          title="Record incomplete identity intake"
-          submitLabel="Retain incomplete intake"
-          command={{ name: "record_intake_deferral", invalidates: ["list_intake_deferrals"] }}
-          defaultValues={{
-            suppliedName: "",
-            birthEvidenceText: "",
-            sourceReference: "",
-            reason: "",
-          }}
-          toInput={(v) => ({
-            ...v,
-            suppliedName: v.suppliedName.trim(),
-            birthEvidenceText: optionalText(v.birthEvidenceText ?? ""),
-            sourceReference: v.sourceReference.trim(),
-            reason: v.reason.trim(),
-          })}
-          successTitle="Incomplete intake retained"
-          onClose={() => setRecording(false)}
-        >
-          <TextInput name="suppliedName" label="Name as supplied" isRequired />
-          <ChoiceInput
-            name="birthEvidenceKind"
-            label="Available birth information"
-            options={BIRTH_EVIDENCE_KINDS}
-            isRequired
-          />
-          <BirthEvidenceTextInput />
-          <TextInput name="sourceReference" label="Source reference" isRequired />
-          <TextInput name="reason" label="Reason intake is deferred" isRequired />
-        </CommandDialog>
-      )}
-      {selected && resolving && dispositionSubjectId !== undefined && (
-        <CommandDialog<{ sourceReference: string; reason: string }, ResolveIntakeDeferralInput>
-          title={
-            resolving === "resolved"
-              ? "Resolve incomplete identity intake"
-              : "Record declined intake"
-          }
-          submitLabel="Record disposition"
-          command={{ name: "resolve_intake_deferral", invalidates: ["list_intake_deferrals"] }}
-          defaultValues={{ sourceReference: "", reason: "" }}
-          toInput={(v) => ({
-            intakeId: selected.intakeId,
-            expectedRevision: selected.revision,
-            disposition: resolving,
-            subjectId: dispositionSubjectId,
-            sourceReference: v.sourceReference.trim(),
-            reason: v.reason.trim(),
-          })}
-          successTitle="Intake disposition recorded"
-          onClose={close}
-        >
-          {patient && <IdentityBanner subject={patient} />}
-          <p>
-            The supplied evidence remains unchanged. This records a terminal disposition; it does
-            not create an order, merge patients or remove identity holds.
-          </p>
-          <TextInput name="sourceReference" label="Verification or decline source" isRequired />
-          <TextInput name="reason" label="Disposition reason" isRequired />
-        </CommandDialog>
-      )}
+        </QueryContent>
+        {query.hasNextPage && (
+          <Button isPending={query.isFetchingNextPage} onPress={() => void query.fetchNextPage()}>
+            Load more intake records
+          </Button>
+        )}
+      </DetailLayout>
+      {recording && <RecordIntakeDialog onClose={() => setRecording(false)} />}
+      {step && <DispositionDialogs step={step} onChange={setStep} />}
     </Page>
-  );
-}
-
-/** The supplied text: required for a partial date or a supplied age, optional for Unknown. */
-function BirthEvidenceTextInput() {
-  const kind = useWatch({ name: "birthEvidenceKind" });
-  return (
-    <TextInput
-      name="birthEvidenceText"
-      label="Exact supplied date or age text"
-      description="Required for partial date or age. Do not complete a date or convert age to a birth date."
-      isRequired={kind === "partial_date" || kind === "supplied_age"}
-      requiredMessage="Enter the partial date or age exactly as supplied."
-    />
   );
 }
