@@ -45,29 +45,34 @@ export function IntakePanel({ intake, actions, canViewAudit, ...navigation }: In
             label: "Recorded",
             value: recorded(intake.recordedAt, intake.recordedBy, intake.recordedByDisplay),
           },
+          ...(intake.disposedAt && intake.disposedBy
+            ? [
+                { label: "Disposition source", value: intake.dispositionSource },
+                { label: "Disposition reason", value: intake.dispositionReason },
+                {
+                  label: "Disposition recorded",
+                  value: recorded(intake.disposedAt, intake.disposedBy, intake.disposedByDisplay),
+                },
+              ]
+            : []),
+          ...(intake.subjectId
+            ? [
+                {
+                  label: "Patient",
+                  value: <Link to={`/patients/${intake.subjectId}`}>Open resolved patient</Link>,
+                },
+              ]
+            : []),
+          ...(canViewAudit
+            ? [
+                {
+                  label: "Audit trail",
+                  value: <Link to={intakeAuditPath(intake)}>View in audit trail</Link>,
+                },
+              ]
+            : []),
         ]}
       />
-      {intake.disposedAt && intake.disposedBy && (
-        <Facts
-          items={[
-            { label: "Disposition source", value: intake.dispositionSource },
-            { label: "Disposition reason", value: intake.dispositionReason },
-            {
-              label: "Disposition recorded",
-              value: recorded(intake.disposedAt, intake.disposedBy, intake.disposedByDisplay),
-            },
-            ...(intake.subjectId
-              ? [
-                  {
-                    label: "Patient",
-                    value: <Link to={`/patients/${intake.subjectId}`}>Open resolved patient</Link>,
-                  },
-                ]
-              : []),
-          ]}
-        />
-      )}
-      {canViewAudit && <Link to={intakeAuditPath(intake)}>View in audit trail</Link>}
     </DetailPanel>
   );
 }
