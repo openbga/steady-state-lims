@@ -76,6 +76,32 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
     });
     expect(register).not.toHaveBeenCalled();
   });
+  it("shows birth information and disposition with the form's labels", async () => {
+    renderIntake({
+      list_intake_deferrals: () => [
+        INTAKE,
+        {
+          ...INTAKE,
+          intakeId: "partial",
+          birthEvidenceKind: "partial_date",
+          birthEvidenceText: "1985",
+        },
+        {
+          ...INTAKE,
+          intakeId: "age",
+          birthEvidenceKind: "supplied_age",
+          birthEvidenceText: "About 40",
+          disposition: "declined",
+        },
+      ],
+    });
+    const grid = await screen.findByRole("grid", { name: "Incomplete intake records" });
+    for (const text of ["Unknown", "Partial date: 1985", "Supplied age: About 40", "Declined"]) {
+      expect(within(grid).getByText(text)).toBeTruthy();
+    }
+    expect(within(grid).getAllByText("Awaiting verified identity")).toHaveLength(2);
+    expect(within(grid).queryByText(/partial date|supplied age|declined|unknown:/)).toBeNull();
+  });
   it("requires the supplied text for a partial date before saving, and not for Unknown", async () => {
     const record = vi.fn(() => INTAKE);
     const { user } = renderIntake({ record_intake_deferral: record });

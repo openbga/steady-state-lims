@@ -32,6 +32,12 @@
           "rules": "Changing the filter starts a new bounded list; Load more reads50additional records."
         },
         {
+          "name": "Birth information and Disposition columns",
+          "meaning": "The birth information as supplied and where each intake stands.",
+          "values": "Birth information uses the form's labels: Unknown, Partial date or Supplied age, followed by the supplied text, for example \u201cPartial date: 1985\u201d or \u201cSupplied age: About 40\u201d. Disposition is a badge: Awaiting verified identity (warning), Resolved or Declined (neutral).",
+          "rules": "The supplied text is shown exactly as entered; nothing is completed or converted."
+        },
+        {
           "name": "Name as supplied",
           "meaning": "Source name retained before patient registration.",
           "values": "Required text, maximum400characters.",

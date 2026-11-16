@@ -19,6 +19,12 @@ import { optionalText } from "@/lib/choices";
 import { useCommandPages } from "@/lib/commands";
 import { IdentityBanner } from "@/lib/IdentityBanner";
 import { usePersonText } from "@/lib/person";
+import {
+  BIRTH_EVIDENCE_KINDS,
+  birthEvidence,
+  IntakeStateBadge,
+  intakeStateLabel,
+} from "./intakeLabels";
 import { PatientDirectory } from "./PatientDirectory";
 
 export function IncompleteIntakePage() {
@@ -79,18 +85,14 @@ export function IncompleteIntakePage() {
               }}
               columns={[
                 { id: "name", header: "Name as supplied", cell: (r) => r.suppliedName },
-                {
-                  id: "evidence",
-                  header: "Birth information as supplied",
-                  cell: (r) =>
-                    `${r.birthEvidenceKind.replaceAll("_", " ")}: ${r.birthEvidenceText ?? "Not supplied"}`,
-                },
+                { id: "evidence", header: "Birth information", cell: birthEvidence },
                 { id: "source", header: "Source reference", cell: (r) => r.sourceReference },
                 { id: "time", header: "Received", cell: (r) => <Timestamp value={r.recordedAt} /> },
                 {
                   id: "state",
                   header: "Disposition",
-                  cell: (r) => r.disposition ?? "Awaiting verified identity",
+                  cell: (r) => <IntakeStateBadge intake={r} />,
+                  sortValue: intakeStateLabel,
                 },
               ]}
             />
@@ -111,14 +113,14 @@ export function IncompleteIntakePage() {
           actions={<Button onPress={close}>Close intake</Button>}
         >
           <p>
-            Original evidence: {selected.birthEvidenceText ?? "Birth information unknown"}. Source:{" "}
-            {selected.sourceReference}. Recorded by{" "}
-            {person(selected.recordedBy, selected.recordedByDisplay)}. Reason: {selected.reason}.
+            Birth information: {birthEvidence(selected)}. Source: {selected.sourceReference}.
+            Recorded by {person(selected.recordedBy, selected.recordedByDisplay)}. Reason:{" "}
+            {selected.reason}.
           </p>
           {selected.disposition ? (
             <>
               <p>
-                {selected.disposition}: {selected.dispositionReason}. Source:{" "}
+                {intakeStateLabel(selected)}: {selected.dispositionReason}. Source:{" "}
                 {selected.dispositionSource}. Recorded by{" "}
                 {selected.disposedBy && person(selected.disposedBy, selected.disposedByDisplay)}{" "}
                 {selected.disposedAt && <Timestamp value={selected.disposedAt} />}.
@@ -177,11 +179,7 @@ export function IncompleteIntakePage() {
           <ChoiceInput
             name="birthEvidenceKind"
             label="Available birth information"
-            options={[
-              { id: "unknown", label: "Unknown" },
-              { id: "partial_date", label: "Partial date" },
-              { id: "supplied_age", label: "Supplied age" },
-            ]}
+            options={BIRTH_EVIDENCE_KINDS}
             isRequired
           />
           <BirthEvidenceTextInput />
