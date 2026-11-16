@@ -8,7 +8,7 @@ use crate::{
 };
 use lis_core::CommandError;
 use lis_identity::{
-    IntakeDeferralView, ListIntakeDeferralsInput, RecordIntakeDeferralInput,
+    IntakeDeferralPage, IntakeDeferralView, ListIntakeDeferralsInput, RecordIntakeDeferralInput,
     ResolveIntakeDeferralInput,
 };
 pub(crate) const RECORD_INTAKE_DEFERRAL: CommandSpec = spec(
@@ -54,7 +54,7 @@ impl Engine {
     pub async fn list_intake_deferrals(
         &self,
         input: ListIntakeDeferralsInput,
-    ) -> Result<Vec<IntakeDeferralView>, CommandError> {
+    ) -> Result<IntakeDeferralPage, CommandError> {
         self.run(&LIST_INTAKE_DEFERRALS, |call| async move {
             self.audited_read(
                 &call,
@@ -67,14 +67,14 @@ impl Engine {
     }
 }
 
-/// Deferrals, with who recorded and who disposed of each named on every read.
+/// A page of deferrals, with who recorded and who disposed of each named on every read.
 fn named_deferrals(
     conn: &rusqlite::Connection,
     input: ListIntakeDeferralsInput,
-) -> Result<Vec<IntakeDeferralView>, lis_identity::IdentityError> {
-    let mut rows = lis_identity::list_intake_deferrals(conn, input)?;
-    name_intake_people(conn, &mut rows)?;
-    Ok(rows)
+) -> Result<IntakeDeferralPage, lis_identity::IdentityError> {
+    let mut page = lis_identity::list_intake_deferrals(conn, input)?;
+    name_intake_people(conn, &mut page.rows)?;
+    Ok(page)
 }
 
 /// Names who recorded and who disposed of each intake, looked up once for all rows.

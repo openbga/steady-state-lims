@@ -30,6 +30,8 @@ interface TextInputProps {
   name: string;
   label: string;
   isRequired?: boolean;
+  /** The message for a blank required field; "Enter <label>." by default. */
+  requiredMessage?: string;
   /** Shown but not editable, such as a value the engine no longer lets change. */
   isDisabled?: boolean;
   description?: string;
@@ -51,6 +53,7 @@ export function TextInput({
   name,
   label,
   isRequired,
+  requiredMessage,
   isDisabled,
   description,
   format,
@@ -78,7 +81,9 @@ export function TextInput({
       name={name}
       rules={{
         validate: (value: string) => {
-          if (value.trim() === "") return isRequired ? `Enter ${label.toLowerCase()}.` : true;
+          if (value.trim() === "") {
+            return isRequired ? (requiredMessage ?? `Enter ${label.toLowerCase()}.`) : true;
+          }
           if (format && !format.pattern.test(value.trim())) return format.message;
           return validate?.(value.trim()) ?? true;
         },
