@@ -315,7 +315,9 @@ describe("OrderDetailPage (REQ-ORD-001, REQ-ORD-005)", { timeout: WALKTHROUGH_TI
       within(dialog).getByText("This order has no point-of-care result to trigger a reflex."),
     ).toBeTruthy();
     expect(within(dialog).queryByText(/laboratory result/i)).toBeNull();
-    await user.click(within(dialog).getByRole("button", { name: /Kind of request$/ }));
+    await user.click(
+      within(dialog).getByRole("button", { name: /Kind of request$/, expanded: false }),
+    );
     await user.click(await screen.findByRole("option", { name: "Add-on, with new authority" }));
     await pickRecord(user, /^Test/, "SYN-CNF");
     await chooseWithKeyboard(user, /Testing sequence role$/, "Confirmation");

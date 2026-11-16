@@ -76,6 +76,25 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
     });
     expect(register).not.toHaveBeenCalled();
   });
+  it("clears a chosen birth information, which is then asked for again", async () => {
+    const record = vi.fn(() => INTAKE);
+    const { user } = renderIntake({ record_intake_deferral: record });
+    await user.click(await screen.findByRole("button", { name: "Record incomplete intake" }));
+    const dialog = await screen.findByRole("dialog", { name: "Record incomplete identity intake" });
+    await chooseWithKeyboard(user, /Available birth information$/, "Partial date");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Clear Available birth information" }),
+    );
+    const trigger = within(dialog).getByRole("button", {
+      name: /Available birth information/,
+      expanded: false,
+    });
+    expect(trigger.textContent).toContain("Select…");
+    expect(document.activeElement).toBe(trigger);
+    await user.click(within(dialog).getByRole("button", { name: "Retain incomplete intake" }));
+    expect(await within(dialog).findByText("Choose available birth information.")).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+  });
   it("resolves only after an explicit existing-patient choice and source-backed disposition", async () => {
     const resolve = vi.fn(() => ({
       ...INTAKE,
