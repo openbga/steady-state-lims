@@ -52,7 +52,7 @@ const APPROVED: UpdateApprovalView = {
   version: "0.2.0",
   approvedBy: sessionWith([]).userId,
   approvedAt: "2026-10-27T19:00:00Z",
-  packageFileName: "steady-state-lims_0.2.0_linux-amd64.AppImage",
+  packageFileName: "toxicology-lims_0.2.0_linux-amd64.AppImage",
   packageSha256: "cd".repeat(32),
   riskClassText: "Development build",
   preUpdateRunId: RUN_ID,

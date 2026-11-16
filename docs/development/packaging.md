@@ -7,24 +7,24 @@ publisher and supported-release decisions in [Q-19 and Q-34](../planning/open-qu
 
 ## Product name and compatibility
 
-The public project name is **Steady State LIMS**, hosted by the **OpenBGA** organization
-at [`openbga/steady-state-lims`](https://github.com/openbga/steady-state-lims). The
+The public project name is **OpenBGA Toxicology LIMS**, hosted by the **OpenBGA** organization
+at [`openbga/toxicology-lims`](https://github.com/openbga/toxicology-lims). The
 presentation website and documentation, desktop window titles, OS bundles and
-installers (`Steady State LIMS.app` on macOS) and new authenticator enrollments use
+installers (`OpenBGA Toxicology LIMS.app` on macOS) and new authenticator enrollments use
 this name. Published download filenames use
-`steady-state-lims_<version>_<os>-<arch>.<ext>`. The Tauri bundle identifier remains
+`toxicology-lims_<version>_<os>-<arch>.<ext>`. The Tauri bundle identifier remains
 `org.vibetox.lis`, and the executable remains `lis-desktop`.
 
-The full name never carries the OpenBGA prefix. The brand lockup in the application's
-sign-in card and top bar and in the website header shows the mark, the short name
-**Steady State** and “An OpenBGA project” beneath it. The mark is the desktop icon,
+Primary brand lockups in the application's sign-in card and top bar and the
+website header show the existing mark and the full **OpenBGA Toxicology LIMS** name.
+The mark is the desktop icon,
 [`src-tauri/app-icon.svg`](../../src-tauri/app-icon.svg).
 
 Persistent names are compatibility contracts: keep the OS key-store and security-key
 RP identities, `VibeToxLIS` backup directory, versioned `vibe-tox-*` formats,
 cryptographic domain strings, interface application identifiers and saved UI
 preference keys. Recovery-kit and export filenames retain their existing prefixes.
-New authenticator enrollment labels use Steady State LIMS; existing authenticator entries
+New authenticator enrollment labels use OpenBGA Toxicology LIMS; existing authenticator entries
 may still show their original label. Renaming does not rotate credentials or rewrite
 stored records.
 
@@ -35,9 +35,21 @@ the existing data/key-store access. A stable bundle identifier alone does not pr
 installer upgrade continuity. This remains part of the real-host release checks
 below (NFR-24, NFR-33; Q-19, Q-34).
 
+The repository was renamed from `openbga/steady-state-lims` to
+`openbga/toxicology-lims` on 2026-11-16. GitHub redirects source and release links;
+existing release assets and checksums retain their published names. New builds use
+`toxicology-lims` download filenames. Do not rename signed historical assets or
+rewrite their manifests. Existing SSH public-key comments remain `steady-state-lims`;
+the key material, trust configuration and stored records are unchanged.
+
 A build also accepts in-app updates only under the repository name compiled into it.
 A build made under an earlier repository name needs one manual installation of a
-current build ([in-app updates](releases.md#in-app-updates)).
+current build ([in-app updates](releases.md#in-app-updates)). Wait for a reviewed
+build compiled for `openbga/toxicology-lims` to be published; existing releases
+remain pre-rename builds. Keep the existing updater signing key, and retain lab
+approval and a verified pre-update backup for this manual transition. Newly named
+builds reject historical manifests whose package URLs still use an earlier
+repository path; the next package workflow emits URLs under the new repository.
 
 ## Configured bundles
 
@@ -79,7 +91,7 @@ The package workflow verifies the completed `.app` before uploading:
 
 ```bash
 codesign --verify --deep --strict --verbose=2 \
-  "$CARGO_TARGET_DIR/release/bundle/macos/Steady State LIMS.app"
+  "$CARGO_TARGET_DIR/release/bundle/macos/OpenBGA Toxicology LIMS.app"
 ```
 
 This follows Apple's [signature verification guidance](https://developer.apple.com/forums/thread/706379)

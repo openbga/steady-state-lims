@@ -4,13 +4,13 @@ import { renderWithProviders } from "@/lib/test/render";
 import { BrandLockup } from "./BrandLockup";
 
 describe("BrandLockup", () => {
-  it("names the product over its parent project, with a decorative mark", async () => {
+  it("names the full product, with a decorative mark", async () => {
     const { container } = renderWithProviders(
       <p>
         <BrandLockup />
       </p>,
     );
-    expect(container.textContent).toBe("Steady State An OpenBGA project");
+    expect(container.textContent).toBe("OpenBGA Toxicology LIMS");
     expect(container.querySelector("img")?.getAttribute("alt")).toBe("");
     await expectNoA11yViolations(container);
   });
