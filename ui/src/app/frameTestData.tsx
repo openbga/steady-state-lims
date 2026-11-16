@@ -37,6 +37,7 @@ export function queue(overrides: Partial<WorkQueueSummary>): WorkQueueSummary {
   return {
     queue: "review_ready",
     label: "Results ready for review",
+    area: "review",
     ownerCapability: "review_results",
     count: 0,
     countCapped: false,

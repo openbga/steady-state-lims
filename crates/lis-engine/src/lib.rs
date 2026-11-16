@@ -197,7 +197,8 @@ pub use lis_billing::{
 // billing: end
 // work_queues: begin
 pub use commands::work_queues::{
-    ListWorkQueueItemsInput, WorkQueueCursor, WorkQueueItem, WorkQueuePage, WorkQueueSummary,
+    ListWorkQueueItemsInput, WorkQueueArea, WorkQueueCursor, WorkQueueItem, WorkQueuePage,
+    WorkQueueSummary,
 };
 // work_queues: end
 // backup: begin
@@ -317,8 +318,8 @@ pub use commands::specimens::material::{
 pub use lis_specimens::{ExcursionPage, MaterialHistoryPage};
 
 pub use lis_identity::{
-    IntakeDeferralView, ListIntakeDeferralsInput, RecordIntakeDeferralInput,
-    ResolveIntakeDeferralInput,
+    IntakeDeferralCounts, IntakeDeferralPage, IntakeDeferralView, IntakeShow,
+    ListIntakeDeferralsInput, RecordIntakeDeferralInput, ResolveIntakeDeferralInput,
 };
 
 pub use lis_identity::{

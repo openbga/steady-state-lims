@@ -1,9 +1,25 @@
 //! Static work-queue catalog. Workflow selection remains with each owner.
 
 use lis_core::Capability;
+use serde::Serialize;
+use ts_rs::TS;
+
+/// The work area a queue belongs to, as the navigation groups the laboratory's screens.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum WorkQueueArea {
+    FrontDesk,
+    Bench,
+    Review,
+    Reports,
+    Billing,
+    System,
+}
 
 #[derive(Clone, Copy)]
 pub(super) struct QueueDefinition {
+    pub(super) area: WorkQueueArea,
     pub(super) code: &'static str,
     pub(super) label: &'static str,
     pub(super) capability: Capability,
@@ -11,8 +27,9 @@ pub(super) struct QueueDefinition {
 }
 
 macro_rules! queue {
-    ($code:literal, $label:literal, $capability:ident, $next:literal) => {
+    ($area:ident, $code:literal, $label:literal, $capability:ident, $next:literal) => {
         QueueDefinition {
+            area: WorkQueueArea::$area,
             code: $code,
             label: $label,
             capability: Capability::$capability,
@@ -23,177 +40,232 @@ macro_rules! queue {
 
 pub(super) const QUEUES: &[QueueDefinition] = &[
     queue!(
+        FrontDesk,
         "orders_needing_decision",
         "Orders needing a decision",
         EnterOrders,
         "Accept, hold or reject"
     ),
     queue!(
+        FrontDesk,
         "orders_on_hold",
         "Orders on hold",
         EnterOrders,
         "Resolve the hold"
     ),
-    queue!("identity_holds", "Identity holds", ManageQuality, "Resolve"),
     queue!(
+        FrontDesk,
+        "identity_holds",
+        "Identity holds",
+        ManageQuality,
+        "Resolve"
+    ),
+    // Recording and resolving incomplete intake both need enter_orders (#4773).
+    queue!(
+        FrontDesk,
+        "incomplete_intake",
+        "Incomplete identity intake",
+        EnterOrders,
+        "Get the complete birth date, then resolve"
+    ),
+    queue!(
+        FrontDesk,
         "specimen_decisions",
         "Specimens awaiting a decision",
         Accession,
         "Record a receipt decision"
     ),
     queue!(
+        FrontDesk,
         "label_failures",
         "Label print failures",
         Accession,
         "Reprint"
     ),
     queue!(
+        FrontDesk,
         "collection_time_review",
         "Collection timing review",
         ManageQuality,
         "Assess corrected collection timing"
     ),
-    queue!("qc_review", "QC requiring review", ManageQuality, "Assess"),
-    queue!("open_deviations", "Open deviations", ManageQuality, "Close"),
     queue!(
+        Bench,
+        "qc_review",
+        "QC requiring review",
+        ManageQuality,
+        "Assess"
+    ),
+    queue!(
+        Bench,
+        "open_deviations",
+        "Open deviations",
+        ManageQuality,
+        "Close"
+    ),
+    queue!(
+        Bench,
         "lots_expiring_soon",
         "Lots expiring soon",
         ManageQuality,
         "Register a new lot"
     ),
     queue!(
+        Review,
         "review_ready",
         "Results ready for review",
         ReviewResults,
         "Review"
     ),
     queue!(
+        Review,
         "review_stale",
         "Stale result reviews",
         ReviewResults,
         "Review again"
     ),
     queue!(
+        Review,
         "review_blocked",
         "Result review blocked",
         ReviewResults,
         "Resolve gates"
     ),
     queue!(
+        Review,
         "import_quarantine",
         "Open import quarantine",
         ReviewResults,
         "Resolve"
     ),
     queue!(
+        Review,
         "performed_not_ordered",
         "Performed but not ordered",
         ReviewResults,
         "Resolve"
     ),
     queue!(
+        Reports,
         "release_ready",
         "Reports ready for release",
         ReleaseReports,
         "Prepare and release"
     ),
     queue!(
+        Reports,
         "release_blocked",
         "Report release blocked",
         ReleaseReports,
         "Resolve gates"
     ),
     queue!(
+        Reports,
         "partial_reports",
         "Partial reports outstanding",
         ReleaseReports,
         "Complete"
     ),
     queue!(
+        Reports,
         "impact_review",
         "Report impact review",
         ManageQuality,
         "Assess"
     ),
     queue!(
+        Reports,
         "correction_due",
         "Report corrections due",
         ReleaseReports,
         "Issue a correction"
     ),
     queue!(
+        Reports,
         "delivery_work",
         "Report delivery work",
         DeliverReports,
         "Reconcile delivery"
     ),
     queue!(
+        Reports,
         "reports_without_destination",
         "Reports without a destination",
         DeliverReports,
         "Add a destination"
     ),
     queue!(
+        Reports,
         "unverified_destinations",
         "Delivery destinations to verify or replace",
         ManageConfiguration,
         "Verify"
     ),
     queue!(
+        Reports,
         "preservation_incidents",
         "Report preservation incidents",
         ManageQuality,
         "Investigate"
     ),
     queue!(
+        Billing,
         "billing_work",
         "Billing work",
         Billing,
         "Derive, review or reconcile"
     ),
     queue!(
+        System,
         "outbox_dead_letters",
         "Outbox dead letters",
         ManageConfiguration,
         "Investigate"
     ),
     queue!(
+        System,
         "unrouted_messages",
         "Unrouted interface messages",
         ManageConfiguration,
         "Send, route or dismiss"
     ),
     queue!(
+        System,
         "interface_failures",
         "Interface messages not written",
         ManageConfiguration,
         "Fix the connection and send again"
     ),
     queue!(
+        System,
         "ops_alerts",
         "Health checks needing attention",
         ManageConfiguration,
         "Open the health page"
     ),
     queue!(
+        Bench,
         "listening_gaps",
         "Listening gaps to acknowledge",
         PerformAnalysis,
         "Check for missing results and acknowledge"
     ),
     queue!(
+        System,
         "recovery_reconciliation",
         "Recovery reconciliation after a restore",
         ManageQuality,
         "Reconcile and close"
     ),
     queue!(
+        System,
         "version_acceptance",
         "Version awaiting acceptance",
         ApproveConfiguration,
         "Accept for clinical use"
     ),
     queue!(
+        Bench,
         "results_expected",
         "Results expected from analyzers",
         PerformAnalysis,
@@ -211,6 +283,7 @@ pub(super) fn state_label(code: &str) -> String {
     let known = match code {
         "received" => "Received, awaiting a decision",
         "held" => "Held",
+        "awaiting_identity" => "Awaiting verified identity",
         "possible_duplicate" => "Possible duplicate",
         "requestor_missing" => "Requestor missing",
         "test_selection_missing" => "Test selection missing",

@@ -12,6 +12,7 @@ import { Toolbar } from "@/components/Toolbar";
 import { choiceOf, labelOf } from "@/lib/choices";
 import { useOpenRecord } from "@/lib/openRecord";
 import { useSearchParam } from "@/lib/searchParam";
+import { useCursorPages } from "@/lib/useCursorPages";
 import styles from "@/styles/layout.module.css";
 import {
   type DeliveryQueueFilter,
@@ -21,7 +22,6 @@ import {
   type DeliveryQueuePage as ScanPage,
 } from "../contract";
 import { DELIVERY_FILTERS } from "../labels";
-import { useCursorPages } from "../useCursorPages";
 import { ExactObligationPanel } from "./ExactObligationPanel";
 import { ObligationGrid } from "./ObligationGrid";
 import { useObligationActions } from "./obligationActions";

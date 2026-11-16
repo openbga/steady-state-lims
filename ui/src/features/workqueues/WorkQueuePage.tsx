@@ -7,6 +7,7 @@ import { useOpenRecordPage } from "@/lib/recordSequence";
 import { useWorkQueueItems } from "@/lib/useWorkQueueItems";
 import { WorkQueueList } from "@/lib/WorkQueueList";
 import { Age } from "./Age";
+import { useRecordCheckedCount } from "./checkedCounts";
 import {
   ITEM_LIMIT,
   LIST_WORK_QUEUES,
@@ -85,6 +86,8 @@ export function WorkQueuePage() {
   // caller's) is named generically.
   const label = summary?.label ?? "Work queue";
   const items = useWorkQueueItems(queue, ITEM_LIMIT);
+  // A queue the summary does not count shows what it held on Work queues until Refresh.
+  useRecordCheckedCount(queue, summary?.count === null, items);
   const isLots = queue === LOTS_EXPIRING_SOON;
   const lotColumns = useLotColumns(isLots);
   // Items of one queue may open different screens, so each opens at its own address; the

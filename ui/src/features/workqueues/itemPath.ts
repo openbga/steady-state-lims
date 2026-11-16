@@ -58,6 +58,11 @@ const TARGETS: Readonly<Record<WorkItemKind, (item: ItemRef) => ItemTarget>> = {
   deviation: page("/quality/deviations"),
   order: page("/orders"),
   subject: page("/patients"),
+  // Intake awaiting verified identity (#4773), on its page filtered to those awaiting.
+  intake_deferral: (item) => ({
+    recordId: item.itemId,
+    path: "/patients/incomplete-intake?show=awaiting",
+  }),
   accession: page("/accessions"),
   collection_review: page("/accessions", "/collection-review"),
   review_specimen: page("/review/specimens"),
