@@ -8,6 +8,8 @@ describe("itemTarget (REQ-OPS-004)", () => {
   it.each([
     ["order", ID, `/orders/${ID}`, ID],
     ["subject", ID, `/patients/${ID}`, ID],
+    // Incomplete intake has no record page; its list opens on those awaiting (#4773).
+    ["intake_deferral", ID, "/patients/incomplete-intake?show=awaiting", ID],
     ["accession", ID, `/accessions/${ID}`, ID],
     ["collection_review", ID, `/accessions/${ID}/collection-review`, ID],
     ["review_specimen", ID, `/review/specimens/${ID}`, ID],

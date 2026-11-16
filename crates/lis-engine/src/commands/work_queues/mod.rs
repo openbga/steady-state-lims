@@ -7,6 +7,7 @@
 
 mod billing_items;
 mod catalog;
+mod intake_items;
 mod interface_items;
 mod lot_items;
 mod ops_items;
@@ -329,6 +330,7 @@ fn load_items(
         }
         "orders_on_hold" => owner_items::order_hold_items(conn, definition, query_limit)?,
         "identity_holds" => owner_items::identity_items(conn, definition, query_limit)?,
+        "incomplete_intake" => intake_items::intake_items(conn, definition, query_limit)?,
         "collection_time_review" => {
             owner_items::collection_review_items(conn, definition, query_limit)?
         }

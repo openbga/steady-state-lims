@@ -17,6 +17,7 @@ export type WorkItemKind =
   | "deviation"
   | "order"
   | "subject"
+  | "intake_deferral"
   | "accession"
   | "collection_review"
   | "review_specimen"

@@ -18,6 +18,16 @@ fn queue_visibility_is_owner_capability_filtered() {
     assert!(reviewer.require(Capability::EnterOrders).is_err());
 }
 
+// #4773/#4776: codes stay unique, and incomplete intake is a Front desk queue for enter_orders.
+#[test]
+fn queue_codes_are_unique_and_intake_is_a_front_desk_queue() {
+    let codes: std::collections::BTreeSet<_> = QUEUES.iter().map(|queue| queue.code).collect();
+    assert_eq!(codes.len(), QUEUES.len());
+    let intake = queue_definition("incomplete_intake").unwrap();
+    assert_eq!(intake.area, WorkQueueArea::FrontDesk);
+    assert_eq!(intake.capability, Capability::EnterOrders);
+}
+
 #[test]
 fn queue_items_are_oldest_first_with_a_stable_tie_break() -> Result<(), lis_core::ParseError> {
     let old = UtcTimestamp::parse("2026-10-13T10:00:00.000000000Z")?;

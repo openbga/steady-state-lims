@@ -2,9 +2,13 @@
 //! REQ-RES-004/005). Synthetic identifiers and accession numbers only.
 
 use lis_analytical::{MaterialKind, QcOutcome, RegisterLotInput, RevisionIndicator};
-use lis_core::{Clock, CommandError, ErrorCode, UserId};
+use lis_core::{Clock, CommandError, ErrorCode, Phi, UserId};
 use lis_engine::{
-    Engine, ListLotsInput, ListWorkQueueItemsInput, PlaceClarificationHoldInput, WorkQueueItem,
+    Engine, ListLotsInput, ListWorkQueueItemsInput, PlaceClarificationHoldInput, WorkQueueArea,
+    WorkQueueItem,
+};
+use lis_identity::{
+    BirthEvidenceKind, IntakeDisposition, RecordIntakeDeferralInput, ResolveIntakeDeferralInput,
 };
 
 use crate::m2_lab::{Lab, Role};
@@ -258,4 +262,69 @@ async fn lots_expiring_soon_lists_active_lots_inside_the_warning_period() {
     };
     assert!(marked(registered[0]));
     assert!(!marked(registered[1]));
+}
+
+// #4773: intake awaiting verified identity is a Front desk queue for people who record and
+// resolve it; resolved or declined intake leaves it, and items never carry the supplied name.
+#[tokio::test]
+async fn incomplete_intake_queue_counts_intake_awaiting_verified_identity() {
+    let lab = Lab::start(RevisionIndicator::None).await;
+    lab.sign_in(Role::Accessioner).await;
+    let mut recorded = Vec::new();
+    for reference in ["SYN-REQ-1", "SYN-REQ-2"] {
+        let intake = lab
+            .engine()
+            .record_intake_deferral(RecordIntakeDeferralInput {
+                supplied_name: Phi::new("SYNTHETIC Intake".to_owned()),
+                birth_evidence_kind: BirthEvidenceKind::Unknown,
+                birth_evidence_text: None,
+                source_reference: reference.to_owned(),
+                reason: "Complete birth date not supplied".to_owned(),
+            })
+            .await
+            .unwrap();
+        recorded.push(intake);
+    }
+    lab.engine()
+        .resolve_intake_deferral(ResolveIntakeDeferralInput {
+            intake_id: recorded[1].intake_id,
+            expected_revision: 1,
+            disposition: IntakeDisposition::Declined,
+            subject_id: None,
+            source_reference: "SYN-CONTACT-1".to_owned(),
+            reason: "Source could not establish complete identity".to_owned(),
+        })
+        .await
+        .unwrap();
+
+    let summaries = lab.engine().list_work_queues().await.unwrap();
+    let intake = summaries
+        .iter()
+        .find(|summary| summary.queue == "incomplete_intake")
+        .unwrap();
+    assert_eq!(intake.area, WorkQueueArea::FrontDesk);
+    assert_eq!(intake.owner_capability, "enter_orders");
+    assert_eq!((intake.count, intake.count_capped), (Some(1), false));
+    assert_eq!(intake.oldest_since, Some(recorded[0].recorded_at));
+    assert_eq!(
+        intake.next_action,
+        "Get the complete birth date, then resolve"
+    );
+    let rows = items(&lab, "incomplete_intake").await;
+    assert_eq!(rows.len(), 1, "{rows:?}");
+    assert_eq!(rows[0].item_kind, "intake_deferral");
+    assert_eq!(rows[0].item_id, recorded[0].intake_id.to_string());
+    assert_eq!(
+        rows[0].state_label.as_deref(),
+        Some("Awaiting verified identity")
+    );
+    assert_phi_free_titles(&rows);
+
+    lab.sign_in(Role::Reviewer).await;
+    let summaries = lab.engine().list_work_queues().await.unwrap();
+    assert!(
+        summaries
+            .iter()
+            .all(|summary| summary.queue != "incomplete_intake")
+    );
 }

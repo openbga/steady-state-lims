@@ -274,3 +274,43 @@ fn intake_disposition_denial_is_atomic_and_audit_records_actual_authority() {
     })
     .unwrap();
 }
+
+// #4773: the work queue counts intake still awaiting verified identity, oldest first.
+#[test]
+fn intake_queue_lists_only_intake_awaiting_identity() {
+    let t = TestDatabase::open(&[SCHEMA]).unwrap();
+    let declined = record(&t, input(BirthEvidenceKind::Unknown, None)).intake_id;
+    let first = record(&t, input(BirthEvidenceKind::PartialDate, Some("1985"))).intake_id;
+    let second = record(&t, input(BirthEvidenceKind::Unknown, None)).intake_id;
+    t.db.write_blocking(
+        principal(&[Capability::EnterOrders]),
+        CorrelationId::generate(),
+        move |ctx| {
+            resolve_intake_deferral(
+                ctx,
+                ResolveIntakeDeferralInput {
+                    intake_id: declined,
+                    expected_revision: 1,
+                    disposition: IntakeDisposition::Declined,
+                    subject_id: None,
+                    source_reference: "synthetic-contact-record".into(),
+                    reason: "Source could not establish complete identity".into(),
+                },
+            )
+        },
+    )
+    .unwrap();
+    let open =
+        t.db.read_blocking(|conn| intake_awaiting_identity(conn, 500))
+            .unwrap();
+    let mut expected = vec![first, second];
+    expected.sort();
+    let mut ids: Vec<_> = open.iter().map(|row| row.intake_id).collect();
+    ids.sort();
+    assert_eq!(ids, expected);
+    assert!(open.windows(2).all(|pair| pair[0].since <= pair[1].since));
+    let limited =
+        t.db.read_blocking(|conn| intake_awaiting_identity(conn, 1))
+            .unwrap();
+    assert_eq!(limited.len(), 1);
+}

@@ -6,7 +6,16 @@ import type { WorkQueueSummary } from "./contract";
 /** A queue as Work queues lists it: the engine's summary and, if opened uncounted, its check. */
 export type QueueRow = WorkQueueSummary & { checked?: CheckedCount };
 
-export const queuePath = (row: WorkQueueSummary) => `/work-queues/${row.queue}`;
+/**
+ * Queues whose work is done on another screen open there: incomplete intake opens filtered on
+ * the intake awaiting verified identity (ticket #4773).
+ */
+const QUEUE_SCREENS: Readonly<Record<string, string>> = {
+  incomplete_intake: "/patients/incomplete-intake?show=awaiting",
+};
+
+export const queuePath = (row: WorkQueueSummary) =>
+  QUEUE_SCREENS[row.queue] ?? `/work-queues/${row.queue}`;
 
 /** Empty by the engine's count only: a queue not counted yet may have work, so it stays. */
 const isEmpty = (row: WorkQueueSummary) => row.count === 0;

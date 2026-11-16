@@ -108,6 +108,28 @@ pub fn list_intake_deferrals(
 ) -> Result<Vec<IntakeDeferralView>, IdentityError> {
     Ok(conn.prepare(&format!("{COLUMNS} WHERE (?1 OR x.id IS NULL) AND (?2 IS NULL OR d.id > ?2) ORDER BY d.id LIMIT 50"))?.query_map(params![input.include_closed,input.after_id],row)?.collect::<Result<_,_>>()?)
 }
+/// An open intake for the work queue: its ID and when it was recorded, never the supplied name.
+#[derive(Debug, Clone)]
+pub struct IntakeQueueItem {
+    pub intake_id: IntakeDeferralId,
+    pub since: UtcTimestamp,
+}
+/// Intake still awaiting verified identity (no disposition), oldest first (#4773).
+pub fn intake_awaiting_identity(
+    conn: &Connection,
+    limit: u32,
+) -> Result<Vec<IntakeQueueItem>, IdentityError> {
+    let mut statement = conn.prepare(
+        "SELECT d.id, d.recorded_at FROM idn_intake_deferrals d LEFT JOIN idn_intake_dispositions x ON x.id=d.id WHERE x.id IS NULL ORDER BY d.recorded_at, d.id LIMIT ?1",
+    )?;
+    let rows = statement.query_map([limit], |r| {
+        Ok(IntakeQueueItem {
+            intake_id: r.get(0)?,
+            since: r.get(1)?,
+        })
+    })?;
+    Ok(rows.collect::<Result<_, _>>()?)
+}
 pub fn record_intake_deferral(
     ctx: &mut CommandContext<'_>,
     input: RecordIntakeDeferralInput,

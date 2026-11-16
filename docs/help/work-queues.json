@@ -18,7 +18,8 @@
       "title": "Counts in the navigation",
       "paragraphs": [
         "The navigation shows a queue’s count beside its entry, for example Result imports 2, and the total of every queue you can see beside Work queues. A number followed by + means at least that many; ? means the count is unknown. No number means nothing is waiting, or the counts could not be read. Counts refresh about once a minute.",
-        "Work areas such as Front desk, Review and Billing are closed when you sign in. Select an area’s name to open or close it. A closed area shows the total of its entries’ counts: 2 in Result review and 2 in Result imports show 4 beside Review. When you open the area, the total disappears and each entry shows its own count. Areas you open or close stay that way until you sign out or the app locks; every sign-in or unlock starts with all areas closed. Going to a page opens its area."
+        "Work areas such as Front desk, Review and Billing are closed when you sign in. Select an area’s name to open or close it. A closed area shows the total of its entries’ counts: 2 in Result review and 2 in Result imports show 4 beside Review. When you open the area, the total disappears and each entry shows its own count. Areas you open or close stay that way until you sign out or the app locks; every sign-in or unlock starts with all areas closed. Going to a page opens its area.",
+        "Front desk › Incomplete identity intake shows how many incomplete intake records are awaiting verified identity, the same count as the Incomplete identity intake queue."
       ]
     },
     {
@@ -52,6 +53,9 @@
     "ui/src/features/workqueues/checkedCounts.ts",
     "ui/src/features/workqueues/QueueCount.tsx",
     "ui/src/features/workqueues/queueRows.ts",
+    "ui/src/app/navigation.ts",
+    "crates/lis-engine/src/commands/work_queues/intake_items.rs",
+    "crates/lis-identity/src/intake.rs",
     "ui/src/features/workqueues/Age.tsx",
     "ui/src/features/workqueues/ageText.ts",
     "ui/src/features/workqueues/contract.ts",
@@ -86,8 +90,8 @@
         {
           "name": "Queue: Front desk",
           "meaning": "Orders, patient identity and specimen receipt follow-up.",
-          "values": "Orders needing a decision; Orders on hold; Identity holds; Specimens awaiting a decision; Label print failures; Collection timing review.",
-          "rules": "Read-only list filtered by order-entry, accession or quality authority."
+          "values": "Orders needing a decision; Orders on hold; Identity holds; Incomplete identity intake; Specimens awaiting a decision; Label print failures; Collection timing review.",
+          "rules": "Read-only list filtered by order-entry, accession or quality authority. Incomplete identity intake counts intake records recorded with an unknown or partial birth date, or a supplied age, that are not yet resolved or declined; it needs order-entry authority, the same as recording and resolving intake. Its next action is Get the complete birth date, then resolve."
         },
         {
           "name": "Queue: Bench",
@@ -165,7 +169,7 @@
         },
         {
           "name": "Open queue row",
-          "does": "Opens the queue’s oldest waiting items.",
+          "does": "Opens the queue’s oldest waiting items. Incomplete identity intake opens Front desk › Incomplete identity intake instead, showing the intake awaiting verified identity, where the complete birth date is recorded and the intake resolved.",
           "availableWhen": "The queue is visible to your account.",
           "result": "Shows item states, ages and next actions."
         },

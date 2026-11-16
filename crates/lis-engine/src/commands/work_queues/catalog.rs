@@ -60,6 +60,14 @@ pub(super) const QUEUES: &[QueueDefinition] = &[
         ManageQuality,
         "Resolve"
     ),
+    // Recording and resolving incomplete intake both need enter_orders (#4773).
+    queue!(
+        FrontDesk,
+        "incomplete_intake",
+        "Incomplete identity intake",
+        EnterOrders,
+        "Get the complete birth date, then resolve"
+    ),
     queue!(
         FrontDesk,
         "specimen_decisions",
@@ -275,6 +283,7 @@ pub(super) fn state_label(code: &str) -> String {
     let known = match code {
         "received" => "Received, awaiting a decision",
         "held" => "Held",
+        "awaiting_identity" => "Awaiting verified identity",
         "possible_duplicate" => "Possible duplicate",
         "requestor_missing" => "Requestor missing",
         "test_selection_missing" => "Test selection missing",

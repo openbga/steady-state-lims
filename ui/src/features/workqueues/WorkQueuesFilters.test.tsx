@@ -30,6 +30,14 @@ const RELEASE: WorkQueueSummary = {
   count: 2,
   nextAction: "Prepare and release",
 };
+const INTAKE: WorkQueueSummary = {
+  ...REVIEW_QUEUE,
+  queue: "incomplete_intake",
+  label: "Incomplete identity intake",
+  area: "front_desk",
+  count: 2,
+  nextAction: "Get the complete birth date, then resolve",
+};
 const STALE: WorkQueueSummary = {
   ...REVIEW_QUEUE,
   queue: "review_stale",
@@ -151,5 +159,18 @@ describe("WorkQueuesPage filters (ticket #4776)", () => {
     await user.click(screen.getByRole("button", { name: "Refresh" }));
     await waitFor(() => expect(list.mock.calls.length).toBeGreaterThanOrEqual(3));
     expect(await screen.findByRole("gridcell", { name: /^Not counted yet/ })).toBeTruthy();
+  });
+
+  // Ticket #4773: incomplete intake opens on its own page, on the intake awaiting identity.
+  it("opens incomplete identity intake filtered on intake awaiting verified identity", async () => {
+    const { user } = renderPage([INTAKE]);
+    expect(
+      await screen.findByRole("gridcell", { name: "Incomplete identity intake · Front desk" }),
+    ).toBeTruthy();
+    expect(screen.getByRole("gridcell", { name: "2" })).toBeTruthy();
+    await openRow(user, "Get the complete birth date, then resolve");
+    expect(
+      await screen.findByText("Navigated to /patients/incomplete-intake?show=awaiting"),
+    ).toBeTruthy();
   });
 });
