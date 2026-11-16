@@ -68,7 +68,7 @@ const queueNames = () =>
   screen
     .getAllByRole("row")
     .slice(1)
-    .map((row) => row.querySelector('[role="gridcell"]')?.textContent);
+    .map((row) => row.querySelectorAll('[role="gridcell"]')[1]?.textContent);
 
 async function chooseArea(user: ReturnType<typeof renderPage>["user"], name: RegExp) {
   await user.click(screen.getByRole("button", { name: /^Area/ }));
@@ -90,7 +90,7 @@ describe("WorkQueuesPage filters (ticket #4776)", () => {
 
   it("hides empty queues until asked, keeping the choice in the address", async () => {
     const { user, router } = renderPage([REVIEW_QUEUE, LABEL_QUEUE, STALE]);
-    expect(await screen.findByRole("gridcell", { name: "Review" })).toBeTruthy();
+    expect(await screen.findByRole("gridcell", { name: "Results ready for review" })).toBeTruthy();
     expect(screen.queryByRole("gridcell", { name: "Reprint" })).toBeNull();
     // A queue not counted yet may have work, so it is never hidden as empty.
     expect(screen.getByRole("gridcell", { name: "Review again" })).toBeTruthy();
@@ -115,10 +115,7 @@ describe("WorkQueuesPage filters (ticket #4776)", () => {
     await user.click(within(dialog).getByRole("checkbox", { name: "Front desk, 1 queue" }));
     await user.keyboard("{Escape}");
     expect(screen.getByRole("button", { name: "Area Front desk, Reports" })).toBeTruthy();
-    expect(queueNames()).toEqual([
-      "Orders needing a decision · Front desk",
-      "Reports ready for release · Reports",
-    ]);
+    expect(queueNames()).toEqual(["Orders needing a decision", "Reports ready for release"]);
     expect(JSON.parse(localStorage.getItem(STORED_AREAS) ?? "null")).toEqual([
       "front_desk",
       "reports",
@@ -165,7 +162,7 @@ describe("WorkQueuesPage filters (ticket #4776)", () => {
   it("opens incomplete identity intake filtered on intake awaiting verified identity", async () => {
     const { user } = renderPage([INTAKE]);
     expect(
-      await screen.findByRole("gridcell", { name: "Incomplete identity intake · Front desk" }),
+      await screen.findByRole("gridcell", { name: "Incomplete identity intake" }),
     ).toBeTruthy();
     expect(screen.getByRole("gridcell", { name: "2" })).toBeTruthy();
     await openRow(user, "Get the complete birth date, then resolve");

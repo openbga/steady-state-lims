@@ -9,7 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "The overview groups outstanding work into queues. Open a queue to see its items, age and current status, then open an item to reach the appropriate record. Some items have no record screen; use their displayed next action to identify where follow-up belongs.",
-        "Each queue shows its work area after its name, for example Orders needing a decision · Front desk. Queues with nothing waiting are hidden; tick Show empty queues to list them too. Use Area to list only the queues of one or more areas, such as Front desk and Reports. Your Area choice is remembered on this computer for your account, so the page opens with the same areas next time.",
+        "The Area column shows each queue's work area, before the queue's name. Queues with nothing waiting are hidden; tick Show empty queues to list them too. Use Area to list only the queues of one or more areas, such as Front desk and Reports. Your Area choice is remembered on this computer for your account, so the page opens with the same areas next time.",
         "Use the queue’s refresh control when you need the latest view. Work queues collect different kinds of unfinished work, so an item’s presence does not by itself identify the action you should take.",
         "Each queue lists a record workspace once, even when it contains several pending events. For example, one import can contain many quarantined analyte rows, and one accession can contain several specimens or failed label jobs. Open the workspace to review every underlying issue; queue counts are not patient, specimen or analyte totals."
       ]
@@ -82,10 +82,16 @@
       "access": "Any signed-in user can open the overview. Only queues owned by capabilities granted to that account are listed.",
       "fields": [
         {
+          "name": "Area (column)",
+          "meaning": "The work area of the queue in the same row, for example Reports for Report delivery work.",
+          "values": "Front desk, Bench, Review, Reports, Billing or System.",
+          "rules": "Read-only; sortable. The area is the navigation work area the queue's work belongs to; it does not change who may work the queue."
+        },
+        {
           "name": "Queue",
-          "meaning": "Names the queue, then its work area after a dot, for example Report delivery work · Reports.",
+          "meaning": "Names the queue; selecting it opens the queue's items.",
           "values": "One of the queues listed below for each area, as your account may work them.",
-          "rules": "Read-only. Only queues owned by a capability you hold are listed. The area is the navigation work area the queue's work belongs to; it does not change who may work the queue."
+          "rules": "Read-only. Only queues owned by a capability you hold are listed."
         },
         {
           "name": "Queue: Front desk",

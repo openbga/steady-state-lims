@@ -22,7 +22,7 @@ const queueOrder = () =>
   screen
     .getAllByRole("row")
     .slice(1)
-    .map((row) => row.querySelector('[role="gridcell"]')?.textContent);
+    .map((row) => row.querySelectorAll('[role="gridcell"]')[1]?.textContent);
 
 describe("WorkQueuesPage (REQ-OPS-004)", () => {
   beforeEach(() => {
@@ -37,9 +37,7 @@ describe("WorkQueuesPage (REQ-OPS-004)", () => {
   it("lists the queues with their areas, counts and ages, and opens one with Enter", async () => {
     const list = vi.fn(() => [REVIEW_QUEUE, LABEL_QUEUE]);
     const { user, container } = renderPage(list, true);
-    expect(
-      await screen.findByRole("gridcell", { name: "Results ready for review · Review" }),
-    ).toBeTruthy();
+    expect(await screen.findByRole("gridcell", { name: "Results ready for review" })).toBeTruthy();
     expect(list).toHaveBeenCalledWith({});
     expect(screen.getByRole("gridcell", { name: "3" })).toBeTruthy();
     expect(screen.getByRole("gridcell", { name: "0" })).toBeTruthy();
@@ -66,16 +64,16 @@ describe("WorkQueuesPage (REQ-OPS-004)", () => {
     const header = screen.getByRole("columnheader", { name: "Oldest item waiting" });
     expect(header.getAttribute("aria-sort")).toBe("descending");
     expect(queueOrder()).toEqual([
-      "Open import quarantine · Review",
-      "QC requiring review · Review",
-      "Label print failures · Front desk",
+      "Open import quarantine",
+      "QC requiring review",
+      "Label print failures",
     ]);
     await user.click(header);
     expect(header.getAttribute("aria-sort")).toBe("ascending");
     expect(queueOrder()).toEqual([
-      "QC requiring review · Review",
-      "Open import quarantine · Review",
-      "Label print failures · Front desk",
+      "QC requiring review",
+      "Open import quarantine",
+      "Label print failures",
     ]);
   });
 

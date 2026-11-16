@@ -24,13 +24,16 @@ const EMPTY_PARAM = "empty";
 
 const COLUMNS: readonly DataGridColumn<QueueRow>[] = [
   {
+    id: "area",
+    header: "Area",
+    cell: (row) => <span className={styles.area}>{areaLabel(row.area)}</span>,
+    sortValue: (row) => areaLabel(row.area),
+    width: 140,
+  },
+  {
     id: "queue",
     header: "Queue",
-    cell: (row) => (
-      <>
-        {row.label} <span className={styles.area}>· {areaLabel(row.area)}</span>
-      </>
-    ),
+    cell: (row) => row.label,
     sortValue: (row) => row.label,
     identifier: true,
   },
