@@ -18,6 +18,7 @@ mod imports;
 mod lot_expiry;
 mod positions;
 mod qc;
+mod qc_queue;
 mod readiness;
 mod runs;
 mod separation;

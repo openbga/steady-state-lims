@@ -2,7 +2,7 @@
   "id": "work-queues",
   "title": "Work queues",
   "summary": "Find work that needs attention and open the record where it can be resolved.",
-  "reviewedOn": "2026-11-09",
+  "reviewedOn": "2026-11-16",
   "routes": ["/work-queues", "/work-queues/:queue"],
   "sections": [
     {
@@ -10,7 +10,7 @@
       "paragraphs": [
         "The overview groups outstanding work into queues. Open a queue to see its items, age and current status, then open an item to reach the appropriate record. Some items have no record screen; use their displayed next action to identify where follow-up belongs.",
         "Use the queue’s refresh control when you need the latest view. Work queues collect different kinds of unfinished work, so an item’s presence does not by itself identify the action you should take.",
-        "Each queue lists a record workspace once, even when it contains several pending events. For example, one import can contain many quarantined analyte rows, and one accession can contain several specimens or failed label jobs. Open the workspace to review every underlying issue; queue counts are not patient, specimen or analyte totals."
+        "Each queue lists a record workspace once, even when it contains several pending events. For example, one import can contain many quarantined analyte rows, one accession can contain several specimens or failed label jobs, and one run in QC requiring review can have several analytes waiting for a QC decision. Open the workspace to review every underlying issue; queue counts are not patient, specimen or analyte totals."
       ]
     },
     {
@@ -53,6 +53,9 @@
     "ui/src/features/workqueues/lotColumns.tsx",
     "crates/lis-engine/src/commands/work_queues/lot_items.rs",
     "crates/lis-analytical/src/queries/lot_list.rs",
+    "crates/lis-engine/src/commands/work_queues/owner_items.rs",
+    "crates/lis-analytical/src/queries/queues.rs",
+    "ui/src/features/analytics/labels.ts",
     "ui/src/lib/WorkQueueList.tsx",
     "crates/lis-engine/src/commands/work_queues/mod.rs",
     "crates/lis-engine/src/commands/work_queues/catalog.rs",
@@ -213,6 +216,18 @@
           "meaning": "In the Lots expiring soon queue, each item is an active lot that expires within the laboratory's Warning before a lot expires setting (System › Operations settings, 14 days by default). These columns replace Item, State and Waiting.",
           "values": "The lot number, product name, material (Control, Calibrator, Reagent or Internal standard), sample label (— when none), last day of use and Expires today, Expires in 1 day or Expires in N days. Next action is Register a new lot.",
           "rules": "Read-only; requires Manage quality. Days are counted by UTC date. An expired or withdrawn lot leaves the queue; an expired lot stays blocked for new runs as before. Registering the replacement does not remove the old lot until it expires or is withdrawn."
+        },
+        {
+          "name": "QC requiring review: Item and State",
+          "meaning": "Each item is one run with at least one analyte whose QC needs a decision. Item names the run as its page does, with the time the run was created in the laboratory's time zone (UTC until a laboratory profile exists), for example Run of LCMS version 2 on AU simulator · 2026-10-29 12:09 CDT. State counts the run's waiting analytes by reason.",
+          "values": "State is N analytes not assessed (QC observations and no current assessment), N analytes out of date (the observations changed after the current assessment, or a QC conflict is open) and N analytes rejected (a rejection while the run is still open), joined with commas when a run has more than one reason, for example 2 analytes not assessed, 1 analyte rejected. Next action is Assess.",
+          "rules": "Read-only; requires Manage quality. The queue's count on Work queues is the number of runs, not analytes. Opening the item opens the run's Run QC review, which lists every analyte of the run, including those already accepted. The run leaves the queue when no analyte waits; a rejected analyte leaves it when the run is closed."
+        },
+        {
+          "name": "Open deviations: Item",
+          "meaning": "Each item is an open quality deviation, named by its description as entered when it was opened, as on the run's Deviations tab.",
+          "values": "The deviation's description. State is Open; Next action is Close.",
+          "rules": "Read-only; requires Manage quality. Opening the item opens the deviation's own page, where it is closed with a disposition and reason."
         },
         {
           "name": "Shown / total / Updated",
