@@ -255,9 +255,9 @@ fn intake_disposition_denial_is_atomic_and_audit_records_actual_authority() {
     .unwrap();
 }
 
-#[test]
-fn intake_list_finds_filters_and_counts_before_paging() {
-    let t = TestDatabase::open(&[SCHEMA]).unwrap();
+/// Three intake records for the list test: TEST, Unknown and TEST, Partial awaiting verified
+/// identity (source REQ-TEST-001) and TEST, Age declined (source TEST-REQ-001).
+fn three_intakes_one_declined(t: &TestDatabase) {
     let named = |name: &str, source: &str, kind: BirthEvidenceKind, text: Option<&str>| {
         RecordIntakeDeferralInput {
             supplied_name: Phi::new(name.into()),
@@ -266,7 +266,7 @@ fn intake_list_finds_filters_and_counts_before_paging() {
         }
     };
     record(
-        &t,
+        t,
         named(
             "TEST, Unknown",
             "REQ-TEST-001",
@@ -276,15 +276,11 @@ fn intake_list_finds_filters_and_counts_before_paging() {
     );
     let partial = BirthEvidenceKind::PartialDate;
     record(
-        &t,
+        t,
         named("TEST, Partial", "REQ-TEST-001", partial, Some("1985")),
     );
     let age = BirthEvidenceKind::SuppliedAge;
-    let id = record(
-        &t,
-        named("TEST, Age", "TEST-REQ-001", age, Some("About 40")),
-    )
-    .intake_id;
+    let id = record(t, named("TEST, Age", "TEST-REQ-001", age, Some("About 40"))).intake_id;
     let decline = ResolveIntakeDeferralInput {
         intake_id: id,
         expected_revision: 1,
@@ -299,12 +295,20 @@ fn intake_list_finds_filters_and_counts_before_paging() {
         move |ctx| resolve_intake_deferral(ctx, decline),
     )
     .unwrap();
-    let names = |page: &IntakeDeferralPage| -> Vec<String> {
-        page.rows
-            .iter()
-            .map(|row| row.supplied_name.expose().clone())
-            .collect()
-    };
+}
+
+/// The supplied names a page lists, in order.
+fn names(page: &IntakeDeferralPage) -> Vec<String> {
+    page.rows
+        .iter()
+        .map(|row| row.supplied_name.expose().clone())
+        .collect()
+}
+
+#[test]
+fn intake_list_finds_filters_and_counts_before_paging() {
+    let t = TestDatabase::open(&[SCHEMA]).unwrap();
+    three_intakes_one_declined(&t);
     let every = IntakeDeferralCounts {
         awaiting: 2,
         resolved: 0,
