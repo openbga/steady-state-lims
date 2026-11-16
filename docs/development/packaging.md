@@ -42,14 +42,12 @@ existing release assets and checksums retain their published names. New builds u
 rewrite their manifests. Existing SSH public-key comments remain `steady-state-lims`;
 the key material, trust configuration and stored records are unchanged.
 
-A build also accepts in-app updates only under the repository name compiled into it.
-A build made under an earlier repository name needs one manual installation of a
-current build ([in-app updates](releases.md#in-app-updates)). Wait for a reviewed
-build compiled for `openbga/toxicology-lims` to be published; existing releases
-remain pre-rename builds. Keep the existing updater signing key, and retain lab
-approval and a verified pre-update backup for this manual transition. Newly named
-builds reject historical manifests whose package URLs still use an earlier
-repository path; the next package workflow emits URLs under the new repository.
+The feed declares its current repository and carries compatibility manifests for
+former repository names ([in-app updates](releases.md#in-app-updates)). This keeps
+older nightly installations on their compiled URL while GitHub redirects downloads.
+Keep the existing signing key, laboratory approval and verified pre-update backup.
+A manual installation remains necessary only for builds without a configured updater.
+The feed's current and former repository names must be verified after publication.
 
 ## Configured bundles
 

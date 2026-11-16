@@ -3859,7 +3859,7 @@ dependencies = [
 
 [[package]]
 name = "lis-analytical"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "jiff",
  "lis-astm",
@@ -3883,7 +3883,7 @@ dependencies = [
 
 [[package]]
 name = "lis-astm"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "proptest",
  "thiserror 2.0.21",
@@ -3891,7 +3891,7 @@ dependencies = [
 
 [[package]]
 name = "lis-au"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "lis-core",
  "proptest",
@@ -3903,7 +3903,7 @@ dependencies = [
 
 [[package]]
 name = "lis-audit"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "hex",
  "lis-core",
@@ -3917,7 +3917,7 @@ dependencies = [
 
 [[package]]
 name = "lis-auth"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "argon2",
  "chacha20poly1305",
@@ -3942,7 +3942,7 @@ dependencies = [
 
 [[package]]
 name = "lis-billing"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "hex",
  "jiff",
@@ -3968,7 +3968,7 @@ dependencies = [
 
 [[package]]
 name = "lis-catalog"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "lis-audit",
  "lis-auth",
@@ -3983,7 +3983,7 @@ dependencies = [
 
 [[package]]
 name = "lis-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "jiff",
  "proptest",
@@ -3998,7 +3998,7 @@ dependencies = [
 
 [[package]]
 name = "lis-desktop"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "lis-auth",
  "lis-core",
@@ -4023,7 +4023,7 @@ dependencies = [
 
 [[package]]
 name = "lis-engine"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "hex",
  "jiff",
@@ -4069,7 +4069,7 @@ dependencies = [
 
 [[package]]
 name = "lis-identity"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "jiff",
  "lis-audit",
@@ -4085,7 +4085,7 @@ dependencies = [
 
 [[package]]
 name = "lis-interfaces"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "hex",
  "jiff",
@@ -4108,7 +4108,7 @@ dependencies = [
 
 [[package]]
 name = "lis-labels"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "proptest",
  "thiserror 2.0.21",
@@ -4116,7 +4116,7 @@ dependencies = [
 
 [[package]]
 name = "lis-ops"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "chacha20poly1305",
  "fs4",
@@ -4142,7 +4142,7 @@ dependencies = [
 
 [[package]]
 name = "lis-orders"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "jiff",
  "lis-audit",
@@ -4161,7 +4161,7 @@ dependencies = [
 
 [[package]]
 name = "lis-report"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "hex",
  "jiff",
@@ -4177,7 +4177,7 @@ dependencies = [
 
 [[package]]
 name = "lis-reporting"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "hex",
  "jiff",
@@ -4204,7 +4204,7 @@ dependencies = [
 
 [[package]]
 name = "lis-results"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "csv",
  "lis-analytical",
@@ -4229,7 +4229,7 @@ dependencies = [
 
 [[package]]
 name = "lis-security-key"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "async-trait",
  "ciborium",
@@ -4246,7 +4246,7 @@ dependencies = [
 
 [[package]]
 name = "lis-specimens"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "hex",
  "jiff",
@@ -4268,7 +4268,7 @@ dependencies = [
 
 [[package]]
 name = "lis-store"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "hex",
  "lis-audit",
