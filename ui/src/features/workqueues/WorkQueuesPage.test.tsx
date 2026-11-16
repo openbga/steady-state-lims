@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/lib/test/a11y";
 import { openRow, openRowWithEnter } from "@/lib/test/grid";
@@ -8,10 +8,15 @@ import { renderRoutes } from "@/lib/test/router";
 import { LABEL_QUEUE, NOW, REVIEW_QUEUE } from "./testData";
 import { WorkQueuesPage } from "./WorkQueuesPage";
 
-function renderPage(listQueues: () => unknown) {
+/** `showEmpty` opens the page with "Show empty queues" ticked, from its address. */
+function renderPage(listQueues: () => unknown, showEmpty = false) {
   mockCommands({ list_work_queues: listQueues });
-  return renderRoutes([{ path: "/work-queues", element: <WorkQueuesPage /> }], "/work-queues");
+  const path = showEmpty ? "/work-queues?empty=show" : "/work-queues";
+  return renderRoutes([{ path: "/work-queues", element: <WorkQueuesPage /> }], path);
 }
+
+const WHY =
+  "This queue looks through the whole result history, so it is checked only when you open it.";
 
 const queueOrder = () =>
   screen
@@ -29,10 +34,12 @@ describe("WorkQueuesPage (REQ-OPS-004)", () => {
     vi.useRealTimers();
   });
 
-  it("lists the queues with counts and ages, and opens one with Enter", async () => {
+  it("lists the queues with their areas, counts and ages, and opens one with Enter", async () => {
     const list = vi.fn(() => [REVIEW_QUEUE, LABEL_QUEUE]);
-    const { user, container } = renderPage(list);
-    expect(await screen.findByRole("gridcell", { name: "Results ready for review" })).toBeTruthy();
+    const { user, container } = renderPage(list, true);
+    expect(
+      await screen.findByRole("gridcell", { name: "Results ready for review · Review" }),
+    ).toBeTruthy();
     expect(list).toHaveBeenCalledWith({});
     expect(screen.getByRole("gridcell", { name: "3" })).toBeTruthy();
     expect(screen.getByRole("gridcell", { name: "0" })).toBeTruthy();
@@ -54,26 +61,26 @@ describe("WorkQueuesPage (REQ-OPS-004)", () => {
       label: "Open import quarantine",
       oldestSince: "2026-10-13T11:00:00Z",
     };
-    const { user } = renderPage(() => [LABEL_QUEUE, older, newer]);
+    const { user } = renderPage(() => [LABEL_QUEUE, older, newer], true);
     expect(await screen.findByRole("gridcell", { name: "Reprint" })).toBeTruthy();
     const header = screen.getByRole("columnheader", { name: "Oldest item waiting" });
     expect(header.getAttribute("aria-sort")).toBe("descending");
     expect(queueOrder()).toEqual([
-      "Open import quarantine",
-      "QC requiring review",
-      "Label print failures",
+      "Open import quarantine · Review",
+      "QC requiring review · Review",
+      "Label print failures · Front desk",
     ]);
     await user.click(header);
     expect(header.getAttribute("aria-sort")).toBe("ascending");
     expect(queueOrder()).toEqual([
-      "QC requiring review",
-      "Open import quarantine",
-      "Label print failures",
+      "QC requiring review · Review",
+      "Open import quarantine · Review",
+      "Label print failures · Front desk",
     ]);
   });
 
   it("opens a queue with a single click, with no usage hint", async () => {
-    const { user } = renderPage(() => [REVIEW_QUEUE, LABEL_QUEUE]);
+    const { user } = renderPage(() => [REVIEW_QUEUE, LABEL_QUEUE], true);
     expect(await screen.findByRole("gridcell", { name: "Reprint" })).toBeTruthy();
     expect(screen.queryByText(/double-click/)).toBeNull();
     await openRow(user, "Reprint");
@@ -93,10 +100,15 @@ describe("WorkQueuesPage (REQ-OPS-004)", () => {
     expect(await screen.findByRole("gridcell", { name: "500 or more" })).toBeTruthy();
   });
 
-  it("shows uncounted historical review as unknown rather than zero", async () => {
-    renderPage(() => [{ ...REVIEW_QUEUE, queue: "review_stale", count: null, oldestSince: null }]);
-    expect(await screen.findByRole("gridcell", { name: "Open to check" })).toBeTruthy();
+  it("shows uncounted historical review as not counted yet, says why, and never hides it", async () => {
+    const { user } = renderPage(() => [
+      { ...REVIEW_QUEUE, queue: "review_stale", count: null, oldestSince: null },
+    ]);
+    const cell = await screen.findByRole("gridcell", { name: `Not counted yet. ${WHY}` });
     expect(screen.queryByRole("gridcell", { name: "0" })).toBeNull();
+    await user.hover(within(cell).getByText("Not counted yet"));
+    expect((await screen.findByRole("tooltip")).textContent).toBe(WHY);
+    expect(screen.getByRole("checkbox", { name: "Show empty queues (0)" })).toBeTruthy();
   });
 
   it("says when no queue applies", async () => {

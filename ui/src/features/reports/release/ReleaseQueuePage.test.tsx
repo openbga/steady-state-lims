@@ -15,6 +15,7 @@ const QUEUES: WorkQueueSummary[] = [
   {
     queue: "release_ready",
     label: "Reports ready for release",
+    area: "reports",
     ownerCapability: "release_reports",
     count: 1,
     countCapped: false,
@@ -24,6 +25,7 @@ const QUEUES: WorkQueueSummary[] = [
   {
     queue: "release_blocked",
     label: "Report release blocked",
+    area: "reports",
     ownerCapability: "release_reports",
     count: 0,
     countCapped: false,
@@ -33,6 +35,7 @@ const QUEUES: WorkQueueSummary[] = [
   {
     queue: "review_ready",
     label: "Awaiting review",
+    area: "review",
     ownerCapability: "review_results",
     count: 500,
     countCapped: true,
@@ -195,6 +198,7 @@ describe("ReleaseQueuePage (REQ-OPS-004)", () => {
     const partial: WorkQueueSummary = {
       queue: "partial_reports",
       label: "Partial reports outstanding",
+      area: "reports",
       ownerCapability: "release_reports",
       count: 500,
       countCapped: true,

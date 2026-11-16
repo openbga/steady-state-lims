@@ -7,6 +7,7 @@ export const NOW = "2026-10-13T12:00:00Z";
 export const REVIEW_QUEUE: WorkQueueSummary = {
   queue: "review_ready",
   label: "Results ready for review",
+  area: "review",
   ownerCapability: "review_results",
   count: 3,
   countCapped: false,
@@ -17,6 +18,7 @@ export const REVIEW_QUEUE: WorkQueueSummary = {
 export const LABEL_QUEUE: WorkQueueSummary = {
   queue: "label_failures",
   label: "Label print failures",
+  area: "front_desk",
   ownerCapability: "accession",
   count: 0,
   countCapped: false,

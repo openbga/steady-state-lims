@@ -2,13 +2,14 @@
   "id": "work-queues",
   "title": "Work queues",
   "summary": "Find work that needs attention and open the record where it can be resolved.",
-  "reviewedOn": "2026-11-09",
+  "reviewedOn": "2026-11-16",
   "routes": ["/work-queues", "/work-queues/:queue"],
   "sections": [
     {
       "title": "How to use this page",
       "paragraphs": [
         "The overview groups outstanding work into queues. Open a queue to see its items, age and current status, then open an item to reach the appropriate record. Some items have no record screen; use their displayed next action to identify where follow-up belongs.",
+        "Each queue shows its work area after its name, for example Orders needing a decision · Front desk. Queues with nothing waiting are hidden; tick Show empty queues to list them too. Use Area to list only the queues of one or more areas, such as Front desk and Reports. Your Area choice is remembered on this computer for your account, so the page opens with the same areas next time.",
         "Use the queue’s refresh control when you need the latest view. Work queues collect different kinds of unfinished work, so an item’s presence does not by itself identify the action you should take.",
         "Each queue lists a record workspace once, even when it contains several pending events. For example, one import can contain many quarantined analyte rows, and one accession can contain several specimens or failed label jobs. Open the workspace to review every underlying issue; queue counts are not patient, specimen or analyte totals."
       ]
@@ -26,7 +27,7 @@
         "Review queues check candidate specimens in bounded requests. Progress distinguishes candidate specimens checked from matching workspaces loaded; these are not patient or analyte counts. A request can find no matches while older history remains unchecked. Only Check complete establishes an empty result for that check.",
         "The page continues checking until at least 50 matches are loaded or the history is exhausted. Pause checking stops scheduling after the active request finishes; Resume checking continues from the retained cursor. Load more requests the next group of matches without an overall browsing limit. Sorting affects only loaded rows.",
         "If a request fails, loaded rows remain available. Try again retries the failed cursor; permission errors require an authorized account. Refresh starts a new check from the beginning and clears the earlier cursor chain. Use Refresh after completing work or when another action changes clinical state; background invalidation does not replay the historical scan.",
-        "The overview shows Open to check for stale and blocked review queues whose totals have not been counted. Navigation indicates that some counts are unknown. An unknown count is not zero and does not establish that no work is waiting."
+        "The overview shows Not counted yet for Stale result reviews and Result review blocked: these queues look through the whole result history, so they are checked only when you open them. Point at Not counted yet, or move to its cell, to see why. Such a queue is never hidden as empty. After you open one and its check stops, the overview shows what it found and when, for example 0 · checked 14:25 UTC, or 50 or more · checked 14:25 UTC when checking was paused or stopped at a group of matches with more history left. That result stays until you select Refresh on the overview, or until you sign out or the app locks; it is not updated by other people's work in the meantime. Navigation indicates that some counts are unknown. An unknown count is not zero and does not establish that no work is waiting."
       ]
     },
     {
@@ -46,6 +47,11 @@
   "reviewSources": [
     "ui/src/features/workqueues/WorkQueuesPage.tsx",
     "ui/src/features/workqueues/WorkQueuePage.tsx",
+    "ui/src/features/workqueues/AreaFilter.tsx",
+    "ui/src/features/workqueues/areas.ts",
+    "ui/src/features/workqueues/checkedCounts.ts",
+    "ui/src/features/workqueues/QueueCount.tsx",
+    "ui/src/features/workqueues/queueRows.ts",
     "ui/src/features/workqueues/Age.tsx",
     "ui/src/features/workqueues/ageText.ts",
     "ui/src/features/workqueues/contract.ts",
@@ -72,39 +78,69 @@
       "access": "Any signed-in user can open the overview. Only queues owned by capabilities granted to that account are listed.",
       "fields": [
         {
-          "name": "Queue: intake and identity",
-          "meaning": "Groups orders, identity and receipt follow-up.",
+          "name": "Queue",
+          "meaning": "Names the queue, then its work area after a dot, for example Report delivery work · Reports.",
+          "values": "One of the queues listed below for each area, as your account may work them.",
+          "rules": "Read-only. Only queues owned by a capability you hold are listed. The area is the navigation work area the queue's work belongs to; it does not change who may work the queue."
+        },
+        {
+          "name": "Queue: Front desk",
+          "meaning": "Orders, patient identity and specimen receipt follow-up.",
           "values": "Orders needing a decision; Orders on hold; Identity holds; Specimens awaiting a decision; Label print failures; Collection timing review.",
-          "rules": "Read-only list filtered by order-entry, accession or quality authority; only relevant queues appear."
+          "rules": "Read-only list filtered by order-entry, accession or quality authority."
         },
         {
-          "name": "Queue: analytical and review",
-          "meaning": "Groups unfinished analysis and result decisions.",
-          "values": "QC requiring review; Open deviations; Lots expiring soon; Results ready for review; Stale result reviews; Result review blocked; Open import quarantine; Performed but not ordered; Results expected from analyzers.",
-          "rules": "Read-only list filtered by quality, result-review or analysis authority."
+          "name": "Queue: Bench",
+          "meaning": "Analytical runs, QC, lots and analyzers.",
+          "values": "QC requiring review; Open deviations; Lots expiring soon; Listening gaps to acknowledge; Results expected from analyzers.",
+          "rules": "Read-only list filtered by quality or analysis authority."
         },
         {
-          "name": "Queue: reporting and delivery",
-          "meaning": "Groups release, report quality and delivery work.",
+          "name": "Queue: Review",
+          "meaning": "Result decisions and imported results that need resolving.",
+          "values": "Results ready for review; Stale result reviews; Result review blocked; Open import quarantine; Performed but not ordered.",
+          "rules": "Read-only list filtered by result-review authority."
+        },
+        {
+          "name": "Queue: Reports",
+          "meaning": "Release, report quality and delivery work.",
           "values": "Reports ready for release; Report release blocked; Partial reports outstanding; Report impact review; Report corrections due; Report delivery work; Reports without a destination; Delivery destinations to verify or replace; Report preservation incidents.",
           "rules": "Read-only list filtered by release, quality, delivery or configuration authority. Reports without a destination leaves out a revision that goes to an Interfaces connection."
         },
         {
-          "name": "Queue: billing and operations",
-          "meaning": "Groups administrative follow-up.",
-          "values": "Billing work; Outbox dead letters; Unrouted interface messages; Interface messages not written; Health checks needing attention; Listening gaps to acknowledge; Recovery reconciliation after a restore; Version awaiting acceptance.",
-          "rules": "Read-only list filtered by billing, configuration, analysis, quality or configuration-approval authority."
+          "name": "Queue: Billing",
+          "meaning": "Billing follow-up.",
+          "values": "Billing work.",
+          "rules": "Read-only list filtered by billing authority."
+        },
+        {
+          "name": "Queue: System",
+          "meaning": "Interfaces, host health, recovery and versions.",
+          "values": "Outbox dead letters; Unrouted interface messages; Interface messages not written; Health checks needing attention; Recovery reconciliation after a restore; Version awaiting acceptance.",
+          "rules": "Read-only list filtered by configuration, quality or configuration-approval authority."
+        },
+        {
+          "name": "Area",
+          "meaning": "Chooses which work areas' queues the overview lists.",
+          "values": "All areas (the default), or one or more of Front desk, Bench, Review, Reports, Billing and System. The button names the choice, for example Front desk, Reports. Beside each area, the checklist shows how many queues it would list; with Show empty queues off, empty queues are not counted there.",
+          "rules": "Ticking an area adds it; unticking removes it; ticking All areas clears the others, and unticking the last area returns to All areas. The list changes at once. The choice is remembered on this computer for your account, not in the page address, and does not change what you may work."
+        },
+        {
+          "name": "Show empty queues (N)",
+          "meaning": "Lists the queues with nothing waiting too.",
+          "values": "Off (the default) or on. N is the number of empty queues in the chosen areas.",
+          "rules": "A queue is empty only when its count is 0. A queue that is Not counted yet is always listed. The choice is kept in the page address (?empty=show), so Back and a bookmarked address keep it."
         },
         {
           "name": "Items",
           "meaning": "Counts records meeting that queue’s current rules.",
-          "values": "A workspace count, a lower bound followed by or more, or Open to check when historical review has not been counted.",
+          "values": "A workspace count; a lower bound followed by or more; Not counted yet for Stale result reviews and Result review blocked until you open them; or, after you opened one, what it held and when, such as 0 · checked 14:25 UTC.",
           "rules": "Read-only lower bound when capped. Multiple events leading to one workspace are grouped; one record can appear in different queues for different responsibilities."
         },
         {
           "name": "Oldest item waiting",
           "meaning": "Shows the age and start time of the oldest queued item.",
-          "values": "Recorded age and since timestamp; — when none waits or a historical review count has not been computed.",
+          "values": "Recorded age and since timestamp; — when none waits or a historical review queue has not been checked. After you open such a queue, the oldest item it found is shown until Refresh.",
           "rules": "Read-only; age reflects the latest screen render, not a promised turnaround deadline. The overview opens sorted by this column with the most recent first; queues showing — stay at the bottom in either direction."
         },
         {
@@ -117,7 +153,7 @@
           "name": "Queue count / Updated",
           "meaning": "Shows visible queue count and last refresh.",
           "values": "Count and time.",
-          "rules": "Read-only; zero visible queues means the account has no queue-owning capabilities."
+          "rules": "Read-only; counts the queues listed after the Area and Show empty queues choices. No work queues means the account has no queue-owning capabilities."
         }
       ],
       "actions": [
@@ -134,10 +170,28 @@
           "result": "Shows item states, ages and next actions."
         },
         {
+          "name": "Area",
+          "does": "Opens the checklist of work areas with their queue counts. Tick or untick areas; press Escape or select outside the checklist to close it.",
+          "availableWhen": "The overview is open.",
+          "result": "The list shows only the chosen areas' queues, and the choice is remembered for your account on this computer."
+        },
+        {
+          "name": "Show empty queues",
+          "does": "Lists or hides the queues with nothing waiting.",
+          "availableWhen": "The overview is open. When every queue in the chosen areas is empty, the list says Nothing waiting and offers a Show empty queues button.",
+          "result": "Empty queues appear with 0 items and — as their oldest item."
+        },
+        {
+          "name": "Show all areas",
+          "does": "Chooses All areas.",
+          "availableWhen": "None of your queues belongs to the chosen areas, and the list says No queues in the chosen areas.",
+          "result": "Every queue you may work is listed again, and All areas is remembered."
+        },
+        {
           "name": "Refresh",
           "does": "Reloads permitted queues, counts and oldest waiting times.",
           "availableWhen": "The overview is open.",
-          "result": "Starts a fresh check at the beginning; earlier loaded pages and cursors are cleared. Updated records may have moved or left the queue."
+          "result": "Starts a fresh check at the beginning; earlier loaded pages and cursors are cleared. Updated records may have moved or left the queue. The results of queues you opened while they were Not counted yet are cleared, so they show Not counted yet again."
         },
         {
           "name": "Pause checking / Resume checking",
@@ -162,6 +216,10 @@
         "Resolve work through the responsible record, then refresh to verify the change."
       ],
       "troubleshooting": [
+        {
+          "problem": "A queue you expect is not listed.",
+          "recovery": "Check the Area choice above the list and choose All areas, and tick Show empty queues: an empty queue is hidden by default. If it is still missing, your account does not hold the capability that owns it."
+        },
         {
           "problem": "No work queues are visible.",
           "recovery": "Check the capabilities assigned to the signed-in account; an administrator can confirm intended responsibilities."

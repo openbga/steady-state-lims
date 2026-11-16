@@ -20,6 +20,7 @@ use lis_core::{CommandError, ErrorCode, FieldError, Principal, UtcTimestamp};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+pub use self::catalog::WorkQueueArea;
 use self::catalog::{QUEUES, QueueDefinition, queue_definition};
 use self::order::sort_items;
 use crate::engine::Engine;
@@ -46,6 +47,8 @@ pub(super) const MAX_ITEMS: u32 = 500;
 pub struct WorkQueueSummary {
     pub queue: String,
     pub label: String,
+    /// The work area the queue belongs to, as the navigation groups its screens.
+    pub area: WorkQueueArea,
     pub owner_capability: String,
     /// None means the historical queue has not been scanned; it never means zero work.
     #[ts(type = "number | null")]
@@ -266,6 +269,7 @@ fn summaries(
         result.push(WorkQueueSummary {
             queue: definition.code.to_owned(),
             label: definition.label.to_owned(),
+            area: definition.area,
             owner_capability: definition.capability.as_str().to_owned(),
             count: page.as_ref().map(|page| page.items.len()),
             count_capped: page
