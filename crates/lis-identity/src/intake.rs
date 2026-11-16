@@ -127,7 +127,7 @@ pub fn record_intake_deferral(
         return Err(invalid(
             "birthEvidenceText",
             "required",
-            "Preserve the supplied partial date or age as text.",
+            "Enter the partial date or age exactly as supplied.",
         ));
     }
     let source = required_text("sourceReference", &input.source_reference, 1000)?;

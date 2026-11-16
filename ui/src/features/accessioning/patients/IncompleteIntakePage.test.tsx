@@ -76,6 +76,37 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
     });
     expect(register).not.toHaveBeenCalled();
   });
+  it("requires the supplied text for a partial date before saving, and not for Unknown", async () => {
+    const record = vi.fn(() => INTAKE);
+    const { user } = renderIntake({ record_intake_deferral: record });
+    await user.click(await screen.findByRole("button", { name: "Record incomplete intake" }));
+    const dialog = await screen.findByRole("dialog", { name: "Record incomplete identity intake" });
+    const text = within(dialog).getByRole("textbox", { name: /Exact supplied date or age text/ });
+    expect(text.getAttribute("aria-required")).not.toBe("true");
+    await chooseWithKeyboard(user, /Available birth information$/, "Partial date");
+    expect(text.getAttribute("aria-required")).toBe("true");
+    await user.type(
+      within(dialog).getByRole("textbox", { name: /Name as supplied/ }),
+      "TEST, Name",
+    );
+    await user.type(
+      within(dialog).getByRole("textbox", { name: /Source reference/ }),
+      "TEST-REQ-1",
+    );
+    await user.type(
+      within(dialog).getByRole("textbox", { name: /Reason intake is deferred/ }),
+      "Birth date incomplete on requisition",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Retain incomplete intake" }));
+    expect(
+      await within(dialog).findByText("Enter the partial date or age exactly as supplied."),
+    ).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+    expect(within(dialog).queryByText("Not recorded")).toBeNull();
+    await user.click(within(dialog).getByRole("button", { name: /Available birth information$/ }));
+    await user.click(await screen.findByRole("option", { name: "Unknown" }));
+    expect(text.getAttribute("aria-required")).not.toBe("true");
+  });
   it("resolves only after an explicit existing-patient choice and source-backed disposition", async () => {
     const resolve = vi.fn(() => ({
       ...INTAKE,

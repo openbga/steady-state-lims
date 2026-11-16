@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useWatch } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
@@ -183,11 +184,7 @@ export function IncompleteIntakePage() {
             ]}
             isRequired
           />
-          <TextInput
-            name="birthEvidenceText"
-            label="Exact supplied date or age text"
-            description="Required for partial date or age. Do not complete a date or convert age to a birth date."
-          />
+          <BirthEvidenceTextInput />
           <TextInput name="sourceReference" label="Source reference" isRequired />
           <TextInput name="reason" label="Reason intake is deferred" isRequired />
         </CommandDialog>
@@ -223,5 +220,19 @@ export function IncompleteIntakePage() {
         </CommandDialog>
       )}
     </Page>
+  );
+}
+
+/** The supplied text: required for a partial date or a supplied age, optional for Unknown. */
+function BirthEvidenceTextInput() {
+  const kind = useWatch({ name: "birthEvidenceKind" });
+  return (
+    <TextInput
+      name="birthEvidenceText"
+      label="Exact supplied date or age text"
+      description="Required for partial date or age. Do not complete a date or convert age to a birth date."
+      isRequired={kind === "partial_date" || kind === "supplied_age"}
+      requiredMessage="Enter the partial date or age exactly as supplied."
+    />
   );
 }

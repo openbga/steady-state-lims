@@ -46,8 +46,8 @@
         {
           "name": "Exact supplied date or age text",
           "meaning": "Source text retained without deriving a complete date.",
-          "values": "Required for Partial date/Supplied age; optional for Unknown; maximum200characters.",
-          "rules": "Surrounding whitespace trimmed. Not exact source-file custody."
+          "values": "Required, and marked with an asterisk, when Available birth information is Partial date or Supplied age; optional for Unknown; maximum 200 characters.",
+          "rules": "Left blank for Partial date or Supplied age, the form stops before saving with \u201cEnter the partial date or age exactly as supplied.\u201d The engine checks it again. Surrounding whitespace trimmed; the text itself is kept as entered. Not exact source-file custody."
         },
         {
           "name": "Source reference and reason intake is deferred",
