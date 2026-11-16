@@ -69,22 +69,29 @@ narrower commands and the quality gate. Use synthetic data only.
 
 ## License and development disclaimer
 
-Copyright 2026 Steady State LIMS contributors. Respective rights holders retain
-ownership; this attribution does not assign rights to a separate organization.
+Copyright (C) 2026 BGASoft Inc. and OpenBGA contributors.
+
 The project's own code, documentation, synthetic fixtures, website and original
-presentation assets are licensed under the [GNU General Public License, version 3
-only (GPL-3.0-only)](LICENSE), unless otherwise identified. Third-party material
-retains its own terms. Use, modification and redistribution, including commercial
-sale, are permitted. Distributors must preserve the GPL rights and provide the
-corresponding source as the license requires. Private internal modifications do
-not require public release; GPLv3 adds no AGPL-style network-source requirement.
-The [license decision](docs/architecture/decisions/0017-gplv3-license.md)
-defines the project license and distribution responsibilities.
+presentation assets are licensed under the [GNU Affero General Public License,
+version 3 only (AGPL-3.0-only)](LICENSE), unless otherwise identified. Third-party
+material retains its own terms. Use, modification and redistribution, including
+commercial sale, are permitted. Distributors must preserve the AGPL rights and
+provide the corresponding source as the license requires. If you modify the
+application and let people use your modified version over a network, AGPLv3
+section 13 requires offering them its corresponding source. Private internal
+modifications that are neither distributed nor offered over a network do not
+require public release. Builds published before 2026-11-11 remain available under
+GPL-3.0-only. The [license decision](docs/architecture/decisions/0021-agplv3-license.md)
+and [NOTICE](NOTICE) define the project license and distribution responsibilities.
+
+Steady State LIMS, OpenBGA and their logos are trademarks of BGASoft Inc. The
+licence does not grant permission to use them (AGPL-3.0 section 7(e)), except as
+needed to describe the origin of the software.
 
 AI-assisted development and human review and testing do not guarantee correctness,
 security, regulatory compliance or fitness for clinical use. The work is provided
 **as is**, with the warranty disclaimers and
-liability limitations in GPLv3 sections 15–17, subject to applicable law and
+liability limitations in AGPLv3 sections 15–17, subject to applicable law and
 written agreements. See the
 [full development disclaimer](docs/governance/development-disclaimer.md), which does
 not modify the license or add use restrictions.

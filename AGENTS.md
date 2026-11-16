@@ -37,8 +37,18 @@ retained `nightly-*` releases. Every installation, nightly included, keeps the r
 approval and verified pre-update backup (NFR-24). It does not authorize OS code signing,
 supported releases or clinical use (Q-19, Q-34).
 
-**Open-source preparation — user instruction, 2026-10-20.** Retain GPL-3.0-only
-and keep the free clinical toxicology LIS scope explicit. Keep project pricing,
+**License — project owner decision, 2026-11-11.** The whole project is licensed under
+AGPL-3.0-only ([ADR 0021](docs/architecture/decisions/0021-agplv3-license.md)), replacing
+the 2026-10-20 instruction to retain GPL-3.0-only; builds published earlier stay under
+GPL-3.0-only. Keep `LICENSE` as the unmodified official AGPLv3 text and all metadata,
+notices and documents in agreement with it. The README, [NOTICE](NOTICE), the website,
+installer metadata and release notes carry the notice `Copyright (C) 2026 BGASoft Inc.
+and OpenBGA contributors.` and the statement that Steady State LIMS, OpenBGA and their
+logos are trademarks of BGASoft Inc. that the license does not grant (AGPL-3.0 section
+7(e)), except as needed to describe the origin of the software.
+
+**Open-source preparation — user instruction, 2026-10-20.** Keep the free clinical
+toxicology LIS scope explicit. Keep project pricing,
 business-model material and other LIS organizations' names and brands out of
 tracked documents. Exception (user instruction, 2026-11-11): the README and the
 website each carry one small notice: “Are you looking for support? Contact
@@ -118,7 +128,7 @@ The initial scope is **US clinical toxicology** (user, 2026-10-12). The product 
 - optional future services for clinic ordering, backup, report delivery and EHR interfaces;
 - a patient portal later.
 
-The local application follows [ADR 0009](docs/architecture/decisions/0009-single-computer-local-lis.md). Specific states, laboratory partners, specimen matrices, assay menus, host qualification, component choices, capacity estimates and production service targets remain unresolved or proposed. The project uses GPL-3.0-only ([ADR 0017](docs/architecture/decisions/0017-gplv3-license.md)) and the informational [development disclaimer](docs/governance/development-disclaimer.md). Preserve third-party terms and notices. Ownership, trademark and future cloud-service terms remain Q-11. [Decision statuses](docs/architecture/decisions/README.md) and [open questions](docs/planning/open-questions.md) are the canonical status records. No document in this repository certifies regulatory compliance, laboratory accreditation, clinical validity, or production readiness.
+The local application follows [ADR 0009](docs/architecture/decisions/0009-single-computer-local-lis.md). Specific states, laboratory partners, specimen matrices, assay menus, host qualification, component choices, capacity estimates and production service targets remain unresolved or proposed. The project uses AGPL-3.0-only ([ADR 0021](docs/architecture/decisions/0021-agplv3-license.md)), the copyright and trademark notice in [NOTICE](NOTICE) and the informational [development disclaimer](docs/governance/development-disclaimer.md). Preserve third-party terms and notices. A written trademark-use policy, contribution terms and future cloud-service terms remain Q-11. [Decision statuses](docs/architecture/decisions/README.md) and [open questions](docs/planning/open-questions.md) are the canonical status records. No document in this repository certifies regulatory compliance, laboratory accreditation, clinical validity, or production readiness.
 
 ## Working process
 

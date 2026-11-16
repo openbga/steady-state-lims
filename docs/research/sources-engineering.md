@@ -391,15 +391,16 @@ Interface-engine license and security, upstream analytical-review and immutable-
 | PLAT-13 | AWS, [S3 Object Lock](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html) | Technical documentation; versioned object retention and legal holds. | Configure/test modes and admin permissions; not a substitute for selecting lawful retention. |
 
 
-## GPLv3 license sources
+## License sources
 
-For [ADR 0017](../architecture/decisions/0017-gplv3-license.md) and the current
+For [ADR 0021](../architecture/decisions/0021-agplv3-license.md) and the current
 [governance strategy](../governance/open-source-strategy.md). These sources describe
 license terms and publisher guidance, not a US/state-law enforceability opinion,
 a contribution-ownership audit or certification of a complete binary release.
 The project's US clinical scope does not turn a software license into clinical
-approval. Checked 2026-10-14; living-page publication dates are not established
-unless stated below.
+approval. ENG-270–ENG-274 were checked 2026-10-14 and ENG-310–ENG-312 on 2026-11-11;
+living-page publication dates are not established unless stated below. ENG-270 and
+ENG-272 also identify the GPL-3.0-only terms of builds published before ADR 0021.
 
 | ID | Publisher and direct source | Version / publication information | Supported fact and limits |
 | --- | --- | --- | --- |
@@ -407,7 +408,10 @@ unless stated below.
 | ENG-271 | Free Software Foundation, [GNU license FAQ: private modifications](https://www.gnu.org/licenses/gpl-faq.en.html#GPLRequireSourcePostedPublic), [commercial distribution](https://www.gnu.org/licenses/gpl-faq.en.html#DoesTheGPLAllowMoney) and [source delivery to recipients](https://www.gnu.org/licenses/gpl-faq.en.html#GPLCommercially) | Living publisher guidance; indexed primary-source text checked | Explains that private modifications need not be published, sale is allowed, and distributed modified code must preserve recipients' GPL rights. The license text controls; a public repository is not universally required. Direct browser retrieval was intermittent. |
 | ENG-272 | SPDX, [GPL-3.0-only](https://spdx.org/licenses/GPL-3.0-only.html) | License identifier and text, version 3 dated 2007-06-29 | Distinguishes GPL-3.0-only from GPL-3.0-or-later; the appendix's sample "or later" notice does not set the project's grant. SPDX metadata does not establish authorship or compatibility of every dependency. |
 | ENG-273 | Apache Software Foundation, [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) | Version 2.0, January 2004 | Sections 2–4 define copyright and patent grants, the patent-termination condition and redistribution notice requirements for Apache-licensed material. Relevant to third-party dependencies and attribution; this source does not establish a complete ownership or binary-release audit. |
-| ENG-274 | Free Software Foundation, [AGPLv3 section 13](https://www.gnu.org/licenses/agpl-3.0.html#section13); Mozilla, [MPL 2.0 FAQ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/) | AGPLv3: 2007-11-19; Mozilla FAQ updated 2024-01-30 | Comparison only: AGPL adds a source offer for users remotely interacting with modified network-capable versions; MPL applies copyleft to covered files and permits separate proprietary files in a larger work. Neither license was adopted. |
+| ENG-274 | Free Software Foundation, [AGPLv3 section 13](https://www.gnu.org/licenses/agpl-3.0.html#section13); Mozilla, [MPL 2.0 FAQ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/) | AGPLv3: 2007-11-19; Mozilla FAQ updated 2024-01-30 | AGPL adds a source offer for users remotely interacting with modified network-capable versions and permits combination with GPLv3 code; MPL applies copyleft to covered files and permits separate proprietary files in a larger work. AGPLv3 is adopted by ADR 0021; MPL-2.0 applies only to dependencies under it. |
+| ENG-310 | Free Software Foundation, [GNU AGPLv3](https://www.gnu.org/licenses/agpl-3.0.html) and [official plain text](https://www.gnu.org/licenses/agpl-3.0.txt) | Version 3, 2007-11-19; official text downloaded 2026-11-11 for the root license, SHA-256 `0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`; the download was identical on 2026-11-16 | Sections 0–6 match GPLv3's private use, conveying, sale, covered derivatives, aggregates and corresponding source. Section 7(e) permits declining trademark rights; section 13 adds the remote-network source offer and GPLv3 combination permission. Sections 15–17: warranty/liability limits subject to applicable law and written agreements. |
+| ENG-311 | SPDX, [AGPL-3.0-only](https://spdx.org/licenses/AGPL-3.0-only.html) | License identifier and text, version 3 dated 2007-11-19 | Distinguishes AGPL-3.0-only from AGPL-3.0-or-later. SPDX metadata does not establish authorship or compatibility of every dependency. |
+| ENG-312 | Free Software Foundation, [Why the Affero GPL](https://www.gnu.org/licenses/why-affero-gpl.html) | Living publisher guidance | Explains that section 13 addresses modified software offered to users over a network without conveying a copy. Publisher explanation only; the license text controls. |
 
 ## Change-sensitive verification sources, 2026-10-14
 

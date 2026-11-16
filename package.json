@@ -2,7 +2,7 @@
   "name": "steady-state-lims",
   "private": true,
   "version": "0.1.1",
-  "license": "GPL-3.0-only",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "dev": "vite",

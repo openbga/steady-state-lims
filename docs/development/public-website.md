@@ -5,7 +5,8 @@ The presentation is published at
 repository [openbga/steady-state-lims](https://github.com/openbga/steady-state-lims); see
 [publication](#publication).
 
-The website summarizes the [license](../architecture/decisions/0017-gplv3-license.md) and links the
+The website summarizes the [license](../architecture/decisions/0021-agplv3-license.md), the
+copyright and trademark notice in [NOTICE](../../NOTICE), and links the
 [development disclaimer](../governance/development-disclaimer.md). The page states the development
 status once in the hero and once in the disclaimer, and labels the recording and its
 stills as demo data; the video carries its own notices. Keep these current without repeating them
@@ -56,7 +57,7 @@ copy, without keyword lists (WEB-06). The questions section answers cost, LIS ve
 intended laboratories and how to try the application. The [README](../../README.md) opens
 with the same terms because GitHub search and the repository page index it. A JSON-LD
 block in `index.html` describes the application (`SoftwareApplication`: free offer,
-platforms, GPL-3.0-only) and the presentation (`VideoObject`). Keep its facts in step with
+platforms, AGPL-3.0-only, BGASoft Inc. as copyright holder) and the presentation (`VideoObject`). Keep its facts in step with
 the visible copy. Google shows a software rich result only with ratings or reviews; the
 project has none and must not invent them (WEB-07). The video's `uploadDate` is the publication date of the current branding edit,
 2026-11-11. Update it when a different recording is published, and keep `duration`
