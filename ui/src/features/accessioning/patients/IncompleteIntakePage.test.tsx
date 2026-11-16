@@ -1,47 +1,11 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { IntakeDeferralView } from "@/generated/IntakeDeferralView";
 import { openRow } from "@/lib/test/grid";
-import { mockCommands } from "@/lib/test/ipc";
 import { chooseWithKeyboard, WALKTHROUGH_TIMEOUT_MS } from "@/lib/test/keyboard";
 import { mockGridLayout } from "@/lib/test/layout";
-import { renderRoutes } from "@/lib/test/router";
-import { SUMMARY, sessionWith } from "../testData";
-import { IncompleteIntakePage } from "./IncompleteIntakePage";
+import { SUMMARY } from "../testData";
+import { CLERK, INTAKE, intakePage, REVIEWER, renderIntake } from "./intakeTestData";
 
-const CLERK = "00000000-0000-7000-8000-000000000e31";
-const REVIEWER = "00000000-0000-7000-8000-000000000e32";
-
-const INTAKE: IntakeDeferralView = {
-  intakeId: "synthetic-intake",
-  revision: 1,
-  suppliedName: "Incomplete Person",
-  birthEvidenceKind: "unknown",
-  birthEvidenceText: null,
-  sourceReference: "Synthetic source 42",
-  reason: "Complete birth date not supplied",
-  recordedBy: CLERK,
-  recordedByDisplay: "Test Intake Clerk",
-  recordedAt: "2026-10-14T10:00:00Z",
-  disposition: null,
-  subjectId: null,
-  dispositionSource: null,
-  dispositionReason: null,
-  disposedBy: null,
-  disposedAt: null,
-};
-function renderIntake(commands: Record<string, (args: unknown) => unknown> = {}) {
-  mockCommands({
-    current_session: () => sessionWith(["enter_orders"]),
-    list_intake_deferrals: () => [INTAKE],
-    search_subjects: () => [SUMMARY],
-    ...commands,
-  });
-  return renderRoutes(
-    [{ path: "/patients/incomplete", element: <IncompleteIntakePage /> }],
-    "/patients/incomplete",
-  );
-}
 describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT_MS }, () => {
   beforeEach(mockGridLayout);
   it("retains unknown birth information without constructing a DOB or creating a patient", async () => {
@@ -78,22 +42,23 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
   });
   it("shows birth information and disposition with the form's labels", async () => {
     renderIntake({
-      list_intake_deferrals: () => [
-        INTAKE,
-        {
-          ...INTAKE,
-          intakeId: "partial",
-          birthEvidenceKind: "partial_date",
-          birthEvidenceText: "1985",
-        },
-        {
-          ...INTAKE,
-          intakeId: "age",
-          birthEvidenceKind: "supplied_age",
-          birthEvidenceText: "About 40",
-          disposition: "declined",
-        },
-      ],
+      list_intake_deferrals: () =>
+        intakePage([
+          INTAKE,
+          {
+            ...INTAKE,
+            intakeId: "partial",
+            birthEvidenceKind: "partial_date",
+            birthEvidenceText: "1985",
+          },
+          {
+            ...INTAKE,
+            intakeId: "age",
+            birthEvidenceKind: "supplied_age",
+            birthEvidenceText: "About 40",
+            disposition: "declined",
+          },
+        ]),
     });
     const grid = await screen.findByRole("grid", { name: "Incomplete intake records" });
     for (const text of ["Unknown", "Partial date: 1985", "Supplied age: About 40", "Declined"]) {
@@ -173,19 +138,21 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
   it("shows a concurrent disposition in the open intake after Refresh, without its actions", async () => {
     const list = vi
       .fn()
-      .mockReturnValueOnce([INTAKE])
-      .mockReturnValue([
-        {
-          ...INTAKE,
-          revision: 2,
-          disposition: "declined",
-          dispositionReason: "Source withdrew intake",
-          dispositionSource: "Synthetic source",
-          disposedBy: REVIEWER,
-          disposedByDisplay: "Test Intake Reviewer",
-          disposedAt: "2026-10-14T11:00:00Z",
-        },
-      ]);
+      .mockReturnValueOnce(intakePage([INTAKE]))
+      .mockReturnValue(
+        intakePage([
+          {
+            ...INTAKE,
+            revision: 2,
+            disposition: "declined",
+            dispositionReason: "Source withdrew intake",
+            dispositionSource: "Synthetic source",
+            disposedBy: REVIEWER,
+            disposedByDisplay: "Test Intake Reviewer",
+            disposedAt: "2026-11-05T11:00:00.000000000Z",
+          },
+        ]),
+      );
     const { user } = renderIntake({ list_intake_deferrals: list });
     await openRow(user, "Incomplete Person");
     const panel = await screen.findByRole("region", { name: "Intake: Incomplete Person" });
@@ -207,7 +174,9 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
   });
   it("opens intake in the side panel, moves with Previous and Next, and closes with X or Escape", async () => {
     const other = { ...INTAKE, intakeId: "synthetic-intake-2", suppliedName: "Second Person" };
-    const { user, router } = renderIntake({ list_intake_deferrals: () => [INTAKE, other] });
+    const { user, router } = renderIntake({
+      list_intake_deferrals: () => intakePage([INTAKE, other]),
+    });
     await openRow(user, "Incomplete Person");
     expect(router.state.location.search).toBe("?open=synthetic-intake");
     const panel = screen.getByRole("region", { name: "Intake: Incomplete Person" });

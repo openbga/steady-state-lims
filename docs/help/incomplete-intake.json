@@ -1,14 +1,24 @@
 {
   "id": "incomplete-intake",
   "title": "Incomplete identity intake",
-  "summary": "Retain unknown or partial birth information without fabricating a patient birth date.",
-  "reviewedOn": "2026-10-14",
+  "summary": "Retain unknown or partial birth information without fabricating a patient birth date, then resolve it to a verified patient or record that it was declined.",
+  "reviewedOn": "2026-11-16",
   "routes": ["/patients/incomplete-intake"],
   "reviewSources": [
     "ui/src/features/accessioning/patients/IncompleteIntakePage.tsx",
+    "ui/src/features/accessioning/patients/IntakePanel.tsx",
+    "ui/src/features/accessioning/patients/IntakeDialogs.tsx",
+    "ui/src/features/accessioning/patients/IntakeToolbar.tsx",
+    "ui/src/features/accessioning/patients/intakeActions.ts",
+    "ui/src/features/accessioning/patients/intakeColumns.tsx",
+    "ui/src/features/accessioning/patients/intakeLabels.tsx",
+    "ui/src/features/accessioning/patients/IncompleteIntakePage.test.tsx",
+    "ui/src/features/accessioning/patients/IncompleteIntakeList.test.tsx",
+    "ui/src/components/FormFields/TextInput.tsx",
     "crates/lis-identity/src/intake.rs",
     "crates/lis-identity/migrations/0005_intake_deferrals.sql",
-    "crates/lis-identity/tests/intake.rs"
+    "crates/lis-identity/tests/intake.rs",
+    "crates/lis-engine/src/commands/identity/intake.rs"
   ],
   "sections": [
     {
@@ -22,88 +32,142 @@
     {
       "title": "Incomplete identity intake",
       "routes": ["/patients/incomplete-intake"],
-      "purpose": "Record and reconcile intake when only unknown/partial birth date or supplied age is available.",
-      "access": "Order-entry capability and a signed-in person are required for capture/disposition; reads are audited.",
+      "purpose": "Record and reconcile intake when only an unknown or partial birth date or a supplied age is available, find intake by name or source reference, and see how long open intake has waited.",
+      "access": "Enter orders capability for the list, recording and dispositions; every list read is audited. View in audit trail needs View the audit trail.",
       "fields": [
         {
-          "name": "Include resolved and declined intake",
-          "meaning": "Whether terminal records appear alongside pending intake.",
-          "values": "Off initially.",
-          "rules": "Changing the filter starts a new bounded list; Load more reads50additional records."
+          "name": "Find",
+          "meaning": "Searches the intake records by part of the name as supplied or of the source reference, for example a requisition number.",
+          "values": "Free text, blank initially. Placeholder: Name or source reference. Matches anywhere in either value, ignoring the case of unaccented letters; % and _ match themselves.",
+          "rules": "Applied after a pause in typing, or at once with Enter; Escape or the X in the field clears it. The engine searches before paging, so Load more continues the same matches, and the Show counts follow the find text. The text names a person, so it is not kept in the address. At most 200 characters; longer text is refused."
         },
         {
-          "name": "Birth information and Disposition columns",
-          "meaning": "The birth information as supplied and where each intake stands.",
-          "values": "Birth information uses the form's labels: Unknown, Partial date or Supplied age, followed by the supplied text, for example \u201cPartial date: 1985\u201d or \u201cSupplied age: About 40\u201d. Disposition is a badge: Awaiting verified identity (warning), Resolved or Declined (neutral).",
-          "rules": "The supplied text is shown exactly as entered; nothing is completed or converted."
+          "name": "Show",
+          "meaning": "Which intake records the list shows, each choice with how many intake records match the find text.",
+          "values": "Awaiting verified identity (the default), Resolved, Declined or All, for example \u201cAwaiting verified identity (2)\u201d. All counts the three together.",
+          "rules": "Kept in the address as ?show=awaiting, resolved, declined or all, so the work queue's link, Back and reload keep it; an unknown value shows open intake. Changing it starts a new list of up to 50 records."
         },
         {
-          "name": "Name as supplied",
-          "meaning": "Source name retained before patient registration.",
-          "values": "Required text, maximum400characters.",
-          "rules": "Trimmed surrounding whitespace; not a patient match or a newly registered subject."
+          "name": "Name as supplied (column)",
+          "meaning": "The name exactly as the source gave it.",
+          "values": "Text as recorded.",
+          "rules": "Not a patient record and not a patient match."
         },
         {
-          "name": "Available birth information",
-          "meaning": "The kind of evidence actually available.",
-          "values": "Unknown, Partial date or Supplied age; no default.",
-          "rules": "Do not convert age to a date or complete a partial date."
+          "name": "Birth information (column)",
+          "meaning": "The birth information as supplied.",
+          "values": "The form's labels followed by the supplied text: Unknown (alone when no text was supplied), \u201cPartial date: 1985\u201d or \u201cSupplied age: About 40\u201d.",
+          "rules": "The supplied text is shown exactly as entered; nothing is completed or converted to a birth date."
         },
         {
-          "name": "Exact supplied date or age text",
-          "meaning": "Source text retained without deriving a complete date.",
-          "values": "Required, and marked with an asterisk, when Available birth information is Partial date or Supplied age; optional for Unknown; maximum 200 characters.",
-          "rules": "Left blank for Partial date or Supplied age, the form stops before saving with \u201cEnter the partial date or age exactly as supplied.\u201d The engine checks it again. Surrounding whitespace trimmed; the text itself is kept as entered. Not exact source-file custody."
+          "name": "Source reference (column)",
+          "meaning": "Where the evidence came from, as recorded.",
+          "values": "Text as recorded.",
+          "rules": "Read-only."
         },
         {
-          "name": "Source reference and reason intake is deferred",
-          "meaning": "Where evidence came from and why complete identity is unavailable.",
-          "values": "Both required, maximum1000characters each.",
-          "rules": "Stored on the original immutable intake record; not copied into diagnostic logs."
+          "name": "Received (column)",
+          "meaning": "When the intake was recorded.",
+          "values": "Date and time in the laboratory time zone.",
+          "rules": "Read-only."
+        },
+        {
+          "name": "Waiting (column)",
+          "meaning": "How long open intake has waited for verified identity since it was recorded.",
+          "values": "Under 1 hour, then whole hours (for example 5 hours), then whole days (for example 2 days); \u2014 once a disposition is recorded.",
+          "rules": "Worked out when the list is shown; Refresh brings it up to date."
+        },
+        {
+          "name": "Disposition (column)",
+          "meaning": "Where each intake stands.",
+          "values": "A badge: Awaiting verified identity (warning: a person must act), Resolved or Declined (neutral: final).",
+          "rules": "A disposition is final and cannot be changed or reopened."
         },
         {
           "name": "Intake side panel",
-          "meaning": "Clicking an intake, or pressing Enter on it, opens it in a side panel titled \u201cIntake: <name as supplied>\u201d with its Disposition badge: Birth information, Source reference, Reason and Recorded (time and person); after a disposition, also Disposition source, Disposition reason, Disposition recorded and, for a resolved intake, Patient.",
+          "meaning": "Clicking an intake, pressing Enter on it or choosing Open in its row menu opens it in a side panel titled \u201cIntake: <name as supplied>\u201d with its Disposition badge: Birth information, Source reference, Reason and Recorded (time and person); after a disposition, also Disposition source, Disposition reason, Disposition recorded and, for a resolved intake, Patient.",
           "values": "Read-only. The open intake is kept in the address (?open=), so Back and reload keep it open.",
-          "rules": "Resolution preserves original unknown/partial/age evidence. Issued artifacts and patient identity holds do not change."
+          "rules": "The original evidence never changes; a resolution keeps the unknown, partial or age evidence as supplied. Issued artifacts and patient identity holds do not change."
+        },
+        {
+          "name": "Name as supplied",
+          "meaning": "Record incomplete identity intake: the source name retained before patient registration.",
+          "values": "Required text, at most 400 characters.",
+          "rules": "Surrounding spaces are removed; not a patient match or a newly registered patient."
+        },
+        {
+          "name": "Available birth information",
+          "meaning": "Record incomplete identity intake: the kind of birth evidence actually available.",
+          "values": "Unknown, Partial date or Supplied age; nothing is preselected.",
+          "rules": "Required. Do not convert an age to a date or complete a partial date."
+        },
+        {
+          "name": "Exact supplied date or age text",
+          "meaning": "Record incomplete identity intake: the source text retained without deriving a complete date.",
+          "values": "Required, and marked with an asterisk, when Available birth information is Partial date or Supplied age; optional for Unknown; at most 200 characters.",
+          "rules": "Left blank for Partial date or Supplied age, the form stops before saving with \u201cEnter the partial date or age exactly as supplied.\u201d The engine checks it again. Surrounding spaces are removed; the text itself is kept as entered. Not exact source-file custody."
+        },
+        {
+          "name": "Source reference and Reason intake is deferred",
+          "meaning": "Record incomplete identity intake: where the evidence came from and why complete identity is unavailable.",
+          "values": "Both required, at most 1,000 characters each.",
+          "rules": "Stored on the original record, which cannot be changed; not copied into diagnostic logs."
         },
         {
           "name": "Choose verified patient",
           "meaning": "The dialog opened by Resolve with verified patient: explicit selection of an existing patient after obtaining source-backed complete identity.",
-          "values": "Existing patient directory search with name/date/identifiers; no patient preselected.",
-          "rules": "Register verified patient opens normal matching/registration. Return and choose it explicitly; no link is inferred from the intake name."
+          "values": "The patient directory with Find by name or identifier and its detailed search; no patient preselected.",
+          "rules": "Register verified patient opens normal matching and registration. Return and choose the patient explicitly; no link is inferred from the intake name."
         },
         {
-          "name": "Verification or decline source and disposition reason",
-          "meaning": "Evidence for resolution to a verified patient or for declining intake.",
-          "values": "Both required, maximum1000characters each; blank initially.",
-          "rules": "Resolved must link an existing patient; declined has no patient link. Stale revisions are refused."
+          "name": "Verification or decline source and Disposition reason",
+          "meaning": "Resolve incomplete identity intake or Record declined intake: the evidence for the resolution or for declining.",
+          "values": "Both required, at most 1,000 characters each; blank initially.",
+          "rules": "Resolved must link an existing patient; declined has no patient link. A disposition recorded meanwhile makes the dialog's revision stale and the engine refuses it."
         }
       ],
       "actions": [
         {
           "name": "Record incomplete intake / Retain incomplete intake",
-          "does": "Save supplied evidence as a separate immutable intake record.",
-          "availableWhen": "Order-entry authority; valid required fields.",
-          "result": "No patient, order or test is created. The item remains pending."
+          "does": "Opens Record incomplete identity intake and saves the supplied evidence as a separate intake record that cannot be changed.",
+          "availableWhen": "Enter orders capability; all required fields valid.",
+          "result": "Shows \u201cIncomplete intake retained\u201d. No patient, order or test is created; the intake waits under Awaiting verified identity."
+        },
+        {
+          "name": "Open",
+          "does": "Row menu (\u22ef): opens the intake in the side panel, as clicking the row does.",
+          "availableWhen": "Every row.",
+          "result": "The side panel shows the intake; nothing changes."
         },
         {
           "name": "Resolve with verified patient / Register verified patient",
-          "does": "Find a verified record or use the existing registration workflow after obtaining a full source-backed identity.",
-          "availableWhen": "Pending intake.",
-          "result": "Opens Choose verified patient; choosing a patient opens Resolve incomplete identity intake, where the selection is reviewed in the identity banner and Record disposition is still required."
+          "does": "From the side panel or the row menu: opens Choose verified patient, to find the verified patient or use the registration workflow after obtaining a full source-backed identity.",
+          "availableWhen": "Intake awaiting verified identity; Enter orders capability.",
+          "result": "Choosing a patient opens Resolve incomplete identity intake, where the selection is reviewed in the identity banner and Record disposition is still required. Cancel closes the dialog without a change."
         },
         {
           "name": "Record declined intake / Record disposition",
-          "does": "Record an attributed terminal decline or resolution with source and reason.",
-          "availableWhen": "Pending intake at reviewed revision; resolution requires selected existing patient.",
-          "result": "Original source evidence remains. This does not create an order, merge patients or remove clinical holds."
+          "does": "From the side panel or the row menu: Record declined intake opens its dialog; Record disposition records an attributed final decline or resolution with source and reason.",
+          "availableWhen": "Intake awaiting verified identity, at the revision shown; a resolution needs a chosen existing patient.",
+          "result": "Shows \u201cIntake disposition recorded\u201d; the intake moves to Resolved or Declined and its actions disappear. The original evidence remains. This does not create an order, merge patients or remove identity holds."
+        },
+        {
+          "name": "View in audit trail",
+          "does": "From the row menu or the link at the bottom of the side panel: opens the Audit trail filtered on this intake record.",
+          "availableWhen": "View the audit trail capability; otherwise the item and the link are not shown.",
+          "result": "The Audit trail lists the intake's recording and disposition events. Viewing the trail is itself recorded."
+        },
+        {
+          "name": "Open resolved patient",
+          "does": "Side panel, Patient: navigates to the linked patient.",
+          "availableWhen": "Resolved intake with a patient link.",
+          "result": "Review identity and holds before entering any order."
         },
         {
           "name": "Refresh / Load more intake records",
-          "does": "Reconcile the list or load the next50records.",
-          "availableWhen": "Read authority; more rows for Load more.",
-          "result": "Refresh reloads the list and the open intake, so a disposition recorded meanwhile shows at once and its actions disappear. Equal timestamps do not remove records from traversal."
+          "does": "Reloads the list, the counts and the open intake, or loads the next 50 records of the same Show filter and find text.",
+          "availableWhen": "Load more appears while more records match.",
+          "result": "A disposition recorded meanwhile shows at once in the open intake and its actions disappear; under Awaiting verified identity the intake leaves the list, and the panel offers Show all intake."
         },
         {
           "name": "Close (X), Escape, Previous / Next, Back to list, Cancel",
@@ -112,10 +176,10 @@
           "result": "No clinical data is removed. A pending intake remains pending."
         },
         {
-          "name": "Open resolved patient",
-          "does": "Navigate to the explicitly linked patient.",
-          "availableWhen": "Resolved intake with patient link.",
-          "result": "Review identity and holds before entering any order."
+          "name": "Show all intake",
+          "does": "Shown in the side panel when the intake in the address is not in the list shown: switches Show to All.",
+          "availableWhen": "Show is not All.",
+          "result": "The intake opens again if it still matches the find text."
         }
       ],
       "restrictions": [
@@ -123,23 +187,28 @@
         "Terminal disposition cannot be edited or reopened; the original intake is retained. Identity matching, duplicate resolution and source-document custody remain separate."
       ],
       "workflow": [
-        "Retain supplied name, birth evidence, source and reason.",
+        "Retain the supplied name, birth evidence, source and reason with Record incomplete intake.",
+        "Work the list under Show: Awaiting verified identity, oldest first; Waiting shows how long each has waited.",
         "Obtain source-backed identity or an explicit decline decision.",
-        "For resolution, register/find the verified patient, compare the identity banner, and record the disposition with evidence.",
-        "Verify terminal history and use the linked patient workflow only when appropriate."
+        "For resolution, choose Resolve with verified patient, register or find the verified patient, compare the identity banner, and record the disposition with evidence.",
+        "Check the result under Show: Resolved or Declined, and use the linked patient workflow only when appropriate."
       ],
       "troubleshooting": [
         {
-          "problem": "Disposition refused because the record changed",
-          "recovery": "Cancel and Refresh; reopen the record and review its terminal state before taking another action."
+          "problem": "Not recorded because the record changed",
+          "recovery": "Cancel and Refresh; review the intake's current disposition in the side panel before taking another action."
         },
         {
           "problem": "Patient cannot be found or identity remains incomplete",
-          "recovery": "Keep intake pending. Do not manufacture a birth date or register a duplicate to proceed."
+          "recovery": "Keep the intake pending. Do not manufacture a birth date or register a duplicate to proceed."
         },
         {
-          "problem": "No items are shown",
-          "recovery": "Check Include resolved and declined intake, or record new incomplete intake when source evidence exists."
+          "problem": "No intake is shown",
+          "recovery": "Check the Show filter and its counts, clear Find, or record new incomplete intake when source evidence exists."
+        },
+        {
+          "problem": "Retain incomplete intake stops with \u201cEnter the partial date or age exactly as supplied.\u201d",
+          "recovery": "Type the partial date or age exactly as the source gives it, or choose Unknown when the source gives neither."
         }
       ]
     }

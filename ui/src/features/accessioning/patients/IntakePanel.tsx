@@ -5,11 +5,14 @@ import { type ActionItem, RecordActions } from "@/components/RowActions";
 import { Timestamp } from "@/components/Timestamp";
 import type { IntakeDeferralView } from "@/generated/IntakeDeferralView";
 import { usePersonText } from "@/lib/person";
+import { intakeAuditPath } from "./intakeActions";
 import { birthEvidence, IntakeStateBadge } from "./intakeLabels";
 
 interface IntakePanelProps {
   intake: IntakeDeferralView;
   actions: readonly ActionItem[];
+  /** Offers View in audit trail, for people with `view_audit`. */
+  canViewAudit: boolean;
   onClose: () => void;
   onPrevious: (() => void) | undefined;
   onNext: (() => void) | undefined;
@@ -19,7 +22,7 @@ interface IntakePanelProps {
  * One incomplete intake in view mode: the evidence as supplied and, once recorded, its
  * terminal disposition. Open intake offers its dispositions; the evidence never changes.
  */
-export function IntakePanel({ intake, actions, ...navigation }: IntakePanelProps) {
+export function IntakePanel({ intake, actions, canViewAudit, ...navigation }: IntakePanelProps) {
   const person = usePersonText();
   const recorded = (at: string, by: string, display?: string) => (
     <>
@@ -64,6 +67,7 @@ export function IntakePanel({ intake, actions, ...navigation }: IntakePanelProps
           ]}
         />
       )}
+      {canViewAudit && <Link to={intakeAuditPath(intake)}>View in audit trail</Link>}
     </DetailPanel>
   );
 }
