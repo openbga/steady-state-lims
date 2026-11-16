@@ -1,4 +1,4 @@
-# Steady State LIMS documentation
+# OpenBGA Toxicology LIMS documentation
 
 ## Start with the current application
 

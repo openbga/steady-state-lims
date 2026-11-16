@@ -1,7 +1,7 @@
 import { type RefObject, useLayoutEffect, useRef } from "react";
 import { useLocation } from "react-router";
 
-const APP_NAME = "Steady State LIMS";
+const APP_NAME = "OpenBGA Toxicology LIMS";
 
 /**
  * Keeps the window title equal to the page's `h1` and, after each navigation, moves focus to

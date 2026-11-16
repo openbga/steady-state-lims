@@ -13,7 +13,8 @@ use lis_interfaces::partner::{
 
 use crate::partner_delivery::hl7_message::dtm;
 
-const NOTE: &str = "Synthetic test message from Steady State LIMS. It contains no patient data.";
+const NOTE: &str =
+    "Synthetic test message from OpenBGA Toxicology LIMS. It contains no patient data.";
 
 /// The test file's bytes and extension for the connection's message type; `None` for an
 /// incoming type, to which the LIS sends nothing.
@@ -55,7 +56,7 @@ fn test_message(connection_id: PartnerConnectionId, sent_at: UtcTimestamp) -> Ve
 /// The synthetic test file of a Report PDF connection: a one-page PDF.
 fn test_pdf(connection_id: PartnerConnectionId, sent_at: UtcTimestamp) -> Vec<u8> {
     let lines = [
-        "Steady State LIMS - synthetic test message".to_owned(),
+        "OpenBGA Toxicology LIMS - synthetic test message".to_owned(),
         "It contains no patient data.".to_owned(),
         format!("Connection: {connection_id}"),
         format!("Sent at: {sent_at}"),
@@ -112,7 +113,7 @@ fn test_oru(
         .unwrap_or(TimeZone::UTC);
     let lab = Organization {
         name: laboratory.map_or_else(
-            || "Steady State LIMS".to_owned(),
+            || "OpenBGA Toxicology LIMS".to_owned(),
             |profile| profile.name.clone(),
         ),
         id: laboratory
