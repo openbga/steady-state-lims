@@ -154,10 +154,10 @@ pub const SCHEMA: ModuleSchema = ModuleSchema {
 };
 
 pub use intake::{
-    BirthEvidenceKind, IntakeDeferralId, IntakeDeferralView, IntakeDisposition, IntakeQueueItem,
-    ListIntakeDeferralsInput, RecordIntakeDeferralInput, ResolveIntakeDeferralInput,
-    intake_awaiting_identity, list_intake_deferrals, record_intake_deferral,
-    resolve_intake_deferral,
+    BirthEvidenceKind, IntakeDeferralCounts, IntakeDeferralId, IntakeDeferralPage,
+    IntakeDeferralView, IntakeDisposition, IntakeQueueItem, IntakeShow, ListIntakeDeferralsInput,
+    RecordIntakeDeferralInput, ResolveIntakeDeferralInput, intake_awaiting_identity,
+    list_intake_deferrals, record_intake_deferral, resolve_intake_deferral,
 };
 
 pub use directories::{

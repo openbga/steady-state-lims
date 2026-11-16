@@ -318,8 +318,8 @@ pub use commands::specimens::material::{
 pub use lis_specimens::{ExcursionPage, MaterialHistoryPage};
 
 pub use lis_identity::{
-    IntakeDeferralView, ListIntakeDeferralsInput, RecordIntakeDeferralInput,
-    ResolveIntakeDeferralInput,
+    IntakeDeferralCounts, IntakeDeferralPage, IntakeDeferralView, IntakeShow,
+    ListIntakeDeferralsInput, RecordIntakeDeferralInput, ResolveIntakeDeferralInput,
 };
 
 pub use lis_identity::{
