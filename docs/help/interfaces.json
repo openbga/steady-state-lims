@@ -2,7 +2,7 @@
   "id": "interfaces",
   "title": "Interfaces",
   "summary": "Receive HL7 orders from a clinic's EMR and send HL7 results, report PDFs and billing handoff files to outside systems, through a folder or the partner's SFTP server, or HL7 over MLLP with a partner on the lab network; map codes between the LIS and each partner, follow every message in Logs, and decide on messages no connection matched.",
-  "reviewedOn": "2026-11-10",
+  "reviewedOn": "2026-11-12",
   "routes": [
     "/interfaces/connections",
     "/interfaces/connections/:connectionId/:tab?",
@@ -135,7 +135,7 @@
         },
         {
           "problem": "Waiting does not go down",
-          "recovery": "Check that the connection is started, that its destination check is Verified, that its Interface contract line says acceptance tests passed, and its schedule. Logs show the reason on each waiting message, such as Interface contract not approved, or its acceptance tests not passed: open Interface contract on Overview, approve a version and run the tests, fixing what a failed case names (often a code mapping without a UCUM unit); a report revision also waits while its impact review is open, and an HL7 result while its patient has no identifier (Held: the patient has no identifier). Nothing is written while a recovery reconciliation after a restore is open."
+          "recovery": "Check that the connection is started, that its destination check is Verified, that its Interface contract line says acceptance tests passed, and its schedule. Logs show the reason on each waiting message. One the contract holds names which check: Held: interface contract not approved; Held: acceptance tests not run yet; Held: acceptance tests failed; or Held: acceptance tests out of date after a change to the connection, such as a new file name. Its Open interface contract link opens the connection's Interface contract, where you approve a version and run the tests, fixing what a failed case names (often a code mapping without a UCUM unit); a report revision also waits while its impact review is open, and an HL7 result while its patient has no identifier (Held: the patient has no identifier). Nothing is written while a recovery reconciliation after a restore is open."
         }
       ]
     },
@@ -322,8 +322,8 @@
         {
           "name": "File name",
           "meaning": "The name pattern of each file.",
-          "values": "Letters, digits, '.', '_', '-' and the placeholders of the message type. HL7 Results and Report PDF: {report} (the report number: the accession number and the specimen type code, such as A26000010-UR), {accession} (the accession number alone, such as A26000010) and {revision} (the revision number; a withdrawal reads <n>-withdrawn). Billing JSON: {handoff} (the handoff number). All: {date} (YYYYMMDD) and {time} (HHMMSS), in the laboratory's time zone, from when the message was queued for this connection. Default: {report}_r{revision}_{date}.hl7, {report}_r{revision}_{date}.pdf or billing-{handoff}_{date}.json, filled in when the message is chosen.",
-          "rules": "Required; up to 120 characters; may not start with a dot. HL7 Results: must contain {report} and {revision} and end in .hl7; {accession} is optional, since two specimens of one accession share it. Report PDF: the same, ending in .pdf. A pattern saved when {accession} stood for the report number reads {report}, so its files keep their names and its acceptance tests stay current. Billing JSON: must contain {handoff} and end in .json. Not shown for MLLP, where a message travels as it is, without a file."
+          "values": "Letters, digits, '.', '_', '-' and the placeholders of the message type. HL7 Results and Report PDF: {report} (the report number: the accession number and the specimen type code, such as A26000010-UR), {accession} (the accession number alone, such as A26000010) and {revision} (the revision number; a withdrawal reads <n>-withdrawn). Billing JSON: {handoff_id} (the handoff ID, as in the file Export file saves from Billing handoffs), {handoff} (the handoff number) and {accession} (the lowest accession number the handoff covers, then _plus and how many others, such as A26000004_plus2). All: {date} (YYYYMMDD) and {time} (HHMMSS), in the laboratory's time zone, from when the message was queued for this connection. Default: {report}_r{revision}_{date}.hl7, {report}_r{revision}_{date}.pdf or bh-{handoff_id}_{accession}.json (the same name as Export file in Billing handoffs), filled in when the message is chosen. A saved connection keeps its pattern, such as billing-{handoff}_{date}.json, until someone changes it.",
+          "rules": "Required; up to 120 characters; may not start with a dot. HL7 Results: must contain {report} and {revision} and end in .hl7; {accession} is optional, since two specimens of one accession share it. Report PDF: the same, ending in .pdf. A pattern saved when {accession} stood for the report number reads {report}, so its files keep their names and its acceptance tests stay current. Billing JSON: must contain {handoff_id} or {handoff} and end in .json; {accession} is optional, since several handoffs can cover the same accession. Not shown for MLLP, where a message travels as it is, without a file."
         },
         {
           "name": "Reason",
@@ -639,25 +639,25 @@
         {
           "name": "Transport",
           "meaning": "Did it leave: what the folder, SFTP server or MLLP connection can prove.",
-          "values": "Written (to a folder); Uploaded (to an SFTP server); Sent (over MLLP, also while its acknowledgement is awaited); Failed; Not sent (not written yet, or replaced by a newer revision and never written); Received (an incoming order message read from a file or received over MLLP, and stored).",
+          "values": "Written (to a folder); Uploaded (to an SFTP server); Sent (over MLLP, also while its acknowledgement is awaited); Failed; Not sent (not written yet, or replaced by a newer revision and never written; an unrouted message: a yellow warning while it waits in Unrouted messages, neutral once someone decided); Received (an incoming order message read from a file or received over MLLP, and stored).",
           "rules": "Never Delivered."
         },
         {
           "name": "Application",
           "meaning": "Did the other system accept it.",
-          "values": "Outcome unknown for a written or uploaded file: a folder or SFTP server never confirms. Over MLLP, the partner's acknowledgement: Accepted (AA); Rejected (AE), an error in the message; Rejected (AR), the message or its sender not accepted; or Awaiting application ACK until it answers. An acknowledgement never proves that a clinician saw the result. For an incoming order: Order created (in Received status, for the laboratory to accept); Waiting for patient; Held for review; Duplicate – ignored; Rejected, or Rejected – unknown test. — otherwise.",
+          "values": "Outcome unknown for a written or uploaded file: a folder or SFTP server never confirms. Over MLLP, the partner's acknowledgement: Accepted (AA); Rejected (AE), an error in the message; Rejected (AR), the message or its sender not accepted; or Awaiting application ACK until it answers. An acknowledgement never proves that a clinician saw the result. For an incoming order: Order created (in Received status, for the laboratory to accept); Waiting for patient; Held for review; Duplicate – ignored; Rejected, or Rejected – unknown test. For an unrouted message, the decision on it: Resolved – sent once (to the connection chosen, which shows its own row); Resolved – routed again; Resolved – recorded another way; Resolved – dismissed. — otherwise, such as for an unrouted message still waiting.",
           "rules": "The billing company's acknowledgement or rejection is recorded on the billing handoff page, by people with Billing. A written report PDF does not count as a staff-attested delivery on the report's page."
         },
         {
           "name": "Details",
           "meaning": "Why the row stands where it does.",
-          "values": "Written as <folder and file> (for SFTP, the remote folder and file); over MLLP Sent to <address:port>, followed by · Partner: <its reason> when it did not accept the message; <problem>; attempt N of 5 at <time>, such as No acknowledgement in time; attempt 2 of 5 at 11:20; <problem>; not written (over MLLP, not acknowledged) after 5 attempts; Connection stopped; Destination check not recorded; Interface contract not approved, or its acceptance tests not passed; Waiting for the connection's schedule; Written at the next pass; Paused while the report's impact review is open; Held: a test or analyte has no approved code mapping; Held: the patient has no identifier; add one on the patient's page (HL7 Results only: PID-3 is required, so it is never sent empty); Replaced by a newer revision; never written; No connection rule matched; or the decision on an unrouted message. A report's later revision or withdrawal notice sent to a connection that had the report starts with Replaces r<n>, sent first or Withdrawal notice, sent first. A received order shows why it waits, is held or was refused (Exact replay; no second order for a duplicate), and Moved to <Processed or Failed folder › year › month › file>, or over MLLP the answer it got, such as ACK AA returned to 192.168.1.50; an order created once its patient was registered shows Waited until the patient was registered. A resolved rejection ends with · Resolved by <person>, <time>: <note>; a message a person rejected shows Rejected by <person>, <time>: <reason>.",
+          "values": "Written as <folder and file> (for SFTP, the remote folder and file); over MLLP Sent to <address:port>, followed by · Partner: <its reason> when it did not accept the message; <problem>; attempt N of 5 at <time>, such as No acknowledgement in time; attempt 2 of 5 at 11:20; <problem>; not written (over MLLP, not acknowledged) after 5 attempts; Connection stopped; Destination check not recorded; Held: interface contract not approved; Held: acceptance tests not run yet; run them; Held: acceptance tests failed; fix what they found and run them again; Held: acceptance tests out of date after a change to the connection; run them again (each of these four followed by an Open interface contract link to the connection's contract); Waiting for the connection's schedule; Written at the next pass; Paused while the report's impact review is open; Held: a test or analyte has no approved code mapping; Held: the patient has no identifier; add one on the patient's page (HL7 Results only: PID-3 is required, so it is never sent empty); Replaced by a newer revision; never written; No connection rule matched; or the decision on an unrouted message. A report's later revision or withdrawal notice sent to a connection that had the report starts with Replaces r<n>, sent first or Withdrawal notice, sent first. A received order shows why it waits, is held or was refused (Exact replay; no second order for a duplicate), and Moved to <Processed or Failed folder › year › month › file>, or over MLLP the answer it got, such as ACK AA returned to 192.168.1.50; an order created once its patient was registered shows Waited until the patient was registered. A resolved rejection ends with · Resolved by <person>, <time>: <note>; a message a person rejected shows Rejected by <person>, <time>: <reason>.",
           "rules": "Read-only."
         },
         {
-          "name": "Message details: Connection, Control ID (MSH-10), Partner's answer",
-          "meaning": "The side panel an outgoing message opens in: its connection (a link to its page, except on the connection's own Logs tab), the message's control ID as sent in MSH-10, and what the partner answered.",
-          "values": "Control ID: the ID the partner quotes, or — until the message is made, and for a report PDF or billing file. Partner's answer over MLLP: Accepted (AA), Rejected (AE) or Rejected (AR) with the partner's reason as received (ERR-8, else MSA-3); No answer: <problem>, such as No acknowledgement in time, when it did not answer; None yet. For a folder or SFTP server: None, as they never answer.",
+          "name": "Message details: Connection, Details, Control ID (MSH-10), Partner's answer",
+          "meaning": "The side panel an outgoing message opens in: its connection (a link to its page, except on the connection's own Logs tab), what became of it and why it waits, the message's control ID as sent in MSH-10, and what the partner answered.",
+          "values": "Details: the same text as the table's Details column, which the open panel pushes out of view, such as Connection stopped or Held: interface contract not approved, with Open interface contract when the contract or its acceptance tests hold the message. Control ID: the ID the partner quotes, or — until the message is made, and for a report PDF or billing file. Partner's answer over MLLP: Accepted (AA), Rejected (AE) or Rejected (AR) with the partner's reason as received (ERR-8, else MSA-3); No answer: <problem>, such as No acknowledgement in time, when it did not answer; None yet. For a folder or SFTP server: None, as they never answer.",
           "rules": "Read-only. The panel's heading shows the record, the message type and the Transport badge. Opening it reads the message, which holds patient data: each opening is recorded in the audit trail (interfaces.get_message) and needs Manage configuration."
         },
         {
@@ -691,6 +691,12 @@
           "does": "Opens Resolve the rejection of <record>: a required What was done (1–500 characters), such as the clinic corrected the test code and sent the order again; Mark resolved records it, Cancel leaves it under Rejected.",
           "availableWhen": "From the row's ⋯ menu, on an incoming order the LIS refused or a message an MLLP partner rejected (AE or AR), not resolved yet.",
           "result": "It leaves the Rejected tab and stays under All; Details end with Resolved by <person>, <time>: <note>. Nothing is sent and nothing changes at the partner. A rejection is resolved once. Recorded in the audit trail."
+        },
+        {
+          "name": "Refresh",
+          "does": "Reads the list again. Updated <time> beside the button says when the rows shown were read; Refreshing… shows while it runs.",
+          "availableWhen": "Always.",
+          "result": "Shows the latest messages and outcomes, such as a message that moved from Not sent to Written or a new one. The period, connection, direction, outcome, Show test messages, search and tab stay as they were; checked rows stay checked while they are still shown. The list is not refreshed by itself."
         },
         {
           "name": "Export CSV / Export N selected",
@@ -751,7 +757,7 @@
         {
           "name": "Waiting since, Message, Record, Client, Practitioner, Reason, Next action",
           "meaning": "When the message was made and how long it has waited, its type, the report revision or billing handoff, the clients and practitioners in it, why it is here and what to do.",
-          "values": "As recorded, such as 2026-11-03 10:40 (3 h); Reason is No rule matched; Next action is Send to a connection.",
+          "values": "As recorded. Waiting since shows the time and how long it has waited, such as 2026-11-03 10:40 GMT+2 (3 h), (under 1 h) in its first hour and in days, such as (2 d), from 48 hours; on a narrow window it goes onto two lines rather than being cut off. Reason is No rule matched; Next action is Send to a connection.",
           "rules": "Oldest first. A row shows its details below the table; the oldest is shown until you choose another. The count also shows beside the menu entry and in the Unrouted interface messages work queue. A report revision leaves the list when a newer revision or the withdrawal of the same report is released; the newer one is routed on its own."
         },
         {
