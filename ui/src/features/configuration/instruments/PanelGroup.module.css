@@ -16,3 +16,9 @@
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
 }
+
+/* One label column for every group, so the values line up down the panel; a longer label
+   wraps onto more lines instead of pushing its value out. */
+.group dl {
+  grid-template-columns: 9rem minmax(0, 1fr);
+}
