@@ -2,7 +2,7 @@
   "id": "result-imports",
   "title": "Result imports",
   "summary": "Account for received results and investigate rows that were not applied.",
-  "reviewedOn": "2026-11-10",
+  "reviewedOn": "2026-11-17",
   "routes": ["/review/imports", "/review/imports/:importAttemptId/:tab?"],
   "sections": [
     {
@@ -153,7 +153,7 @@
         {
           "name": "Load results file: Instrument",
           "meaning": "Chooses the approved source template used to read the file.",
-          "values": "Instruments with an approved result-file template.",
+          "values": "Instruments with an approved result-file template, whether or not folder pickup is enabled for them.",
           "rules": "Required; no default. The dialog displays the selected software name/version before choosing the file."
         },
         {
@@ -174,7 +174,7 @@
           "name": "Load results file / Choose file",
           "does": "Selects an instrument and opens the operating-system file picker.",
           "availableWhen": "Analysis authority and an approved file template are available.",
-          "result": "Stores a receipt of original bytes and schedules processing; does not change or move the original file."
+          "result": "Stores a receipt of original bytes and schedules processing; does not change or move the original file. Works while the instrument's folder pickup is disabled: folder pickup only controls the watched folder."
         },
         {
           "name": "Open import attempt / Open the earlier import attempt",

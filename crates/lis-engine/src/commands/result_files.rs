@@ -131,9 +131,10 @@ impl Engine {
                 return Ok(None);
             };
             let instrument_id = input.instrument_id;
-            // Nothing is read or stored for an instrument that cannot receive files now.
+            // Nothing is read or stored for an instrument that cannot receive files; folder
+            // pickup being off does not matter to a file loaded by hand (ticket #4812).
             self.read(&call, move |conn| {
-                lis_interfaces::receivable_instrument(conn, instrument_id)
+                lis_interfaces::loadable_instrument(conn, instrument_id)
             })
             .await?;
             let chosen = tokio::task::spawn_blocking(move || read_chosen(&path, instrument_id))

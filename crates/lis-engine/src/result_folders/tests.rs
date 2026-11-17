@@ -328,7 +328,8 @@ fn a_file_waiting_more_than_five_minutes_raises_the_signal() {
     assert_eq!(poll.status().detail_code, None);
 }
 
-// F13: a disabled instrument's folder is not watched.
+// F13: a disabled instrument's folder is not watched; its files are loaded by
+// hand, so it is manual loading only (ticket #4812).
 #[test]
 fn a_disabled_instrument_is_not_watched() {
     let poll = Poll::new();
@@ -349,11 +350,9 @@ fn a_disabled_instrument_is_not_watched() {
     let status = poll.status();
     assert_eq!(
         (status.state, status.detail_code),
-        (
-            ListenerState::Disabled,
-            Some(ListenerDetailCode::ConfigurationDisabled)
-        )
+        (ListenerState::ManualOnly, None)
     );
+    assert!(!status.in_error());
 }
 
 // L10 of the wave-10 review: an enabled instrument without a folder is manual loading

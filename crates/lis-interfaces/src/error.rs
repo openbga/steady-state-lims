@@ -79,8 +79,9 @@ pub enum InterfaceError {
     /// Frame bytes do not match the receipt's protocol and frozen settings.
     #[error("instrument frame bytes are invalid")]
     InvalidFrame,
-    /// Intake was attempted for a disabled instrument.
-    #[error("instrument listener is disabled")]
+    /// Automatic intake (a listener or folder pickup) was attempted for a
+    /// disabled instrument.
+    #[error("this instrument is disabled")]
     InstrumentDisabled,
     /// Receipt transport or peer does not match the configured connection.
     #[error("receipt transport does not match the instrument connection")]

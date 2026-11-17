@@ -235,7 +235,7 @@
         {
           "name": "Live status: Status",
           "meaning": "Current state of the analyzer's listener, or of a result-file instrument's watched folder.",
-          "values": "Disabled; Listening; Connected; Receiving; Error; Manual loading only; Watching for a watched folder. Not started yet when the app has no listener for it.",
+          "values": "Disabled; Listening; Connected; Receiving; Error; Manual loading only, for a result-file instrument without a watched folder or with folder pickup disabled; Watching for a watched folder. Not started yet when the app has no listener for it.",
           "rules": "Read-only, from the running app, refreshed while the top-bar listener summary is shown. The badge is green for Connected and Receiving, blue for Listening and for Watching (amber when files wait too long), gray for Disabled and Manual loading only, and red for Error; its words always name the state. The saved Enabled value alone does not prove that a listener or folder pickup works."
         },
         {
@@ -352,7 +352,7 @@
           "name": "Enable folder pickup / Disable folder pickup",
           "does": "Control automatic receipt of new files from a chosen folder.",
           "availableWhen": "Manage configuration and a Result files connection.",
-          "result": "Saves the enabled state. Disabling automatic pickup does not prevent authorized manual loading through Result imports."
+          "result": "Saves the enabled state. Disabling automatic pickup does not prevent authorized manual loading through Result imports; Live status then shows Manual loading only."
         },
         {
           "name": "Enable all / Disable all",

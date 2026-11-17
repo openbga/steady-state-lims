@@ -71,8 +71,8 @@ pub use queries::{
 };
 pub use reconciliation::{ReconciliationSummary, reconcile_receipts};
 pub use result_files::{
-    present_at_selection, receipt_file, receivable_instrument, receive_result_file,
-    record_oversize_file, result_file_instruments, seen_file,
+    loadable_instrument, present_at_selection, receipt_file, receivable_instrument,
+    receive_result_file, record_oversize_file, result_file_instruments, seen_file,
 };
 pub use status::{ListenerDetailCode, ListenerState, ListenerStatus, StatusReport};
 
