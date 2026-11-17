@@ -28,6 +28,28 @@ New authenticator enrollment labels use OpenBGA Toxicology LIMS; existing authen
 may still show their original label. Renaming does not rotate credentials or rewrite
 stored records.
 
+Installer metadata needs its own migration even with a stable bundle identifier.
+The Windows NSIS hook reads only validated former per-user registrations for
+`Vibe Tox LIS`, `OpenBGA Tox` and `Steady State LIMS`. It keeps the registered
+executable directory, migrates matching shortcuts and retires the selected old
+uninstall metadata after the new registration exists. Distinct legacy directories
+or an explicitly selected different directory stop installation for manual
+reconciliation; the hook never removes application data. The Debian bundle declares
+`Conflicts`, `Replaces` and `Provides` for the published former package names
+`vibe-tox-lis`, `open-bga-tox` and `steady-state-lims`, so `dpkg -i` can replace
+ownership of `lis-desktop` instead of colliding with the old package.
+
+These controls follow Tauri's [product-name configuration](https://v2.tauri.app/reference/config/#productname)
+and [NSIS template for CLI 2.12.2](https://raw.githubusercontent.com/tauri-apps/tauri/tauri-cli-v2.12.2/crates/tauri-bundler/src/bundle/windows/nsis/installer.nsi),
+and Debian's [whole-package replacement policy](https://www.debian.org/doc/debian-policy/ch-relationships.html#replacing-whole-packages-forcing-their-removal),
+checked 2026-11-16. Former Debian names were verified against the actual published
+`v0.1.1`, `nightly-20261111.30` and `nightly-20261114.32` artifacts.
+The package workflow tests the actual Windows installer against synthetic former
+registrations and custom directories, repeat upgrades, fresh installation and
+uninstall on its ephemeral runner. It tests the Debian artifact's package ownership
+in private dpkg roots with dependency enforcement disabled; that is not a runtime
+library or clinical qualification. These checks do not replace real-host testing.
+
 Changing Tauri's product name also changes platform bundle/install names. Before
 publishing a renamed build, qualify upgrade from the previous development build on
 Windows, macOS and Linux, including app discovery, shortcuts, uninstall entries and

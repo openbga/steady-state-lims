@@ -187,6 +187,20 @@ jobs:
             config=(--config "$UPDATER_CONFIG")
           fi
           npx tauri build --bundles ${{ matrix.bundles }} "${config[@]}" -- --locked
+      - name: Verify Windows installer rename continuity on synthetic installations
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem "$env:CARGO_TARGET_DIR/release/bundle/nsis" -Recurse -Filter '*-setup.exe')
+          if ($installers.Count -ne 1) { throw 'Expected one NSIS installer' }
+          ./scripts/test_nsis_migration.ps1 -Installer $installers[0].FullName
+      - name: Verify Debian package replacement in private roots
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          packages=("$CARGO_TARGET_DIR"/release/bundle/deb/*.deb)
+          [[ ${#packages[@]} == 1 ]]
+          bash scripts/test_deb_migration.sh "${packages[0]}"
       - name: Verify macOS application bundle signature
         if: runner.os == 'macOS'
         run: |
