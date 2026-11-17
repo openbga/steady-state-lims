@@ -171,6 +171,28 @@ fn intake_counts(
     }
     Ok(counts)
 }
+/// An open intake for the work queue: its ID and when it was recorded, never the supplied name.
+#[derive(Debug, Clone)]
+pub struct IntakeQueueItem {
+    pub intake_id: IntakeDeferralId,
+    pub since: UtcTimestamp,
+}
+/// Intake still awaiting verified identity (no disposition), oldest first (#4773).
+pub fn intake_awaiting_identity(
+    conn: &Connection,
+    limit: u32,
+) -> Result<Vec<IntakeQueueItem>, IdentityError> {
+    let mut statement = conn.prepare(
+        "SELECT d.id, d.recorded_at FROM idn_intake_deferrals d LEFT JOIN idn_intake_dispositions x ON x.id=d.id WHERE x.id IS NULL ORDER BY d.recorded_at, d.id LIMIT ?1",
+    )?;
+    let rows = statement.query_map([limit], |r| {
+        Ok(IntakeQueueItem {
+            intake_id: r.get(0)?,
+            since: r.get(1)?,
+        })
+    })?;
+    Ok(rows.collect::<Result<_, _>>()?)
+}
 /// Intake resolved with `subject_id`, oldest resolution first; empty for most subjects.
 /// PHI: read only as part of the subject's audited read.
 pub(crate) fn resolved_intakes(

@@ -108,6 +108,7 @@ export const navigation: readonly NavSection[] = [
             (m) => m.IncompleteIntakePage,
           ),
         capabilities: ["enter_orders"],
+        queue: "incomplete_intake",
       },
       {
         path: "/specimens/storage",

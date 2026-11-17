@@ -2,9 +2,13 @@
 //! REQ-RES-004/005). Synthetic identifiers and accession numbers only.
 
 use lis_analytical::{MaterialKind, QcOutcome, RegisterLotInput, RevisionIndicator};
-use lis_core::{Clock, CommandError, ErrorCode, UserId};
+use lis_core::{Clock, CommandError, ErrorCode, Phi, UserId};
 use lis_engine::{
-    Engine, ListLotsInput, ListWorkQueueItemsInput, PlaceClarificationHoldInput, WorkQueueItem,
+    Engine, GetRunInput, ListLotsInput, ListWorkQueueItemsInput, PlaceClarificationHoldInput,
+    WorkQueueArea, WorkQueueItem,
+};
+use lis_identity::{
+    BirthEvidenceKind, IntakeDisposition, RecordIntakeDeferralInput, ResolveIntakeDeferralInput,
 };
 
 use crate::m2_lab::{Lab, Role};
@@ -192,7 +196,7 @@ async fn summary_marks_a_count_that_reaches_the_bound() {
 }
 
 // REQ-OPS-013: a position awaiting results is named `<run>:<position>`, so the work-queue
-// screen can open its run, as a QC item is named `<run>:<analyte>`.
+// screen can open its run.
 #[tokio::test]
 async fn positions_awaiting_results_are_named_by_their_run_and_position() {
     let lab = Lab::start(RevisionIndicator::None).await;
@@ -258,4 +262,145 @@ async fn lots_expiring_soon_lists_active_lots_inside_the_warning_period() {
     };
     assert!(marked(registered[0]));
     assert!(!marked(registered[1]));
+}
+
+// #4773: intake awaiting verified identity is a Front desk queue for people who record and
+// resolve it; resolved or declined intake leaves it, and items never carry the supplied name.
+#[tokio::test]
+async fn incomplete_intake_queue_counts_intake_awaiting_verified_identity() {
+    let lab = Lab::start(RevisionIndicator::None).await;
+    lab.sign_in(Role::Accessioner).await;
+    let mut recorded = Vec::new();
+    for reference in ["SYN-REQ-1", "SYN-REQ-2"] {
+        let intake = lab
+            .engine()
+            .record_intake_deferral(RecordIntakeDeferralInput {
+                supplied_name: Phi::new("SYNTHETIC Intake".to_owned()),
+                birth_evidence_kind: BirthEvidenceKind::Unknown,
+                birth_evidence_text: None,
+                source_reference: reference.to_owned(),
+                reason: "Complete birth date not supplied".to_owned(),
+            })
+            .await
+            .unwrap();
+        recorded.push(intake);
+    }
+    lab.engine()
+        .resolve_intake_deferral(ResolveIntakeDeferralInput {
+            intake_id: recorded[1].intake_id,
+            expected_revision: 1,
+            disposition: IntakeDisposition::Declined,
+            subject_id: None,
+            source_reference: "SYN-CONTACT-1".to_owned(),
+            reason: "Source could not establish complete identity".to_owned(),
+        })
+        .await
+        .unwrap();
+
+    let summaries = lab.engine().list_work_queues().await.unwrap();
+    let intake = summaries
+        .iter()
+        .find(|summary| summary.queue == "incomplete_intake")
+        .unwrap();
+    assert_eq!(intake.area, WorkQueueArea::FrontDesk);
+    assert_eq!(intake.owner_capability, "enter_orders");
+    assert_eq!((intake.count, intake.count_capped), (Some(1), false));
+    assert_eq!(intake.oldest_since, Some(recorded[0].recorded_at));
+    assert_eq!(
+        intake.next_action,
+        "Get the complete birth date, then resolve"
+    );
+    let rows = items(&lab, "incomplete_intake").await;
+    assert_eq!(rows.len(), 1, "{rows:?}");
+    assert_eq!(rows[0].item_kind, "intake_deferral");
+    assert_eq!(rows[0].item_id, recorded[0].intake_id.to_string());
+    assert_eq!(
+        rows[0].state_label.as_deref(),
+        Some("Awaiting verified identity")
+    );
+    assert_phi_free_titles(&rows);
+
+    lab.sign_in(Role::Reviewer).await;
+    let summaries = lab.engine().list_work_queues().await.unwrap();
+    assert!(
+        summaries
+            .iter()
+            .all(|summary| summary.queue != "incomplete_intake")
+    );
+}
+
+// #4774: QC requiring review lists one item per run, named as the run's page names it with
+// its creation time, never by IDs; the state counts the run's analytes by status, and the
+// queue's count is the runs listed.
+#[tokio::test]
+async fn qc_review_lists_one_readable_item_per_run() {
+    let lab = Lab::start(RevisionIndicator::None).await;
+    lab.import(JOURNEY).await;
+    lab.sign_in(Role::Analyst).await;
+    let run = lab
+        .engine()
+        .get_run(GetRunInput { run_id: lab.run })
+        .await
+        .unwrap();
+    lab.sign_in(Role::Quality).await;
+    let rows = items(&lab, "qc_review").await;
+    assert_eq!(rows.len(), 1, "{rows:?}");
+    let row = &rows[0];
+    assert_eq!(
+        (row.item_kind.as_str(), row.item_id.clone()),
+        ("run_qc", lab.run.to_string())
+    );
+    let name = format!(
+        "Run of {} version {} on {} · ",
+        run.method_code, run.method_version, run.instrument_name
+    );
+    assert!(row.title.starts_with(&name), "{}", row.title);
+    // Without a laboratory profile, times are shown in UTC, with the zone named.
+    assert!(row.title.ends_with(" UTC"), "{}", row.title);
+    assert!(!row.title.contains(&lab.run.to_string()));
+    assert_eq!(row.state, "pending");
+    assert_eq!(row.state_label.as_deref(), Some("2 analytes not assessed"));
+    let summaries = lab.engine().list_work_queues().await.unwrap();
+    let summary = summaries.iter().find(|q| q.queue == "qc_review").unwrap();
+    assert_eq!(
+        (summary.count, summary.oldest_since),
+        (Some(1), Some(row.since))
+    );
+
+    lab.assess_qc(lab.analytes.mor, QcOutcome::Accepted)
+        .await
+        .unwrap();
+    lab.assess_qc(lab.analytes.oxy, QcOutcome::Rejected)
+        .await
+        .unwrap();
+    let rows = items(&lab, "qc_review").await;
+    assert_eq!(rows.len(), 1, "{rows:?}");
+    assert_eq!(rows[0].state, "rejected");
+    assert_eq!(rows[0].state_label.as_deref(), Some("1 analyte rejected"));
+}
+
+// #4774: an open deviation is named by its description, as the Deviations tab names it.
+#[tokio::test]
+async fn open_deviations_are_named_by_their_description() {
+    let lab = Lab::start(RevisionIndicator::None).await;
+    lab.sign_in(Role::Quality).await;
+    let deviation = lab
+        .engine()
+        .open_deviation(lis_analytical::OpenDeviationInput {
+            scope: lis_analytical::DeviationTarget::Run(lab.run),
+            analyte_id: None,
+            description: "Synthetic pipette calibration overdue".to_owned(),
+            reason: "Synthetic queue naming check".to_owned(),
+        })
+        .await
+        .unwrap();
+    let rows = items(&lab, "open_deviations").await;
+    assert_eq!(rows.len(), 1, "{rows:?}");
+    assert_eq!(
+        (rows[0].item_id.clone(), rows[0].title.as_str()),
+        (
+            deviation.deviation_id.to_string(),
+            "Synthetic pipette calibration overdue"
+        )
+    );
 }

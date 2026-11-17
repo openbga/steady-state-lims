@@ -18,7 +18,7 @@
         "Review queues check candidate specimens in bounded requests. Progress distinguishes candidate specimens checked from matching workspaces loaded; these are not patient or analyte counts. A request can find no matches while older history remains unchecked. Only Check complete establishes an empty result for that check.",
         "The page continues checking until at least 50 matches are loaded or the history is exhausted. Pause checking stops scheduling after the active request finishes; Resume checking continues from the retained cursor. Load more requests the next group of matches without an overall browsing limit. Sorting affects only loaded rows.",
         "If a request fails, loaded rows remain available. Try again retries the failed cursor; permission errors require an authorized account. Refresh starts a new check from the beginning and clears the earlier cursor chain. Use Refresh after completing work or when another action changes clinical state; background invalidation does not replay the historical scan.",
-        "The overview shows Open to check for stale and blocked review queues whose totals have not been counted. Navigation indicates that some counts are unknown. An unknown count is not zero and does not establish that no work is waiting."
+        "Work queues shows Not counted yet for Stale result reviews and Result review blocked: these queues look through the whole result history, so they are checked only when you open them. After you open one, Work queues shows what it found and when, such as 0 · checked 14:25 UTC, until its Refresh. Navigation indicates that some counts are unknown. An unknown count is not zero and does not establish that no work is waiting."
       ]
     },
     {

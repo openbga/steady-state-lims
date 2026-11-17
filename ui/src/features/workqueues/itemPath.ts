@@ -58,13 +58,18 @@ const TARGETS: Readonly<Record<WorkItemKind, (item: ItemRef) => ItemTarget>> = {
   deviation: page("/quality/deviations"),
   order: page("/orders"),
   subject: page("/patients"),
+  // Intake awaiting verified identity (#4773), on its page filtered to those awaiting.
+  intake_deferral: (item) => ({
+    recordId: item.itemId,
+    path: "/patients/incomplete-intake?show=awaiting",
+  }),
   accession: page("/accessions"),
   collection_review: page("/accessions", "/collection-review"),
   review_specimen: page("/review/specimens"),
   specimen_report: page("/reports/specimens"),
-  // The engine names a QC item `<run>:<analyte>`; its run's QC assessments open the
-  // analyte's assessment by the analyte ID.
-  run_analyte_qc: part("/bench/runs", "/qc"),
+  // A run whose QC needs a decision (#4774) opens its Run QC review, where all of its
+  // analytes are assessed.
+  run_qc: page("/bench/runs", "/qc"),
   // The engine names a position awaiting results `<run>:<position>`; its run's positions open
   // it by the position ID.
   run_position: part("/bench/runs"),

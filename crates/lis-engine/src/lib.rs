@@ -197,7 +197,8 @@ pub use lis_billing::{
 // billing: end
 // work_queues: begin
 pub use commands::work_queues::{
-    ListWorkQueueItemsInput, WorkQueueCursor, WorkQueueItem, WorkQueuePage, WorkQueueSummary,
+    ListWorkQueueItemsInput, WorkQueueArea, WorkQueueCursor, WorkQueueItem, WorkQueuePage,
+    WorkQueueSummary,
 };
 // work_queues: end
 // backup: begin

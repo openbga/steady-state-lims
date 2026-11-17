@@ -144,7 +144,7 @@ fn expected_items(
             item(
                 definition,
                 "run_position",
-                // `<run>:<position>`, so the screen can open the run (as `run_analyte_qc`).
+                // `<run>:<position>`, so the screen can open the run.
                 format!("{}:{}", row.run_id, row.position_id),
                 row.accession_number,
                 "awaiting_result".to_owned(),

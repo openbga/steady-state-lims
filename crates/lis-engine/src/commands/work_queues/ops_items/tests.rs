@@ -26,6 +26,7 @@ fn observed(conn: &Connection, state: &str, time: &str, current: bool) {
 
 fn alerts(conn: &Connection, principal: &Principal) -> Vec<WorkQueueItem> {
     let definition = QueueDefinition {
+        area: crate::commands::work_queues::WorkQueueArea::System,
         code: "ops_alerts",
         label: "Operational alerts",
         capability: Capability::BackupRestore,

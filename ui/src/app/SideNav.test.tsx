@@ -296,6 +296,13 @@ describe("Side navigation", () => {
     const { user } = renderApp("/", ["enter_orders", "review_results", "release_reports"], {
       list_work_queues: () => [
         queue({ queue: "orders_needing_decision", ownerCapability: "enter_orders", count: 3 }),
+        // #4773: incomplete intake awaiting verified identity counts beside its entry.
+        queue({
+          queue: "incomplete_intake",
+          area: "front_desk",
+          ownerCapability: "enter_orders",
+          count: 2,
+        }),
         queue({ queue: "review_ready", count: 0 }),
         queue({
           queue: "release_ready",
@@ -305,12 +312,15 @@ describe("Side navigation", () => {
         }),
       ],
     });
-    await open(user, "Front desk, 3 waiting");
+    await open(user, "Front desk, 5 waiting");
     await open(user, "Review");
     await open(user, "Reports, 500 or more waiting");
     expect(screen.getByRole("link", { name: "Orders, 3 waiting" })).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Incomplete identity intake, 2 waiting" }),
+    ).toBeTruthy();
     expect(screen.getByRole("link", { name: "Release queue, 500 or more waiting" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Work queues, 503 or more waiting" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Work queues, 505 or more waiting" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Result review" })).toBeTruthy();
   });
 

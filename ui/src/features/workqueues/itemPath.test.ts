@@ -8,12 +8,14 @@ describe("itemTarget (REQ-OPS-004)", () => {
   it.each([
     ["order", ID, `/orders/${ID}`, ID],
     ["subject", ID, `/patients/${ID}`, ID],
+    // Incomplete intake has no record page; its list opens on those awaiting (#4773).
+    ["intake_deferral", ID, "/patients/incomplete-intake?show=awaiting", ID],
     ["accession", ID, `/accessions/${ID}`, ID],
     ["collection_review", ID, `/accessions/${ID}/collection-review`, ID],
     ["review_specimen", ID, `/review/specimens/${ID}`, ID],
     ["specimen_report", ID, `/reports/specimens/${ID}`, ID],
-    // The run's QC assessments and positions open the item's own analyte or position.
-    ["run_analyte_qc", `${ID}:${OTHER}`, `/bench/runs/${ID}/qc?open=${OTHER}`, ID],
+    // A run's QC opens its Run QC review; a run's position opens the item's own position.
+    ["run_qc", ID, `/bench/runs/${ID}/qc`, ID],
     ["run_position", `${ID}:${OTHER}`, `/bench/runs/${ID}?open=${OTHER}`, ID],
     ["run_position", ID, `/bench/runs/${ID}`, ID],
     ["import_attempt", ID, `/review/imports/${ID}`, ID],
