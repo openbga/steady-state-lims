@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, type NavigateOptions } from "react-router";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
@@ -8,6 +9,7 @@ import { Section } from "@/components/Section";
 import { StatusBadge } from "@/components/StatusBadge";
 import type { ContainerLookup } from "@/generated/ContainerLookup";
 import { useCommandQuery } from "@/lib/commands";
+import { subjectName } from "../subjects";
 import { ContainerMaterial } from "./ContainerMaterial";
 import { HoldCount, LatestLabelJob } from "./containerColumns";
 import { FIND_CONTAINER } from "./contract";
@@ -15,6 +17,7 @@ import { LookupReceipt } from "./LookupReceipt";
 import { acceptanceStatus, containerStateLabel, volumeText } from "./labels";
 import styles from "./lookup.module.css";
 import { type HistoryTab, MaterialHistory, useMaterialHistory } from "./MaterialHistory";
+import { useRecentLookups } from "./recentLookups";
 
 /** `find_container`, an audited read: each scan is one lookup, shared by the banner and card. */
 export function useContainerLookup(labelCode: string) {
@@ -47,6 +50,21 @@ export function ContainerResult({ labelCode, ...history }: ContainerResultProps)
   return <FoundContainer lookup={match.data} match={match} {...history} />;
 }
 
+/** Adds the lookup to this session's recent lookups, and keeps its state current there. */
+function useRemembered(lookup: ContainerLookup, readAt: number) {
+  const { remember } = useRecentLookups();
+  const { subject } = lookup;
+  useEffect(() => {
+    remember({
+      labelCode: lookup.container.labelCode,
+      accessionNumber: lookup.accessionNumber,
+      patient: subjectName(subject),
+      acceptance: lookup.acceptance,
+      lookedUpAt: new Date(readAt).toISOString(),
+    });
+  }, [remember, lookup, subject, readAt]);
+}
+
 interface FoundContainerProps extends Omit<ContainerResultProps, "labelCode"> {
   lookup: ContainerLookup;
   match: ReturnType<typeof useContainerLookup>;
@@ -59,6 +77,7 @@ interface FoundContainerProps extends Omit<ContainerResultProps, "labelCode"> {
 function FoundContainer({ lookup, match, tab, tabHref, routerOptions }: FoundContainerProps) {
   const { container, accessionId, accessionNumber } = lookup;
   const history = useMaterialHistory(container.containerId);
+  useRemembered(lookup, match.dataUpdatedAt);
   const acceptance = acceptanceStatus(lookup.acceptance);
   const refresh = {
     dataUpdatedAt: match.dataUpdatedAt,

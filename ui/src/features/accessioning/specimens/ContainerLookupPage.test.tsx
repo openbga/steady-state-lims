@@ -248,4 +248,20 @@ describe("ContainerLookupPage (REQ-SPC-001)", () => {
     expect(screen.getByRole("tab", { name: "Label jobs (0)", selected: true })).toBeTruthy();
     expect(find).toHaveBeenCalledTimes(1);
   });
+
+  it("says what to do before a scan, with the field focused and no example barcode (#4795)", async () => {
+    const { container: page } = renderPage(vi.fn());
+    expect(await screen.findByText("Scan a container to see it here")).toBeTruthy();
+    expect(screen.getByText(/You will see its specimen and receipt decision/)).toBeTruthy();
+    const field = screen.getByRole("textbox", { name: /Container barcode/ });
+    expect(field.getAttribute("placeholder")).toBe("Scan or type a container barcode");
+    expect(document.activeElement).toBe(field);
+    // Only the scan form acts; the guidance is plain text.
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
+      "Find container",
+    ]);
+    // Nothing was looked up in this render: no recent lookups yet.
+    expect(screen.queryByText("Your recent lookups")).toBeNull();
+    await expectNoA11yViolations(page, { wholePage: true });
+  });
 });

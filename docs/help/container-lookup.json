@@ -8,7 +8,7 @@
     {
       "title": "How to use this page",
       "paragraphs": [
-        "Scan or type the label code in Container barcode, then choose Find container or press Enter. The header\u2019s scan field also opens this lookup. After each lookup the field is emptied and keeps focus for the next scan, and Last beside Find container shows the barcode looked up and when.",
+        "The page opens with Container barcode focused and, until something is scanned, says what to do and what a lookup shows. Below that, Your recent lookups lists the containers you looked up since you signed in or unlocked. Scan or type the label code in Container barcode, then choose Find container or press Enter. The header\u2019s scan field also opens this lookup. After each lookup the field is emptied and keeps focus for the next scan, and Last beside Find container shows the barcode looked up and when.",
         "A match shows the patient identity and accession together with the specimen\u2019s acceptance state, container kind, recorded volume and location, open holds and latest label-printing status. When the specimen still waits for a receipt decision, the container card says so: people who receive specimens choose Record receipt decision to record it here, in the same steps as on Finish receiving, and everyone can open Finish receiving for the whole accession. After a decision recorded here, the card says where work continues. Open the accession link for label requests and aliquots."
       ]
     },
@@ -50,6 +50,9 @@
     "ui/src/features/accessioning/specimens/MaterialHistory.tsx",
     "ui/src/features/accessioning/specimens/ContainerResult.tsx",
     "ui/src/features/accessioning/specimens/DetailsTip.tsx",
+    "ui/src/features/accessioning/specimens/LookupStart.tsx",
+    "ui/src/features/accessioning/specimens/recentLookups.tsx",
+    "ui/src/features/auth/AuthGate.tsx",
     "ui/src/features/accessioning/specimens/LocationChoice.tsx",
     "crates/lis-specimens/src/material_history.rs",
     "crates/lis-engine/src/commands/specimens/names.rs",
@@ -66,8 +69,14 @@
         {
           "name": "Container barcode",
           "meaning": "Barcode printed on the physical container.",
-          "values": "Scan or type the exact label code.",
+          "values": "Scan or type the exact label code. The empty field reads Scan or type a container barcode.",
           "rules": "Required. Press Enter or Find container; the field clears and keeps focus for the next scan."
+        },
+        {
+          "name": "Your recent lookups",
+          "meaning": "The containers you looked up since you signed in or last unlocked, newest first, at most 10. Shown before a scan, under the guidance.",
+          "values": "Barcode, Accession, Patient (family name, given names), Specimen (acceptance when last read) and Looked up (time of the last read). A barcode looked up again moves to the top with its current state.",
+          "rules": "Kept in memory for your signed-in session only, never saved on the computer. Locking the session or signing out clears it. It shows what the lookup returned at that time; open a row to read the current state."
         },
         {
           "name": "Last",
@@ -174,6 +183,12 @@
           "result": "Displays the matching material or No container has the barcode; every submitted scan, including a repeat, is audited."
         },
         {
+          "name": "Open a recent lookup",
+          "does": "Looks the container up again by its barcode.",
+          "availableWhen": "A row in Your recent lookups; click it or press Enter on it.",
+          "result": "Shows the container\u2019s current state; the new lookup is recorded in the audit trail like a scan."
+        },
+        {
           "name": "Accession link",
           "does": "Opens the container\u2019s accession.",
           "availableWhen": "A matching record was found.",
@@ -251,7 +266,7 @@
         "Physical output and exposure are not inferred from printer handoff or current location."
       ],
       "workflow": [
-        "Scan the physical barcode.",
+        "Scan the physical barcode, or open a container from Your recent lookups.",
         "Check the identity banner, accession, acceptance and holds.",
         "If the specimen waits for a receipt decision, choose Record receipt decision, scan the container label and record the decision, or open Finish receiving.",
         "Open the accession for the permitted next action, or scan the next container."
@@ -260,6 +275,10 @@
         {
           "problem": "No container has this barcode.",
           "recovery": "Check the physical label and scan again. Do not register another accession merely because a scan failed."
+        },
+        {
+          "problem": "Your recent lookups is empty or missing a container.",
+          "recovery": "The list starts empty after signing in or unlocking, and keeps the 10 latest containers. Scan the barcode again."
         },
         {
           "problem": "The lookup failed.",

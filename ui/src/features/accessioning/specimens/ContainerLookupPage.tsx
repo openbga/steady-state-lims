@@ -8,6 +8,7 @@ import { Page, PageHeader } from "@/components/Page";
 import { useFormatTime } from "@/lib/format";
 import { IdentityBanner } from "@/lib/IdentityBanner";
 import { ContainerResult, useContainerLookup } from "./ContainerResult";
+import { LookupStart } from "./LookupStart";
 import styles from "./lookup.module.css";
 import { HISTORY_TABS, type HistoryTab } from "./MaterialHistory";
 
@@ -62,11 +63,18 @@ export function ContainerLookupPage() {
             }
           >
             <div className={styles.scanField}>
-              <TextInput name="labelCode" label="Container barcode" isRequired autoFocus />
+              <TextInput
+                name="labelCode"
+                label="Container barcode"
+                placeholder="Scan or type a container barcode"
+                isRequired
+                autoFocus
+              />
             </div>
           </Form>
         </FormProvider>
       </div>
+      {labelCode === "" && <LookupStart />}
       {labelCode !== "" && (
         <>
           <ContainerBanner key={`banner-${scan}`} labelCode={labelCode} />
