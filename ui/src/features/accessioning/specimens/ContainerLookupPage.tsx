@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useLocation, useSearchParams } from "react-router";
 import { Button } from "@/components/Button";
-import { Form } from "@/components/Form";
+import { FieldAction, Form } from "@/components/Form";
 import { TextInput } from "@/components/FormFields";
 import { Page, PageHeader } from "@/components/Page";
 import { useFormatTime } from "@/lib/format";
@@ -55,9 +55,11 @@ export function ContainerLookupPage() {
             onSubmit={onSubmit}
             actions={
               <>
-                <Button type="submit" variant="primary">
-                  Find container
-                </Button>
+                <FieldAction>
+                  <Button type="submit" variant="primary">
+                    Find container
+                  </Button>
+                </FieldAction>
                 {labelCode !== "" && <LastScan key={scan} labelCode={labelCode} />}
               </>
             }

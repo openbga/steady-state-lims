@@ -1,10 +1,11 @@
 /* Container lookup: the scan bar, the container card title and History's notes. */
 
-/* The field and Find container on one line, wrapping on narrow windows. */
+/* The field and Find container on one line, wrapping on narrow windows. The button
+   lines up with the input, so a field error below it does not move the button. */
 .scanBar > form {
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
 .scanField {
@@ -13,7 +14,8 @@
 }
 
 .lastScan {
-  align-self: center;
+  align-self: flex-end;
+  line-height: var(--control-height);
   color: var(--color-text-muted);
 }
 
