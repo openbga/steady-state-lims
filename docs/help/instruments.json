@@ -10,14 +10,15 @@
       "paragraphs": [
         "Register analyzer creates an instrument connection. Open its panel to read every saved setting without opening Edit connection: General, Connection and, for AU400 / AU640, AU settings, in the order of the Edit connection form. Below them, Live status, Result source, Activity and Changes show the running listener or folder with its last error, the approved sender, recent imports, and who registered and last changed the analyzer. Select a group's title to collapse or expand it. General also shows the analyzer's service status and approved result source from Bench setup, with a Readiness and sources link to the same analyzer there. Network connections use an allowed-address list; result-file instruments can use manual loading or a chosen watched folder.",
         "Connection changes restart the affected listeners, and the outcome appears in the panel. A watched folder belongs to its instrument. Files already present when it is selected are not automatically loaded, while later eligible files are read while the application is open.",
-        "The Analyzer listeners window, opened from the analyzers status in the top bar, lists every analyzer with its listener state. People with Manage configuration can also enable or disable each analyzer there, or all at once, and open an analyzer's settings on this page from its name; the window asks first when an analyzer is sending results now or, for a disable, has an open run. The sign-in and lock screens list the same states under the card, wrapping onto more lines in a narrow window; their times are in the laboratory's time zone as last read on this computer, or in UTC, labelled so, until someone has signed in on it."
+        "The Analyzer listeners window, opened from the analyzers status in the top bar, lists every analyzer with its listener state. People with Manage configuration can also enable or disable each analyzer there, or all at once, and open an analyzer's settings on this page from its name; the window asks first when an analyzer is sending results now or, for a disable, has an open run."
       ]
     },
     {
       "title": "Good practice",
       "paragraphs": [
         "Use the laboratory’s approved connection details. Confirm instrument identity and the intended source before enabling intake. Keep one instrument’s exports in its dedicated folder and preserve the files as produced.",
-        "Connection setup is separate from service readiness and result-source approval in Bench setup. The application must remain open for listeners and folder intake to operate, including when nobody is signed in."
+        "Connection setup is separate from service readiness and result-source approval in Bench setup. The application must remain open for listeners and folder intake to operate, including when nobody is signed in.",
+        "The sign-in and lock screens list every analyzer's listener state under the card, wrapping onto more lines in a narrow window. Their times are in the laboratory's time zone as last read on this computer, or in UTC, labelled so, until someone has signed in on it."
       ]
     },
     {
