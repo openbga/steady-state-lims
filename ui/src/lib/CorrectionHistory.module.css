@@ -1,0 +1,12 @@
+/* Set apart from the facts above it; the button keeps its own width. */
+.history {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.history > :not(button) {
+  align-self: stretch;
+}
