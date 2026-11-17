@@ -1,6 +1,8 @@
 import { Link } from "react-router";
 import { AuthGate } from "@/features/auth/AuthGate";
 import { ListenerStatus } from "@/features/listeners/ListenerStatus";
+import { LabTimeZoneContext } from "@/lib/format";
+import { lastLabTimeZone } from "@/lib/lastLabTimeZone";
 import { AppShell } from "./AppShell";
 import { GALLERY_PATH } from "./navigation";
 
@@ -10,7 +12,10 @@ export function SessionRoot() {
     <AuthGate
       aside={
         <>
-          <ListenerStatus />
+          {/* Times in the laboratory's zone as last read here, as the app shows them. */}
+          <LabTimeZoneContext.Provider value={lastLabTimeZone()}>
+            <ListenerStatus />
+          </LabTimeZoneContext.Provider>
           {import.meta.env.DEV && (
             <Link to={GALLERY_PATH}>Component gallery (development build)</Link>
           )}

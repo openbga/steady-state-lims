@@ -11,6 +11,7 @@ import type { LaboratoryProfileView } from "@/generated/LaboratoryProfileView";
 import type { SessionInfo } from "@/generated/SessionInfo";
 import { GET_LABORATORY_PROFILE, useCommandQuery } from "@/lib/commands";
 import { LabTimeZoneContext } from "@/lib/format";
+import { useRememberLabTimeZone } from "@/lib/lastLabTimeZone";
 import styles from "./AppShell.module.css";
 import { helpGridStyle, PageHelpButton } from "./help/HelpResize";
 import { useHelpLayout } from "./help/useHelpLayout";
@@ -30,6 +31,7 @@ const PageHelp = lazy(() => import("./help/PageHelp").then((m) => ({ default: m.
  */
 export function AppShell({ session }: { session: SessionInfo }) {
   const profile = useCommandQuery<LaboratoryProfileView | null>(GET_LABORATORY_PROFILE);
+  useRememberLabTimeZone(profile.data?.timeZone);
   const main = useRef<HTMLElement>(null);
   const helpPane = useRef<HTMLDivElement>(null);
   const helpTrigger = useRef<HTMLButtonElement>(null);
