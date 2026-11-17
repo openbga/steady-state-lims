@@ -239,3 +239,34 @@ pub struct QcWorkItem {
     /// The earliest unassessed observation, or the rejection time.
     pub since: UtcTimestamp,
 }
+
+/// A run whose QC needs a decision, named for people, with the analytes that
+/// need one (REQ-OPS-004 work queue).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QcRunWorkItem {
+    /// The run.
+    pub run_id: RunId,
+    /// The method code of the run's method version.
+    pub method_code: String,
+    /// The method version number.
+    pub method_version: i64,
+    /// The instrument's name.
+    pub instrument_name: String,
+    /// When the run was created.
+    pub run_created_at: UtcTimestamp,
+    /// The analytes whose QC needs a decision, by name.
+    pub analytes: Vec<QcWorkAnalyte>,
+    /// The oldest of the analytes' times.
+    pub since: UtcTimestamp,
+}
+
+/// One analyte of a [`QcRunWorkItem`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QcWorkAnalyte {
+    /// The analyte.
+    pub analyte_id: AnalyteId,
+    /// Its display name.
+    pub name: String,
+    /// `pending`, `stale` or `rejected`.
+    pub status: QcStatus,
+}

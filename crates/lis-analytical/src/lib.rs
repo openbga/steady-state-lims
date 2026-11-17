@@ -71,8 +71,9 @@
 //!   lists an order component's executions and their states (billing's
 //!   failed-attempt flag); [`qc_work_queue`] lists run × analyte QC that is
 //!   pending, stale, or rejected on an open run, by the same status rule as
-//!   the review gate; [`open_deviations`] lists open deviations
-//!   (REQ-OPS-004).
+//!   the review gate, and [`qc_runs_work_queue`] groups it by run, named by
+//!   method version, instrument and analyte; [`open_deviations`] lists open
+//!   deviations (REQ-OPS-004).
 //!
 //! Capabilities: readiness, lots, QC assessments and deviations
 //! `manage_quality`; registrations `manage_configuration`, approval
@@ -142,7 +143,9 @@ pub use model::{
 pub use queries::lot_list::{ExpiringLot, list_lots, lots_expiring_soon};
 pub use queries::preparation::{ListPrepBatchesInput, PrepBatchSummary, list_prep_batches};
 pub use queries::qc::get_run_qc;
-pub use queries::queues::{component_executions, get_deviation, open_deviations, qc_work_queue};
+pub use queries::queues::{
+    component_executions, get_deviation, open_deviations, qc_runs_work_queue, qc_work_queue,
+};
 pub use queries::runs::{ListRunsPageInput, get_run, list_runs, list_runs_page, run_created_at};
 pub use queries::{
     active_registration, execution_components, execution_dilution_factor,
@@ -153,9 +156,9 @@ pub use queries::{
 pub use views::{
     ComponentExecution, DependencySnapshot, DeviationView, ExecutionView, InstrumentReadinessView,
     LotView, PositionMatch, PositionRef, PrepBatchQcView, PrepBatchView, PrepStepView,
-    QcAssessmentHistory, QcAssessmentView, QcConflictView, QcObservationView, QcWorkItem,
-    RegistrationSummary, RunDetail, RunPositionView, RunQcAnalyteView, RunQcView, RunSummary,
-    SourceRegistrationView, SourceTestCodeView, WorklistEntry,
+    QcAssessmentHistory, QcAssessmentView, QcConflictView, QcObservationView, QcRunWorkItem,
+    QcWorkAnalyte, QcWorkItem, RegistrationSummary, RunDetail, RunPositionView, RunQcAnalyteView,
+    RunQcView, RunSummary, SourceRegistrationView, SourceTestCodeView, WorklistEntry,
 };
 
 /// Forward-only migrations, numbered from `0001` (coding standards).

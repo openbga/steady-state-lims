@@ -16,7 +16,8 @@ pub use prep::{LotView, PrepBatchView, PrepStepView};
 
 pub use qc::{
     DependencySnapshot, DeviationView, PrepBatchQcView, QcAssessmentHistory, QcAssessmentView,
-    QcConflictView, QcObservationView, QcWorkItem, RunQcAnalyteView, RunQcView,
+    QcConflictView, QcObservationView, QcRunWorkItem, QcWorkAnalyte, QcWorkItem, RunQcAnalyteView,
+    RunQcView,
 };
 
 use crate::file_layout::FileLayout;

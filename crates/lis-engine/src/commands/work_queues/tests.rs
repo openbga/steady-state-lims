@@ -80,3 +80,23 @@ fn item(id: &str, since: UtcTimestamp) -> WorkQueueItem {
         has_more: Some(false),
     }
 }
+
+#[test]
+fn a_qc_run_item_counts_its_analytes_by_status() {
+    use lis_analytical::{QcStatus, QcWorkAnalyte};
+    let analyte = |status| QcWorkAnalyte {
+        analyte_id: lis_catalog::AnalyteId::generate(),
+        name: "Synthetic analyte".to_owned(),
+        status,
+    };
+    let pending = [QcStatus::Pending, QcStatus::Pending, QcStatus::Pending].map(analyte);
+    assert_eq!(
+        owner_items::qc_state_label(&pending),
+        "3 analytes not assessed"
+    );
+    let mixed = [QcStatus::Rejected, QcStatus::Pending, QcStatus::Stale].map(analyte);
+    assert_eq!(
+        owner_items::qc_state_label(&mixed),
+        "1 analyte not assessed, 1 analyte out of date, 1 analyte rejected"
+    );
+}

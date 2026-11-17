@@ -22,7 +22,7 @@ export type WorkItemKind =
   | "collection_review"
   | "review_specimen"
   | "specimen_report"
-  | "run_analyte_qc"
+  | "run_qc"
   | "run_position"
   | "import_attempt"
   | "report_revision"

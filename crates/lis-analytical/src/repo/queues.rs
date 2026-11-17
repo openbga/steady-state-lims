@@ -1,7 +1,7 @@
 //! SQL for the work-queue and billing reads (REQ-OPS-004, REQ-BIL-005).
 
-use lis_catalog::AnalyteId;
-use lis_core::UtcTimestamp;
+use lis_catalog::{AnalyteId, MethodVersionId};
+use lis_core::{InstrumentId, UtcTimestamp};
 use lis_orders::OrderComponentId;
 use rusqlite::Connection;
 
@@ -79,5 +79,27 @@ pub(crate) fn rejected_on_open_runs(
          AND NOT EXISTS (SELECT 1 FROM ana_qc_assessments s WHERE s.supersedes_id = a.id)",
     )?
     .query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
+    .collect()
+}
+
+/// The instrument, method version and creation time of each run in
+/// `run_ids`, in one read.
+pub(crate) fn queue_runs(
+    conn: &Connection,
+    run_ids: &[RunId],
+) -> rusqlite::Result<Vec<(RunId, InstrumentId, MethodVersionId, UtcTimestamp)>> {
+    // Hyphenated UUIDs need no JSON escaping.
+    let ids = run_ids
+        .iter()
+        .map(|id| format!("\"{id}\""))
+        .collect::<Vec<_>>()
+        .join(",");
+    conn.prepare_cached(
+        "SELECT id, instrument_id, method_version_id, created_at FROM ana_runs \
+         WHERE id IN (SELECT value FROM json_each(?1))",
+    )?
+    .query_map([format!("[{ids}]")], |row| {
+        Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+    })?
     .collect()
 }

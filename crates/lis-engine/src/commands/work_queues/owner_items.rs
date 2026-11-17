@@ -125,26 +125,77 @@ pub(super) fn label_items(
         .collect())
 }
 
+/// One item per run whose QC needs a decision (#4774): the run's Run QC review
+/// assesses all of its analytes, so the queue counts runs. The title names the
+/// run as its page does, with its creation time in the laboratory's zone; the
+/// state says how many analytes wait, and why.
 pub(super) fn qc_items(
     conn: &rusqlite::Connection,
     definition: QueueDefinition,
     limit: u32,
 ) -> Result<Vec<WorkQueueItem>, WorkQueueError> {
-    Ok(lis_analytical::qc_work_queue(conn, limit)?
+    let zone = lis_identity::current_laboratory_profile(conn)?
+        .map_or_else(|| "UTC".to_owned(), |profile| profile.time_zone);
+    lis_analytical::qc_runs_work_queue(conn, limit)?
         .into_iter()
-        .map(|row| {
-            item(
+        .map(|run| {
+            // As on screen, a zone this build does not know falls back to UTC.
+            let created = lis_reporting::display::lab_time(run.run_created_at, &zone)
+                .or_else(|_| lis_reporting::display::lab_time(run.run_created_at, "UTC"))?;
+            let title = format!(
+                "Run of {} version {} on {} · {created}",
+                run.method_code, run.method_version, run.instrument_name
+            );
+            let mut row = item(
                 definition,
-                "run_analyte_qc",
-                format!("{}:{}", row.run_id, row.analyte_id),
-                format!("Run {} / analyte {}", row.run_id, row.analyte_id),
-                row.status.as_str().to_owned(),
-                row.since,
-            )
+                "run_qc",
+                run.run_id,
+                title,
+                qc_state(&run.analytes).to_owned(),
+                run.since,
+            );
+            row.state_label = Some(qc_state_label(&run.analytes));
+            Ok(row)
         })
-        .collect())
+        .collect()
 }
 
+/// The analytes' common QC status, or `mixed`.
+fn qc_state(analytes: &[lis_analytical::QcWorkAnalyte]) -> &'static str {
+    match analytes.split_first() {
+        Some((first, rest)) if rest.iter().all(|other| other.status == first.status) => {
+            first.status.as_str()
+        }
+        _ => "mixed",
+    }
+}
+
+/// "3 analytes not assessed", or one count per status: "2 analytes not
+/// assessed, 1 analyte out of date".
+pub(super) fn qc_state_label(analytes: &[lis_analytical::QcWorkAnalyte]) -> String {
+    use lis_analytical::QcStatus;
+    [
+        (QcStatus::Pending, "not assessed"),
+        (QcStatus::Stale, "out of date"),
+        (QcStatus::Rejected, "rejected"),
+    ]
+    .into_iter()
+    .filter_map(|(status, words)| {
+        match analytes
+            .iter()
+            .filter(|analyte| analyte.status == status)
+            .count()
+        {
+            0 => None,
+            1 => Some(format!("1 analyte {words}")),
+            count => Some(format!("{count} analytes {words}")),
+        }
+    })
+    .collect::<Vec<_>>()
+    .join(", ")
+}
+
+/// An open deviation, named by its description as the Deviations tab names it.
 pub(super) fn deviation_items(
     conn: &rusqlite::Connection,
     definition: QueueDefinition,
@@ -157,7 +208,7 @@ pub(super) fn deviation_items(
                 definition,
                 "deviation",
                 row.deviation_id,
-                format!("Deviation {}", row.deviation_id),
+                row.description,
                 row.state.as_str().to_owned(),
                 row.opened_at,
             )

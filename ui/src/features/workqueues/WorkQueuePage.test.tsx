@@ -92,28 +92,30 @@ describe("WorkQueuePage (REQ-OPS-004)", () => {
     expect(await screen.findByText(`Navigated to /accessions/${ACCESSION.itemId}`)).toBeTruthy();
   });
 
-  it("opens a QC item at its assessment and exposes a deviation target", async () => {
+  it("opens a run's QC item at its Run QC review and exposes a deviation target", async () => {
+    // #4774: one item per run, named as its page names it, its analytes counted in the state.
     const qc = item({
       queue: "qc_review",
-      itemKind: "run_analyte_qc",
-      itemId: "00000000-0000-7000-8000-0000000000c1:00000000-0000-7000-8000-0000000000c2",
-      title: "Run R-1 / analyte AMP",
+      itemKind: "run_qc",
+      itemId: "00000000-0000-7000-8000-0000000000c1",
+      title: "Run of LCMS version 2 on AU simulator · 2026-10-29 12:09 UTC",
+      state: "pending",
+      stateLabel: "3 analytes not assessed",
     });
     const deviation = item({
       queue: "qc_review",
       itemKind: "deviation",
       itemId: "00000000-0000-7000-8000-0000000000c3",
-      title: "Deviation 00000000-0000-7000-8000-0000000000c3",
+      title: "Synthetic pipette calibration overdue",
     });
     const { user } = renderPage("/work-queues/qc_review", () => [qc, deviation]);
     const deviationTitle = await screen.findByText(deviation.title);
     expect(deviationTitle.className).not.toMatch(/noScreen/);
     expect(screen.getByText(qc.title).className).not.toMatch(/noScreen/);
+    expect(screen.getByRole("gridcell", { name: "3 analytes not assessed" })).toBeTruthy();
     await openRow(user, qc.title);
     expect(
-      await screen.findByText(
-        "Navigated to /bench/runs/00000000-0000-7000-8000-0000000000c1/qc?open=00000000-0000-7000-8000-0000000000c2",
-      ),
+      await screen.findByText("Navigated to /bench/runs/00000000-0000-7000-8000-0000000000c1/qc"),
     ).toBeTruthy();
   });
 
