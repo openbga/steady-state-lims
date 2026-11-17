@@ -438,6 +438,18 @@ describe("BenchSetupPage (REQ-ANA-003, REQ-ANA-007)", { timeout: WALKTHROUGH_TIM
         reason: null,
         origin: "registered",
       },
+      {
+        revision: 2,
+        productName: "Synthetic control",
+        lotNumber: "CTL-001",
+        levelText: "Level 1",
+        sampleLabel: "QC-L1",
+        expiresOn: "2027-06-30",
+        recordedAt: "2026-10-13T07:00:00Z",
+        recordedBy: "00000000-0000-7000-8000-000000000001",
+        reason: "Expiry misread",
+        origin: "corrected",
+      },
     ]);
     const { user } = renderPage(`/bench/setup/lots?open=${CONTROL_LOT.lotId}`, ["manage_quality"], {
       correct_lot: correct,
@@ -447,6 +459,11 @@ describe("BenchSetupPage (REQ-ANA-003, REQ-ANA-007)", { timeout: WALKTHROUGH_TIM
     expect(within(lot).getByText("Revision")).toBeTruthy();
     await user.click(within(lot).getByRole("button", { name: "Show correction history" }));
     expect(await screen.findByText("Initial registration")).toBeTruthy();
+    const revisions = within(screen.getByRole("grid", { name: "Lot correction history" }))
+      .getAllByRole("row")
+      .slice(1)
+      .map((row) => within(row).getAllByRole("gridcell")[0]?.textContent);
+    expect(revisions).toEqual(["2", "1"]);
 
     await user.click(within(lot).getByRole("button", { name: "Correct lot" }));
     const dialog = await screen.findByRole("dialog", { name: "Correct lot CTL-001" });

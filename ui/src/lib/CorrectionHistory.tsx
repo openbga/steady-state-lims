@@ -47,6 +47,9 @@ function columns<Row extends CorrectionHistoryRow>(
   ];
 }
 
+const newestFirst = <Row extends CorrectionHistoryRow>(rows: Row[]) =>
+  rows.toSorted((a, b) => b.revision - a.revision);
+
 interface CorrectionHistoryProps<Row extends CorrectionHistoryRow> {
   /** The history query and its input for one record. */
   command: CommandName;
@@ -58,8 +61,9 @@ interface CorrectionHistoryProps<Row extends CorrectionHistoryRow> {
 }
 
 /**
- * History is loaded only when the operator explicitly asks for this record's evidence. In a side
- * panel, the panel widens while it is shown, so the table's columns fit.
+ * History is loaded only when the operator explicitly asks for this record's evidence, and lists
+ * the newest revision first. In a side panel, the panel widens while it is shown, so the table's
+ * columns fit.
  */
 export function CorrectionHistory<Row extends CorrectionHistoryRow>({
   command,
@@ -82,7 +86,7 @@ export function CorrectionHistory<Row extends CorrectionHistoryRow>({
             <DataGrid
               label={label}
               columns={columns(facts, person)}
-              rows={rows}
+              rows={newestFirst(rows)}
               getRowId={(row) => String(row.revision)}
             />
           )}
