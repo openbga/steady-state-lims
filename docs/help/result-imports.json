@@ -195,10 +195,10 @@
           "result": "Shows every attempt, newest first, and removes the filters from the address."
         },
         {
-          "name": "Select all quarantined",
-          "does": "Checks every loaded attempt with something to retry in the current filter, such as one instrument's.",
+          "name": "Select all quarantined / Deselect all quarantined",
+          "does": "Select all quarantined checks every loaded attempt with something to retry in the current filter, such as one instrument's. Once they are all checked, the button reads Deselect all quarantined and unchecks them all.",
           "availableWhen": "At least one loaded attempt is Quarantined or Processed, some rows quarantined.",
-          "result": "The selection bar shows how many are checked, with Retry selected and Clear. Attempts on pages not yet loaded are not checked; use Load older imports first."
+          "result": "The selection bar shows how many are checked, with Retry selected and Clear; Deselect all quarantined, like Clear, empties it. Attempts on pages not yet loaded are not checked; use Load older imports first."
         },
         {
           "name": "Retry selected",
