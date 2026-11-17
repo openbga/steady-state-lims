@@ -111,6 +111,7 @@ jobs:
             build-essential \
             curl \
             file \
+            fakeroot \
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libssl-dev \
