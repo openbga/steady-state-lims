@@ -361,10 +361,12 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
       within(chosen).getByRole("button", { name: "Remove SYN-SCR Synthetic drug screen" }),
     );
     expect(
-      screen.getByRole("button", { name: /Testing sequence role for SYN-CNF/ }).textContent,
+      screen.getByRole("button", { name: /Testing sequence role for SYN-CNF/, expanded: false })
+        .textContent,
     ).toContain("Confirmation");
     expect(
-      screen.getByRole("button", { name: /Reflex testing for SYN-CNF/ }).textContent,
+      screen.getByRole("button", { name: /Reflex testing for SYN-CNF/, expanded: false })
+        .textContent,
     ).toContain("Not authorized");
     expect(screen.queryByRole("group", { name: /SYN-SCR Synthetic drug screen$/ })).toBeNull();
     await user.type(find, "zzz");

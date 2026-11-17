@@ -18,7 +18,8 @@ interface ChoiceInputProps {
 
 /**
  * A choice bound to the surrounding react-hook-form form. It starts empty: nothing the
- * requisition states is preselected (REQ-ORD-005).
+ * requisition states is preselected (REQ-ORD-005). A chosen value can be cleared again;
+ * a required one then asks to be chosen when the form is checked.
  */
 export function ChoiceInput({
   name,
@@ -48,6 +49,7 @@ export function ChoiceInput({
             onChange?.(value);
           }}
           isRequired={isRequired}
+          isClearable
           isDisabled={isDisabled}
           isLabelHidden={isLabelHidden}
           description={description}

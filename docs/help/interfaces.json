@@ -770,7 +770,7 @@
           "name": "Send to",
           "meaning": "The connection for Send once.",
           "values": "Send to: <connection> for each connection that carries the message's type; the closest connection is offered first.",
-          "rules": "Required for Send once."
+          "rules": "Required for Send once. Clear Send to (the X over the arrow) empties it again, and Send once waits for a new choice."
         },
         {
           "name": "How it was delivered / Reason",

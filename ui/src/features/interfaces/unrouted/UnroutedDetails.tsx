@@ -83,6 +83,7 @@ export function UnroutedDetails({ message }: { message: UnroutedMessage }) {
               options={connections.map(({ id, name }) => ({ id, label: `Send to: ${name}` }))}
               value={target}
               onChange={setTarget}
+              isClearable
             />
           </div>
           <Button

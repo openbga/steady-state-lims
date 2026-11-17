@@ -79,6 +79,7 @@ export function FieldsSection() {
             value={panel}
             onChange={setPanel}
             isRequired
+            isClearable
           />
           <Select
             label="Required, not chosen"
@@ -87,6 +88,7 @@ export function FieldsSection() {
             value={null}
             onChange={setPanel}
             isRequired
+            isClearable
             errorMessage="Choose a panel."
           />
           <Checkbox isSelected={checked} onChange={setChecked}>

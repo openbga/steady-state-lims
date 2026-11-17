@@ -67,6 +67,25 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
     expect(within(grid).getAllByText("Awaiting verified identity")).toHaveLength(2);
     expect(within(grid).queryByText(/partial date|supplied age|declined|unknown:/)).toBeNull();
   });
+  it("clears a chosen birth information, which is then asked for again", async () => {
+    const record = vi.fn(() => INTAKE);
+    const { user } = renderIntake({ record_intake_deferral: record });
+    await user.click(await screen.findByRole("button", { name: "Record incomplete intake" }));
+    const dialog = await screen.findByRole("dialog", { name: "Record incomplete identity intake" });
+    await chooseWithKeyboard(user, /Available birth information$/, "Partial date");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Clear Available birth information" }),
+    );
+    const trigger = within(dialog).getByRole("button", {
+      name: /Available birth information/,
+      expanded: false,
+    });
+    expect(trigger.textContent).toContain("Select…");
+    expect(document.activeElement).toBe(trigger);
+    await user.click(within(dialog).getByRole("button", { name: "Retain incomplete intake" }));
+    expect(await within(dialog).findByText("Choose available birth information.")).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+  });
   it("requires the supplied text for a partial date before saving, and not for Unknown", async () => {
     const record = vi.fn(() => INTAKE);
     const { user } = renderIntake({ record_intake_deferral: record });
@@ -94,7 +113,9 @@ describe("Incomplete identity intake mocked IPC", { timeout: WALKTHROUGH_TIMEOUT
     ).toBeTruthy();
     expect(record).not.toHaveBeenCalled();
     expect(within(dialog).queryByText("Not recorded")).toBeNull();
-    await user.click(within(dialog).getByRole("button", { name: /Available birth information$/ }));
+    await user.click(
+      within(dialog).getByRole("button", { name: /Available birth information$/, expanded: false }),
+    );
     await user.click(await screen.findByRole("option", { name: "Unknown" }));
     expect(text.getAttribute("aria-required")).not.toBe("true");
   });
