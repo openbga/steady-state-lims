@@ -111,6 +111,7 @@ jobs:
             build-essential \
             curl \
             file \
+            fakeroot \
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libssl-dev \
@@ -187,11 +188,25 @@ jobs:
             config=(--config "$UPDATER_CONFIG")
           fi
           npx tauri build --bundles ${{ matrix.bundles }} "${config[@]}" -- --locked
+      - name: Verify Windows installer rename continuity on synthetic installations
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem "$env:CARGO_TARGET_DIR/release/bundle/nsis" -Recurse -Filter '*-setup.exe')
+          if ($installers.Count -ne 1) { throw 'Expected one NSIS installer' }
+          ./scripts/test_nsis_migration.ps1 -Installer $installers[0].FullName
+      - name: Verify Debian package replacement in private roots
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          packages=("$CARGO_TARGET_DIR"/release/bundle/deb/*.deb)
+          [[ ${#packages[@]} == 1 ]]
+          bash scripts/test_deb_migration.sh "${packages[0]}"
       - name: Verify macOS application bundle signature
         if: runner.os == 'macOS'
         run: |
           codesign --verify --deep --strict --verbose=2 \
-            "$CARGO_TARGET_DIR/release/bundle/macos/Steady State LIMS.app"
+            "$CARGO_TARGET_DIR/release/bundle/macos/OpenBGA Toxicology LIMS.app"
       - name: Check macOS executable has no dynamic OpenSSL dependency
         if: runner.os == 'macOS'
         run: |
@@ -258,7 +273,7 @@ jobs:
               echo "::error::Expected one $1 bundle, found ${#found[@]}"
               exit 1
             fi
-            cp "${found[0]}" "release/steady-state-lims_${VERSION}_$2"
+            cp "${found[0]}" "release/toxicology-lims_${VERSION}_$2"
           }
           stage '*_x64-setup.exe' windows-x64-setup.exe
           stage '*_aarch64.dmg' macos-arm64.dmg
@@ -302,7 +317,7 @@ jobs:
                 echo "Changes since the previous nightly: $GITHUB_SERVER_URL/$GH_REPO/compare/$previous...$GITHUB_SHA"
               fi
             else
-              echo "Steady State LIMS \`$VERSION\` from \`main\` at $GITHUB_SHA."
+              echo "OpenBGA Toxicology LIMS \`$VERSION\` from \`main\` at $GITHUB_SHA."
             fi
             cat <<EOF
 
@@ -311,9 +326,9 @@ jobs:
 
           | System | Download |
           | --- | --- |
-          | Windows x64 | \`steady-state-lims_${VERSION}_windows-x64-setup.exe\` (installs for the current user) |
-          | macOS 15 or later, Apple silicon | \`steady-state-lims_${VERSION}_macos-arm64.dmg\` |
-          | Linux x64 | \`steady-state-lims_${VERSION}_linux-amd64.deb\` or the portable \`steady-state-lims_${VERSION}_linux-amd64.AppImage\` |
+          | Windows x64 | \`toxicology-lims_${VERSION}_windows-x64-setup.exe\` (installs for the current user) |
+          | macOS 15 or later, Apple silicon | \`toxicology-lims_${VERSION}_macos-arm64.dmg\` |
+          | Linux x64 | \`toxicology-lims_${VERSION}_linux-amd64.deb\` or the portable \`toxicology-lims_${VERSION}_linux-amd64.AppImage\` |
 
           Windows SmartScreen warns before installation. The macOS app has an ad-hoc bundle signature for development; it is not Developer ID signed or notarized. Copy it to Applications, attempt to open it, then use **Open Anyway** in System Settings → Privacy & Security if macOS blocks it as unverified. Compare each download with \`SHA256SUMS.txt\`. See [macOS development signatures]($source_url/docs/development/packaging.md#macos-development-signatures) if it is reported as damaged.
 
@@ -323,7 +338,7 @@ jobs:
           if [[ "${UPDATER:-}" == true ]]; then
             {
               echo
-              echo "The in-app updater uses \`latest.json\` and the Minisign-signed packages it names, including \`steady-state-lims_${VERSION}_macos-arm64.app.tar.gz\`. Install one of the installers above by hand only the first time."
+              echo "The in-app updater uses \`latest.json\` and the Minisign-signed packages it names, including \`toxicology-lims_${VERSION}_macos-arm64.app.tar.gz\`. Install one of the installers above by hand only the first time."
             } >> notes.md
           fi
           cat notes.md
@@ -352,10 +367,10 @@ jobs:
             --base-url "$GITHUB_SERVER_URL/$GH_REPO/releases/download/$build_tag" \
             --repository "$GH_REPO" \
             --signature-dir updater \
-            --artifact "windows-x86_64-nsis=release/steady-state-lims_${VERSION}_windows-x64-setup.exe" \
-            --artifact "linux-x86_64-appimage=release/steady-state-lims_${VERSION}_linux-amd64.AppImage" \
-            --artifact "linux-x86_64-deb=release/steady-state-lims_${VERSION}_linux-amd64.deb" \
-            --artifact "darwin-aarch64-app=release/steady-state-lims_${VERSION}_macos-arm64.app.tar.gz" \
+            --artifact "windows-x86_64-nsis=release/toxicology-lims_${VERSION}_windows-x64-setup.exe" \
+            --artifact "linux-x86_64-appimage=release/toxicology-lims_${VERSION}_linux-amd64.AppImage" \
+            --artifact "linux-x86_64-deb=release/toxicology-lims_${VERSION}_linux-amd64.deb" \
+            --artifact "darwin-aarch64-app=release/toxicology-lims_${VERSION}_macos-arm64.app.tar.gz" \
             --output release/latest.json
           cat release/latest.json
       - name: Write checksums
@@ -374,7 +389,7 @@ jobs:
                 gh release delete "$BUILD_TAG" --cleanup-tag --yes
               fi
               gh release create "$BUILD_TAG" release/* --target "$GITHUB_SHA" --prerelease --latest=false \
-                --title "Steady State LIMS $VERSION" --notes-file notes.md
+                --title "OpenBGA Toxicology LIMS $VERSION" --notes-file notes.md
               # Builds made before the repository was renamed accept only their compiled name:
               # the index lists this build under each former name too, with a manifest copy
               # whose package addresses GitHub redirects here (ADR 0020, amended 2026-11-13).
@@ -405,7 +420,7 @@ jobs:
               expected=$((expected + 1))
             fi
             gh release create nightly "${files[@]}" --target "$GITHUB_SHA" --prerelease --latest=false \
-              --title "Steady State LIMS $VERSION" --notes-file notes.md
+              --title "OpenBGA Toxicology LIMS $VERSION" --notes-file notes.md
             tag=nightly
             if [[ -s dropped-tags.txt ]]; then
               while read -r dropped; do
@@ -421,7 +436,7 @@ jobs:
               while read -r id; do gh api -X DELETE "repos/$GH_REPO/releases/$id"; done
             # Draft first, so the release becomes visible only with every asset attached.
             gh release create "$tag" release/* --draft --target "$GITHUB_SHA" \
-              --title "Steady State LIMS $VERSION" --notes-file notes.md --generate-notes
+              --title "OpenBGA Toxicology LIMS $VERSION" --notes-file notes.md --generate-notes
             gh release edit "$tag" --draft=false --latest
           fi
           assets="$(gh release view "$tag" --json assets --jq '.assets | length')"

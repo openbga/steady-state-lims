@@ -1,4 +1,4 @@
-# Cargo workspace for the Steady State LIMS engine and desktop shell.
+# Cargo workspace for the OpenBGA Toxicology LIMS engine and desktop shell.
 # Dependency admission: docs/governance/library-policy.md. Add a crate here only
 # after it is approved there; member crates reference it with `{ workspace = true }`.
 
@@ -29,7 +29,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 rust-version = "1.97"
 publish = false

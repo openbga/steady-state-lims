@@ -55,7 +55,10 @@ async function openExport(user: ReturnType<typeof renderPage>["user"]) {
 
 describe("RecoveryKitPage (REQ-OPS-002)", () => {
   it("shows a kit that was never exported and exports one with the warning", async () => {
-    const exportKit = vi.fn(() => ({ kitNo: 1, fileName: "vibe-tox-recovery-kit-2026-10-13.txt" }));
+    const exportKit = vi.fn(() => ({
+      kitNo: 1,
+      fileName: "toxicology-lims-recovery-kit-2026-10-13-kit1.txt",
+    }));
     const { user, container } = renderPage(() => NEVER_EXPORTED, {
       export_recovery_kit: exportKit,
     });
@@ -72,7 +75,9 @@ describe("RecoveryKitPage (REQ-OPS-002)", () => {
     ).toBeTruthy();
     await user.click(within(dialog).getByRole("button", { name: "Choose where to save" }));
     expect(
-      await screen.findByText("Recovery kit 1 saved as vibe-tox-recovery-kit-2026-10-13.txt"),
+      await screen.findByText(
+        "Recovery kit 1 saved as toxicology-lims-recovery-kit-2026-10-13-kit1.txt",
+      ),
     ).toBeTruthy();
     expect(exportKit).toHaveBeenCalledWith({
       input: {
