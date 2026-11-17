@@ -78,7 +78,8 @@ function liveState(
   if (status.detail === "files_waiting" || status.detail === "file_too_large") {
     return { tone: "warning", label: "Watching" };
   }
-  return status.state === "listening" ? { tone: "neutral", label: "Watching" } : state;
+  // A watched folder waits for files as a listener waits for its analyzer (ticket #4792).
+  return status.state === "listening" ? { tone: state.tone, label: "Watching" } : state;
 }
 
 /**
