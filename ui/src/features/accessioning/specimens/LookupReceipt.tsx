@@ -9,6 +9,7 @@ import type { ContainerLookup } from "@/generated/ContainerLookup";
 import { useCommandQuery, useHasCapability } from "@/lib/commands";
 import { GET_ACCESSION } from "./contract";
 import { specimenTitle } from "./labels";
+import styles from "./lookup.module.css";
 import { ReceiptDecisionDialog } from "./ReceiptDecisionDialog";
 import { ReceiptOutcome } from "./ReceiptOutcome";
 
@@ -71,20 +72,22 @@ function ReceiptPending({ lookup, canDecide, accession, specimen }: ReceiptPendi
           ? "Record the decision to finish receiving this container."
           : "Someone who receives specimens records the decision on Finish receiving."}
       </p>
-      <Toolbar>
-        {canDecide && (accession.isPending || allowed) && (
-          <Button
-            variant="primary"
-            isPending={accession.isPending}
-            onPress={() => setDeciding(true)}
-          >
-            Record receipt decision
+      <div className={styles.noticeActions}>
+        <Toolbar>
+          {canDecide && (accession.isPending || allowed) && (
+            <Button
+              variant="primary"
+              isPending={accession.isPending}
+              onPress={() => setDeciding(true)}
+            >
+              Record receipt decision
+            </Button>
+          )}
+          <Button onPress={() => navigate(`/accessions/${lookup.accessionId}`)}>
+            Open Finish receiving
           </Button>
-        )}
-        <Button onPress={() => navigate(`/accessions/${lookup.accessionId}`)}>
-          Open Finish receiving
-        </Button>
-      </Toolbar>
+        </Toolbar>
+      </div>
       {accession.isError && (
         <ErrorState
           title="The receipt decision cannot be recorded here"
