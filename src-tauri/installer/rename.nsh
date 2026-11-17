@@ -54,7 +54,16 @@ Var OpenBGALegacyDirectory
     !insertmacro OPENBGA_FIND_LEGACY "OpenBGA" "OpenBGA Tox"
     !insertmacro OPENBGA_FIND_LEGACY "OpenBGA" "Steady State LIMS"
     ${If} $OpenBGALegacyDirectory != ""
-      ; Do not override an explicitly selected different directory.
+      ; NSIS has already parsed /D into INSTDIR. Detect its presence separately:
+      ; an explicitly requested new default path is still different from a custom old root.
+      ${GetOptions} $CMDLINE "/D=" $0
+      ${IfNot} ${Errors}
+      ${AndIf} $INSTDIR != $OpenBGALegacyDirectory
+        MessageBox MB_ICONSTOP "Choose the existing installation directory: $OpenBGALegacyDirectory" /SD IDOK
+        SetErrorLevel 1
+        Abort
+      ${EndIf}
+      ; Also reject a different directory selected in the graphical installer.
       ${If} $INSTDIR != "$LOCALAPPDATA\${PRODUCTNAME}"
       ${AndIf} $INSTDIR != $OpenBGALegacyDirectory
         MessageBox MB_ICONSTOP "Choose the existing installation directory: $OpenBGALegacyDirectory" /SD IDOK

@@ -100,6 +100,7 @@ Remove-Seed $pairs[1]
 Remove-Seed $pairs[2]
 $directory = Seed $pairs[2] '-different'
 Run-Installer -Failure $true -Directory (Join-Path $fixture 'different explicit directory')
+Run-Installer -Failure $true -Directory "$env:LOCALAPPDATA\$product"
 Assert ((Get-Content "$directory\lis-desktop.exe") -match '^Synthetic') 'Explicit path overwrote legacy executable'
 Remove-Seed $pairs[2]
 # A foreign current-name shortcut is never overwritten (manual or updater install).
