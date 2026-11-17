@@ -8,7 +8,7 @@ product; keep the status line with any copy taken from it.
 ## In one line
 
 A free, open-source laboratory information system for small US clinical toxicology laboratories,
-licensed under [GPL-3.0-only](../LICENSE), running on a single computer the laboratory owns.
+licensed under [AGPL-3.0-only](../LICENSE), running on a single computer the laboratory owns.
 
 ## In 30 seconds
 
@@ -87,7 +87,7 @@ approve its own procedures before clinical use.
 
 | Item | Why it matters | Record |
 | --- | --- | --- |
-| License and trademark | GPL-3.0-only. Ownership administration, trademark policy and future cloud-service licensing remain open. | [ADR 0017](architecture/decisions/0017-gplv3-license.md), [Q-11](planning/open-questions.md#decision-and-discovery-queue) |
+| License and trademark | AGPL-3.0-only. Copyright BGASoft Inc. and OpenBGA contributors; OpenBGA Toxicology LIMS, OpenBGA and their logos are BGASoft Inc. trademarks that the license does not grant. Contribution terms and future cloud-service licensing remain open. | [ADR 0021](architecture/decisions/0021-agplv3-license.md), [Q-11](planning/open-questions.md#decision-and-discovery-queue) |
 | Publication | The repository and presentation website are public; signed releases and security-response commitments remain unresolved. | [Q-19](planning/open-questions.md#decision-and-discovery-queue), [website maintenance](development/public-website.md) |
 | Optional hosted services | Service boundaries remain proposals. | [ADR 0010](architecture/decisions/0010-optional-cloud-services.md), [scope](project-scope.md#product-boundaries) |
 | Off-host tamper-evidence anchoring | Anchoring to a lab-owned target or offline media is implemented; whether off-host anchoring works in every installation without a hosted service is open. | [Q-30](planning/open-questions.md#decision-and-discovery-queue) |

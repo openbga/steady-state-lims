@@ -193,7 +193,7 @@ part of [G2-09](../quality/open-items-g1-g2.md), not a waiver of that gate.
 
 | Item | Current state | Release requirement |
 | --- | --- | --- |
-| Project licence | GPL-3.0-only adopted ([ADR 0017](../architecture/decisions/0017-gplv3-license.md)); the canonical [LICENSE](../../LICENSE) defines the project license. Third-party material retains its applicable terms and notices. | Include license texts and applicable notices; verify dependency compatibility and provide corresponding source for each covered binary under GPLv3 section 6. Ownership administration remains Q-11. |
+| Project licence | AGPL-3.0-only adopted ([ADR 0021](../architecture/decisions/0021-agplv3-license.md)); the canonical [LICENSE](../../LICENSE) defines the project license and [NOTICE](../../NOTICE) carries the copyright and trademark notice, which the bundle `copyright` metadata repeats. Builds published earlier remain under GPL-3.0-only. Third-party material retains its applicable terms and notices. | Include license texts, NOTICE and applicable notices; verify dependency compatibility and provide corresponding source for each covered binary under AGPLv3 section 6. |
 | Publisher identity | The plain metadata publisher is “OpenBGA,” not a legal publisher or signing identity. | Decide the legal publisher entity and name (Q-19/Q-34). |
 | Windows signing | Certificate thumbprint, digest algorithm, timestamp URL and custom signing command are explicitly empty. | Authenticode-sign and verify both the executable and NSIS installer. |
 | macOS trust | The complete app bundle is ad-hoc signed and its signature checked during packaging. Developer ID signing and notarization are not configured. | Sign with Developer ID, notarize, staple and verify on a clean host. |
@@ -202,7 +202,7 @@ part of [G2-09](../quality/open-items-g1-g2.md), not a waiver of that gate.
 | File associations | None. | Add only if a user workflow and safe parser boundary are approved. |
 
 Before conveying a covered binary, prepare and verify its matching corresponding
-source and choose a GPLv3 section 6 delivery method. For a download, equivalent
+source and choose an AGPLv3 section 6 delivery method. For a download, equivalent
 source access alongside the binary at no further charge is one permitted method;
 a private repository unavailable to recipients does not supply that access.
 Include the build/install scripts and other material required by the license,

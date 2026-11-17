@@ -332,7 +332,7 @@ jobs:
 
           Windows SmartScreen warns before installation. The macOS app has an ad-hoc bundle signature for development; it is not Developer ID signed or notarized. Copy it to Applications, attempt to open it, then use **Open Anyway** in System Settings → Privacy & Security if macOS blocks it as unverified. Compare each download with \`SHA256SUMS.txt\`. See [macOS development signatures]($source_url/docs/development/packaging.md#macos-development-signatures) if it is reported as damaged.
 
-          Built by [workflow run $GITHUB_RUN_ID]($GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID) after the full quality gate. The source code archives on this page hold the tagged source; [packaging]($source_url/docs/development/packaging.md) describes the build. Licensed under GPL-3.0-only.
+          Built by [workflow run $GITHUB_RUN_ID]($GITHUB_SERVER_URL/$GH_REPO/actions/runs/$GITHUB_RUN_ID) after the full quality gate. The source code archives on this page hold the tagged source; [packaging]($source_url/docs/development/packaging.md) describes the build. Copyright (C) 2026 BGASoft Inc. and OpenBGA contributors. Licensed under AGPL-3.0-only; see [NOTICE]($source_url/NOTICE) for the copyright and trademark notice.
           EOF
           } > notes.md
           if [[ "${UPDATER:-}" == true ]]; then
