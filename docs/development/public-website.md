@@ -83,7 +83,9 @@ screenshot. The workflow section shows six stills cropped from the edited record
 described below; the note beneath them labels them as demo data from a mocked engine.
 Keep it with the stills. The build-from-source
 commands follow the [developer guide](README.md#build-and-run); update both together.
-No analytics, contact form, account, clinical interface, or JavaScript runtime is used.
+The `<head>` loads the Plausible analytics script from `plausible.io`, which counts visits
+without cookies. No contact form, account or clinical interface is used, and page content
+and controls do not depend on JavaScript.
 
 The site serves `toxicology-lims-overview.mp4` and its poster. It is a 121.167-second
 recording of the actual React interface with a mocked engine and synthetic data,
