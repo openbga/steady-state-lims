@@ -29,6 +29,11 @@ ignore = [
   { id = "RUSTSEC-2026-0370", reason = "zvariant via zbus 5 in keepawake, keyring and single-instance; awaiting zbus 6 upstream" },
   { id = "RUSTSEC-2026-0371", reason = "zbus_names via zbus 5 in keepawake, keyring and single-instance; awaiting zbus 6 upstream" },
   { id = "RUSTSEC-2026-0372", reason = "zvariant_derive via zbus 5 in keepawake, keyring and single-instance; awaiting zbus 6 upstream" },
+  # chrono is unmaintained (informational; no patched version). It is reached only through
+  # russh-sftp 3.0.1 and russh-util 0.52.0, which lis-engine uses to send and receive partner
+  # files over SFTP; both are the latest releases and still depend on it (checked 2026-11-17).
+  # Revisit at every russh or russh-sftp upgrade.
+  { id = "RUSTSEC-2026-0543", reason = "chrono via russh-sftp and russh-util (SFTP partner files); no patched version, awaiting russh upstream" },
 ]
 
 [licenses]
