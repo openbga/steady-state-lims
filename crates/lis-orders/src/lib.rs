@@ -5,6 +5,7 @@
 
 #![warn(clippy::wildcard_enum_match_arm)]
 
+mod acceptance;
 mod accession_readiness;
 mod audit_records;
 mod billing_context;
@@ -25,6 +26,7 @@ mod views;
 
 use lis_core::{Migration, ModuleSchema};
 
+pub use acceptance::AcceptanceBlocker;
 pub use accession_readiness::{AccessionItemReadiness, accession_item_readiness};
 pub use audit_records::{audit_record_label, audit_record_search};
 pub use billing_context::{get_order_billing_context, set_order_billing_context};

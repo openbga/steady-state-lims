@@ -2,6 +2,7 @@
 
 #![cfg(test)]
 
+mod acceptance;
 mod billing_context;
 mod billing_reviews;
 mod historical_labels;
