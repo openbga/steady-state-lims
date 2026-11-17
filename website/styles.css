@@ -71,15 +71,11 @@ section[id] {
   gap: 3px;
 }
 .wordmark-product {
+  max-width: 17rem;
+  text-wrap: balance;
   font-size: 21px;
   line-height: 1.1;
   letter-spacing: -0.02em;
-}
-.wordmark-parent {
-  font-size: 12.5px;
-  line-height: 1.25;
-  font-weight: 500;
-  color: var(--muted);
 }
 nav {
   display: flex;

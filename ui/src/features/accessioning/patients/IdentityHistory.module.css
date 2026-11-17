@@ -1,0 +1,24 @@
+.intakes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Each intake is one block: header row, facts, then the audit link. */
+.intake {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.intake + .intake {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}

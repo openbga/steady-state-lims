@@ -4,6 +4,6 @@
 
 /**
  * `get_subject({input:{subjectId}}) → SubjectView` (audited read, `enter_orders` or `manage_quality`): every
- * assertion, identifier and open identity hold.
+ * assertion, identifier and open identity hold, and the incomplete intake resolved with the patient.
  */
 export const GET_SUBJECT = "get_subject";

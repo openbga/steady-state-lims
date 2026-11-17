@@ -68,6 +68,7 @@ const VIEW: SubjectView = {
     { ...identifier("MR", "SYN-OLD", "MR-0001"), active: false },
   ],
   openHolds: [],
+  resolvedIntakes: [],
 };
 
 const renderBanner = (banner: ReactElement) =>

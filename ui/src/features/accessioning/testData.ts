@@ -1,6 +1,7 @@
 import type { AccessionDetail } from "@/generated/AccessionDetail";
 import type { ClientView } from "@/generated/ClientView";
 import type { ContainerView } from "@/generated/ContainerView";
+import type { IntakeDeferralView } from "@/generated/IntakeDeferralView";
 import type { OrderAccessionContext } from "@/generated/OrderAccessionContext";
 import type { OrderableVersionView } from "@/generated/OrderableVersionView";
 import type { OrderDetail } from "@/generated/OrderDetail";
@@ -61,6 +62,28 @@ export const SUBJECT_VIEW: SubjectView = {
   ],
   identifiers: [MRN],
   openHolds: [],
+  resolvedIntakes: [],
+};
+
+/** Synthetic incomplete intake, resolved with `SUBJECT_ID` by the test accessioner. */
+export const RESOLVED_INTAKE: IntakeDeferralView = {
+  intakeId: "00000000-0000-7000-8000-000000000601",
+  revision: 2,
+  suppliedName: "TEST, Partial",
+  birthEvidenceKind: "partial_date",
+  birthEvidenceText: "1985",
+  sourceReference: "REQ-TEST-001",
+  reason: "Requisition gives the birth year only",
+  recordedBy: "00000000-0000-7000-8000-000000000101",
+  recordedByDisplay: "Test Accessioner",
+  recordedAt: "2026-11-05T10:00:00Z",
+  disposition: "resolved",
+  subjectId: SUBJECT_ID,
+  dispositionSource: "Phone call to clinic, full DOB confirmed",
+  dispositionReason: "Clinic confirmed the full birth date",
+  disposedBy: "00000000-0000-7000-8000-000000000101",
+  disposedByDisplay: "Test Accessioner",
+  disposedAt: "2026-11-05T10:05:00Z",
 };
 
 export const HELD_SUBJECT_VIEW: SubjectView = {

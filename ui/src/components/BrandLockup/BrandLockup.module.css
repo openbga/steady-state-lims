@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  white-space: nowrap;
+  white-space: normal;
 }
 
 /* The icon's transparent margin leaves a 28px tile. */
@@ -21,10 +21,6 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   line-height: 1.15;
-}
-
-.parent {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  line-height: 1.2;
+  max-width: 15rem;
+  text-wrap: balance;
 }
