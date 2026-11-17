@@ -49,15 +49,24 @@ pub(crate) fn acceptance_blockers(
     if let Some(standing_id) = standing_order_id
         && let Some(deficiency) = standing_order_deficiency(conn, order_id, standing_id)?
     {
-        blockers.push(match deficiency {
+        let blocker = match deficiency {
+            ClarificationDeficiency::StandingOrderExpired => {
+                Some(AcceptanceBlocker::StandingOrderExpired)
+            }
             ClarificationDeficiency::StandingOrderExhausted => {
-                AcceptanceBlocker::StandingOrderExhausted
+                Some(AcceptanceBlocker::StandingOrderExhausted)
             }
             ClarificationDeficiency::StandingOrderOutOfScope => {
-                AcceptanceBlocker::StandingOrderOutOfScope
+                Some(AcceptanceBlocker::StandingOrderOutOfScope)
             }
-            _ => AcceptanceBlocker::StandingOrderExpired,
-        });
+            // Not standing-order deficiencies: `standing_order_deficiency` never returns them.
+            ClarificationDeficiency::RequestorMissing
+            | ClarificationDeficiency::TestSelectionMissing
+            | ClarificationDeficiency::SignatureOrIntentRequired
+            | ClarificationDeficiency::ReflexAuthorityMissing
+            | ClarificationDeficiency::OtherAuthority => None,
+        };
+        blockers.extend(blocker);
     }
     Ok(blockers)
 }
