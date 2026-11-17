@@ -4,6 +4,7 @@ import { Toolbar } from "@/components/Toolbar";
 import type { AccessionSpecimenView } from "@/generated/AccessionSpecimenView";
 import { useHasCapability } from "@/lib/commands";
 import { ReceiptOutcome } from "./ReceiptOutcome";
+import styles from "./receiving.module.css";
 
 interface ReceiptStepProps {
   specimen: AccessionSpecimenView;
@@ -39,11 +40,13 @@ export function ReceiptStep({ specimen, onDecide }: ReceiptStepProps) {
           : "Someone who receives specimens scans the label and records the decision."}
       </p>
       {canDecide && allowed && (
-        <Toolbar>
-          <Button variant="primary" onPress={onDecide}>
-            Record receipt decision
-          </Button>
-        </Toolbar>
+        <div className={styles.noticeActions}>
+          <Toolbar>
+            <Button variant="primary" onPress={onDecide}>
+              Record receipt decision
+            </Button>
+          </Toolbar>
+        </div>
       )}
     </Alert>
   );

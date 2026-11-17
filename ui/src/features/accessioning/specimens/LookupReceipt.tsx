@@ -9,9 +9,9 @@ import type { ContainerLookup } from "@/generated/ContainerLookup";
 import { useCommandQuery, useHasCapability } from "@/lib/commands";
 import { GET_ACCESSION } from "./contract";
 import { specimenTitle } from "./labels";
-import styles from "./lookup.module.css";
 import { ReceiptDecisionDialog } from "./ReceiptDecisionDialog";
 import { ReceiptOutcome } from "./ReceiptOutcome";
+import styles from "./receiving.module.css";
 
 /**
  * The receipt step of a looked-up container (REQ-SPC-002). While its specimen waits for a

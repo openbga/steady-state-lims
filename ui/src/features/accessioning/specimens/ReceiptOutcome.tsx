@@ -8,6 +8,7 @@ import type { SpecimenAcceptance } from "@/generated/SpecimenAcceptance";
 import { useHasCapability } from "@/lib/commands";
 import { usePersonText } from "@/lib/person";
 import { acceptanceStatus } from "./labels";
+import styles from "./receiving.module.css";
 
 type Decided = Exclude<SpecimenAcceptance, "received">;
 
@@ -71,12 +72,14 @@ export function ReceiptOutcome({ acceptance, decision, material, withRuns }: Rec
         )}
       </p>
       {accepted && bench && (
-        <Toolbar>
-          <Button variant="primary" onPress={() => navigate(WORKLIST_PATH)}>
-            Go to Worklist
-          </Button>
-          {withRuns && <Button onPress={() => navigate(RUNS_PATH)}>Runs</Button>}
-        </Toolbar>
+        <div className={styles.noticeActions}>
+          <Toolbar>
+            <Button variant="primary" onPress={() => navigate(WORKLIST_PATH)}>
+              Go to Worklist
+            </Button>
+            {withRuns && <Button onPress={() => navigate(RUNS_PATH)}>Runs</Button>}
+          </Toolbar>
+        </div>
       )}
     </Alert>
   );

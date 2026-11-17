@@ -55,8 +55,3 @@
 .tipBody p {
   margin: 0;
 }
-
-/* The notice's actions sit apart from its text, so they read as the next step. */
-.noticeActions {
-  margin-top: var(--space-3);
-}

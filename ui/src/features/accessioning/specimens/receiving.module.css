@@ -40,3 +40,8 @@
   margin: 0;
   padding-inline-start: var(--space-5);
 }
+
+/* A receipt notice's actions sit apart from its text, so they read as the next step. */
+.noticeActions {
+  margin-top: var(--space-3);
+}
