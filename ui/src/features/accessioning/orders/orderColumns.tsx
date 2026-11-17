@@ -47,7 +47,7 @@ const identifierText = (order: OrderSummary) =>
 
 /**
  * The order of a laboratory's work: when the order came in and its number, whose it is and who
- * sent it, what was ordered, what was received, then whether it is held and its status, last.
+ * sent it, what was ordered, its samples, whether it is held, its accession, and its status, last.
  * Titles wrap onto two lines and identifiers sit one per line, so nothing is cut short; the
  * fixed widths keep every column in view at 1920 pixels with the navigation open (#4790).
  */
@@ -64,7 +64,7 @@ export const ORDER_COLUMNS: readonly DataGridColumn<OrderSummary>[] = [
     header: "Order number",
     cell: (order) => order.placerOrderId ?? "Not supplied",
     sortValue: (order) => order.placerOrderId ?? "",
-    width: 110,
+    width: 140,
   },
   {
     id: "patient",
@@ -72,6 +72,7 @@ export const ORDER_COLUMNS: readonly DataGridColumn<OrderSummary>[] = [
     cell: patientName,
     sortValue: patientName,
     identifier: true,
+    width: 150,
   },
   { id: "birthDate", header: "Birth date", cell: (order) => order.patientBirthDate, width: 100 },
   {
@@ -103,13 +104,6 @@ export const ORDER_COLUMNS: readonly DataGridColumn<OrderSummary>[] = [
     width: 120,
   },
   {
-    id: "accessions",
-    header: "Accession",
-    cell: (order) => <Accessions order={order} />,
-    sortValue: accessionNumbers,
-    width: 120,
-  },
-  {
     id: "holds",
     header: "Open holds",
     cell: (order) =>
@@ -121,6 +115,13 @@ export const ORDER_COLUMNS: readonly DataGridColumn<OrderSummary>[] = [
     sortValue: (order) => order.openHoldCount,
     align: "end",
     width: 90,
+  },
+  {
+    id: "accessions",
+    header: "Accession",
+    cell: (order) => <Accessions order={order} />,
+    sortValue: accessionNumbers,
+    width: 120,
   },
   {
     id: "status",

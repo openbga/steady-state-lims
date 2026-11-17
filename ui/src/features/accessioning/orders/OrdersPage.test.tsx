@@ -110,8 +110,8 @@ describe("OrdersPage (REQ-ORD-001)", { timeout: WALKTHROUGH_TIMEOUT_MS }, () => 
       "Client",
       "Tests",
       "Sample barcode",
-      "Accession",
       "Open holds",
+      "Accession",
       "Status",
     ]);
     const row = within(grid).getByRole("gridcell", { name: "PO-SYN-1000" }).closest("[role=row]");
