@@ -29,13 +29,43 @@ function Accessions({ order }: { order: OrderSummary }) {
   ));
 }
 
+/** Each of the patient's identifiers on its own line, or that none was supplied. */
+function Identifiers({ order }: { order: OrderSummary }) {
+  if (order.patientIdentifiers.length === 0) return "None supplied";
+  return order.patientIdentifiers.map((i, index) => (
+    <Fragment key={`${i.assigningAuthority}/${i.identifierType}/${i.value}`}>
+      {index > 0 && <br />}
+      {`${i.assigningAuthority} / ${i.identifierType}: ${i.value}`}
+    </Fragment>
+  ));
+}
+
+const identifierText = (order: OrderSummary) =>
+  order.patientIdentifiers
+    .map((i) => `${i.assigningAuthority} / ${i.identifierType}: ${i.value}`)
+    .join("; ");
+
 /**
- * Patient identity and source context remain visible before opening an order. Status and
- * Open holds sit together after the order number, and the fixed widths keep every column in
- * view at 1920 pixels with the navigation open (#4790); longer text is cut short and shown
- * in full on hover.
+ * The order of a laboratory's work: when the order came in and its number, whose it is and who
+ * sent it, what was ordered, what was received, then whether it is held and its status, last.
+ * Titles wrap onto two lines and identifiers sit one per line, so nothing is cut short; the
+ * fixed widths keep every column in view at 1920 pixels with the navigation open (#4790).
  */
 export const ORDER_COLUMNS: readonly DataGridColumn<OrderSummary>[] = [
+  {
+    id: "received",
+    header: "Order received",
+    cell: (order) => <Timestamp value={order.receivedAt} />,
+    sortValue: (order) => order.receivedAt,
+    width: 170,
+  },
+  {
+    id: "placer",
+    header: "Order number",
+    cell: (order) => order.placerOrderId ?? "Not supplied",
+    sortValue: (order) => order.placerOrderId ?? "",
+    width: 110,
+  },
   {
     id: "patient",
     header: "Patient",
@@ -47,54 +77,9 @@ export const ORDER_COLUMNS: readonly DataGridColumn<OrderSummary>[] = [
   {
     id: "identifiers",
     header: "Patient identifiers",
-    cell: (order) =>
-      order.patientIdentifiers
-        .map((i) => `${i.assigningAuthority} / ${i.identifierType}: ${i.value}`)
-        .join("; ") || "None supplied",
-  },
-  {
-    id: "placer",
-    header: "Order number",
-    cell: (order) => order.placerOrderId ?? "Not supplied",
-    sortValue: (order) => order.placerOrderId ?? "",
-    width: 112,
-  },
-  {
-    id: "status",
-    header: "Status",
-    cell: (order) => {
-      const status = orderStatus(order.status);
-      return <StatusBadge tone={status.tone}>{status.label}</StatusBadge>;
-    },
-    sortValue: (order) => order.status,
-    width: 220,
-  },
-  {
-    id: "holds",
-    header: "Open holds",
-    cell: (order) =>
-      order.openHoldCount === 0 ? (
-        0
-      ) : (
-        <StatusBadge tone="hold">{`${order.openHoldCount} open`}</StatusBadge>
-      ),
-    sortValue: (order) => order.openHoldCount,
-    align: "end",
-    width: 100,
-  },
-  {
-    id: "sampleBarcodes",
-    header: "Sample barcode",
-    cell: (order) => sampleBarcodes(order) || "None received",
-    sortValue: sampleBarcodes,
-    width: 130,
-  },
-  {
-    id: "accessions",
-    header: "Accession",
-    cell: (order) => <Accessions order={order} />,
-    sortValue: accessionNumbers,
-    width: 130,
+    cell: (order) => <Identifiers order={order} />,
+    sortValue: identifierText,
+    wrap: true,
   },
   {
     id: "client",
@@ -108,13 +93,43 @@ export const ORDER_COLUMNS: readonly DataGridColumn<OrderSummary>[] = [
     cell: (order) => <OrderedTests order={order} />,
     sortValue: (order) => order.itemCount,
     align: "end",
-    width: 80,
+    width: 70,
   },
   {
-    id: "received",
-    header: "Order received",
-    cell: (order) => <Timestamp value={order.receivedAt} />,
-    sortValue: (order) => order.receivedAt,
-    width: 180,
+    id: "sampleBarcodes",
+    header: "Sample barcode",
+    cell: (order) => sampleBarcodes(order) || "None received",
+    sortValue: sampleBarcodes,
+    width: 120,
+  },
+  {
+    id: "accessions",
+    header: "Accession",
+    cell: (order) => <Accessions order={order} />,
+    sortValue: accessionNumbers,
+    width: 120,
+  },
+  {
+    id: "holds",
+    header: "Open holds",
+    cell: (order) =>
+      order.openHoldCount === 0 ? (
+        0
+      ) : (
+        <StatusBadge tone="hold">{`${order.openHoldCount} open`}</StatusBadge>
+      ),
+    sortValue: (order) => order.openHoldCount,
+    align: "end",
+    width: 90,
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: (order) => {
+      const status = orderStatus(order.status);
+      return <StatusBadge tone={status.tone}>{status.label}</StatusBadge>;
+    },
+    sortValue: (order) => order.status,
+    width: 210,
   },
 ];
