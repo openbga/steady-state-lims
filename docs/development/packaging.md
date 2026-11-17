@@ -23,7 +23,9 @@ The mark is the desktop icon,
 Persistent names are compatibility contracts: keep the OS key-store and security-key
 RP identities, `VibeToxLIS` backup directory, versioned `vibe-tox-*` formats,
 cryptographic domain strings, interface application identifiers and saved UI
-preference keys. Recovery-kit and export filenames retain their existing prefixes.
+preference keys. New recovery-kit filenames use `toxicology-lims-recovery-kit-`;
+new exit-export folders use `toxicology-lims-exit-`. Older filenames, exported
+records and contents remain valid; readers do not require an outer filename prefix.
 New authenticator enrollment labels use OpenBGA Toxicology LIMS; existing authenticator entries
 may still show their original label. Renaming does not rotate credentials or rewrite
 stored records.
