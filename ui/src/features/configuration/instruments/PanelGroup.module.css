@@ -1,7 +1,10 @@
+/* Each group stands apart from what comes before it: a notice, another group or the
+   last row of the group above. */
 .group {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  margin-block-start: var(--space-3);
 }
 
 .group:not([open]) {
