@@ -7,7 +7,7 @@ use lis_engine::{
     GetExcursionInput, ListExcursionsInput,
 };
 use lis_identity::{
-    BirthEvidenceKind, DirectoryHistoryInput, DirectoryRecord, IntakeDisposition,
+    BirthEvidenceKind, DirectoryHistoryInput, DirectoryRecord, IntakeDisposition, IntakeShow,
     ListIntakeDeferralsInput, RecordIntakeDeferralInput, ResolveIntakeDeferralInput, UpdateClient,
 };
 
@@ -23,7 +23,8 @@ fn intake() -> RecordIntakeDeferralInput {
 }
 fn intake_list() -> ListIntakeDeferralsInput {
     ListIntakeDeferralsInput {
-        include_closed: true,
+        show: IntakeShow::All,
+        search: None,
         after_id: None,
     }
 }
@@ -40,6 +41,7 @@ fn correction(id: lis_identity::ClientId) -> UpdateClient {
 
 mod dispatch;
 mod identity_quality;
+mod intake_history;
 mod material;
 mod method_continuity;
 mod paging;
@@ -91,9 +93,10 @@ async fn incomplete_intake_is_retained_without_a_fabricated_patient_then_resolve
         patients, 0,
         "incomplete evidence is not a testable identity"
     );
-    let rows = t.engine.list_intake_deferrals(intake_list()).await.unwrap();
+    let page = t.engine.list_intake_deferrals(intake_list()).await.unwrap();
+    assert_eq!(page.counts.awaiting, 1);
     assert_eq!(
-        rows[0].birth_evidence_text.as_ref().unwrap().expose(),
+        page.rows[0].birth_evidence_text.as_ref().unwrap().expose(),
         "Age 42 as supplied"
     );
     assert_access(
@@ -129,12 +132,14 @@ async fn incomplete_intake_is_retained_without_a_fabricated_patient_then_resolve
     let open = t
         .engine
         .list_intake_deferrals(ListIntakeDeferralsInput {
-            include_closed: false,
+            show: IntakeShow::Awaiting,
+            search: Some(Phi::new("synthetic requisition".into())),
             after_id: None,
         })
         .await
         .unwrap();
-    assert!(open.is_empty());
+    assert!(open.rows.is_empty());
+    assert_eq!(open.counts.resolved, 1);
     assert!(!audit_text(&t).contains(CANARY));
     assert!(!audit_text(&t).contains("Age 42"));
     let events = t.events("clinical");

@@ -8,7 +8,7 @@ and supports NFR-13's license records. Contribution governance remains open.
 
 ## Scope and authority
 
-Steady State LIMS is an OpenBGA project; BGASoft Inc. and the OpenBGA contributors hold the
+OpenBGA Toxicology LIMS is an OpenBGA project; BGASoft Inc. and the OpenBGA contributors hold the
 copyright. The license covers the project's own source, documentation, synthetic fixtures,
 website and original presentation assets unless identified otherwise. Third-party material
 retains its own terms and notices.
@@ -27,7 +27,7 @@ clinical use; publication follows [AGENTS.md](../../../AGENTS.md#current-mandate
 | License | Use the unmodified GNU Affero General Public License, version 3, with SPDX identifier `AGPL-3.0-only`. The example “or later” notice in the license's appendix does not expand the project's grant. |
 | Canonical text and metadata | Keep the official AGPLv3 text, unedited, in root [LICENSE](../../../LICENSE), with consistent workspace, npm and Tauri metadata and project-crate license policy (`deny.toml` exceptions). `scripts/check_repository_metadata.py` checks that they agree. |
 | Copyright | `Copyright (C) 2026 BGASoft Inc. and OpenBGA contributors.` in the [README](../../../README.md#license-and-development-disclaimer), [NOTICE](../../../NOTICE), the website, the installer metadata and the release notes. Preserve applicable third-party terms, attribution and notices. |
-| Names and logos | Steady State LIMS, OpenBGA and their logos are trademarks of BGASoft Inc. The license does not grant permission to use them (AGPLv3 section 7(e)), except as needed to describe the origin of the software. |
+| Names and logos | OpenBGA Toxicology LIMS, OpenBGA and their logos are trademarks of BGASoft Inc. The license does not grant permission to use them (AGPLv3 section 7(e)), except as needed to describe the origin of the software. |
 | Development disclaimer | Publish the [canonical disclaimer](../../governance/development-disclaimer.md) and concise summaries in the README and on the website. It stays informational, with AGPLv3 sections 15–17 warranty/liability references, and adds no noncommercial, no-resale, clinical-use or other restriction. |
 
 ## Consequences and limits

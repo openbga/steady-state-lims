@@ -1,4 +1,4 @@
-# Steady State LIMS at a glance
+# OpenBGA Toxicology LIMS at a glance
 
 Status: updated 2026-10-20 from the [project scope](project-scope.md), the
 [implementation plan](planning/implementation-plan.md#status) and the
@@ -12,7 +12,7 @@ licensed under [AGPL-3.0-only](../LICENSE), running on a single computer the lab
 
 ## In 30 seconds
 
-Steady State LIMS covers a test from order to delivered report: orders, specimens and labels,
+OpenBGA Toxicology LIMS covers a test from order to delivered report: orders, specimens and labels,
 analyzer results, quality control, review, release, delivery and billing. It is a desktop
 application for Windows, macOS and Linux that keeps all data on the lab's own computer, works
 without internet, and lets the lab back up, restore or export everything at no cost. Optional
@@ -22,7 +22,7 @@ application scope.
 > **Status.** Built and tested on synthetic data only. It is not yet clinically validated, and is
 > not ready to report patient results.
 
-Steady State LIMS is vibe coded with substantial AI assistance and sustained human
+OpenBGA Toxicology LIMS is vibe coded with substantial AI assistance and sustained human
 effort. Development includes research, requirements analysis, architecture review,
 code review, test design, hands-on testing and repeated refinement. Human
 direction shapes the scope, challenges generated work and determines what needs
@@ -87,7 +87,7 @@ approve its own procedures before clinical use.
 
 | Item | Why it matters | Record |
 | --- | --- | --- |
-| License and trademark | AGPL-3.0-only. Copyright BGASoft Inc. and OpenBGA contributors; Steady State LIMS, OpenBGA and their logos are BGASoft Inc. trademarks that the license does not grant. Contribution terms and future cloud-service licensing remain open. | [ADR 0021](architecture/decisions/0021-agplv3-license.md), [Q-11](planning/open-questions.md#decision-and-discovery-queue) |
+| License and trademark | AGPL-3.0-only. Copyright BGASoft Inc. and OpenBGA contributors; OpenBGA Toxicology LIMS, OpenBGA and their logos are BGASoft Inc. trademarks that the license does not grant. Contribution terms and future cloud-service licensing remain open. | [ADR 0021](architecture/decisions/0021-agplv3-license.md), [Q-11](planning/open-questions.md#decision-and-discovery-queue) |
 | Publication | The repository and presentation website are public; signed releases and security-response commitments remain unresolved. | [Q-19](planning/open-questions.md#decision-and-discovery-queue), [website maintenance](development/public-website.md) |
 | Optional hosted services | Service boundaries remain proposals. | [ADR 0010](architecture/decisions/0010-optional-cloud-services.md), [scope](project-scope.md#product-boundaries) |
 | Off-host tamper-evidence anchoring | Anchoring to a lab-owned target or offline media is implemented; whether off-host anchoring works in every installation without a hosted service is open. | [Q-30](planning/open-questions.md#decision-and-discovery-queue) |

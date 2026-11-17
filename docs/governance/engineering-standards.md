@@ -10,7 +10,7 @@ Risk determines review depth. A documentation typo needs a local check. Patient 
 
 ## Human direction and review
 
-Steady State LIMS combines substantial AI assistance with sustained human effort.
+OpenBGA Toxicology LIMS combines substantial AI assistance with sustained human effort.
 People direct the work through research, requirements analysis, architecture
 review, code review, test design, hands-on testing and iterative correction.
 Agents can help with each activity, including proposing alternatives and finding

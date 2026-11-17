@@ -162,7 +162,7 @@ fn the_kit_holds_the_key_line_locations_and_steps_and_is_recorded_without_the_ke
         }
     );
     let text = fs::read_to_string(f.kit_path()).unwrap();
-    assert!(text.starts_with("Steady State LIMS recovery kit\nFormat: vtkit-1\n"));
+    assert!(text.starts_with("OpenBGA Toxicology LIMS recovery kit\nFormat: vtkit-1\n"));
     let key_line = text
         .lines()
         .find_map(|line| line.strip_prefix("Installation key: "))
@@ -324,11 +324,11 @@ fn a_mistyped_or_malformed_key_line_is_refused() {
 fn the_default_file_name_carries_the_date_and_the_kit_number() {
     assert_eq!(
         kit::default_file_name("2026-10-13", Some(3)),
-        "vibe-tox-recovery-kit-2026-10-13-kit3.txt"
+        "toxicology-lims-recovery-kit-2026-10-13-kit3.txt"
     );
     assert_eq!(
         kit::default_file_name("2026-10-13", None),
-        "vibe-tox-recovery-kit-2026-10-13.txt"
+        "toxicology-lims-recovery-kit-2026-10-13.txt"
     );
 }
 

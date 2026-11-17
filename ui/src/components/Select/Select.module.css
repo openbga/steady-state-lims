@@ -15,11 +15,13 @@
  * React Aria marks the select, not its trigger, invalid: the trigger takes the invalid
  * border here, and a "Select…" placeholder still showing turns red with it.
  */
-[data-invalid] > .trigger {
+[data-invalid] > .trigger,
+[data-invalid] > .clearable > .trigger {
   border-color: var(--tone-danger-border);
 }
 
-[data-invalid] > .trigger > .value[data-placeholder] {
+[data-invalid] > .trigger > .value[data-placeholder],
+[data-invalid] > .clearable > .trigger > .value[data-placeholder] {
   color: var(--tone-danger-text);
 }
 
@@ -27,6 +29,62 @@
   width: var(--icon-size);
   height: var(--icon-size);
   flex: none;
+}
+
+/*
+ * A form field's clear button lies over the arrow, unseen until the pointer is on it or
+ * the field has keyboard focus; then it shows its X in the arrow's place.
+ */
+.clearable {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.clear {
+  position: absolute;
+  /* Centred on the arrow: the trigger's border and padding, less half the extra size. */
+  right: calc(1px + var(--space-1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--icon-size) + var(--space-2));
+  height: calc(var(--icon-size) + var(--space-2));
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.clear svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.clear[data-hovered],
+.clear[data-focus-visible],
+.trigger[data-focus-visible] + .clear {
+  opacity: 1;
+}
+
+.clear[data-hovered] {
+  background: var(--color-surface-hover);
+}
+
+.clear[data-focus-visible] {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+}
+
+.clearable:has(
+    > .clear[data-hovered],
+    > .clear[data-focus-visible],
+    > .trigger[data-focus-visible] + .clear
+  )
+  .chevron {
+  visibility: hidden;
 }
 
 .popover {

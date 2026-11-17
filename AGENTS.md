@@ -1,13 +1,13 @@
-# Agent instructions — Steady State LIMS
+# Agent instructions — OpenBGA Toxicology LIMS
 
 ## Current mandate
 
-**Product name and repository — user instruction, 2026-11-11.** The project is
-**Steady State LIMS**, hosted at `openbga/steady-state-lims` under the **OpenBGA**
-organization. Use this identity in the application, OS bundles, presentation video,
-website and documentation; download filenames use `steady-state-lims`. The name never
-carries an OpenBGA prefix; brand lockups show the mark, **Steady State** and “An
-OpenBGA project” beneath it (user instruction, 2026-11-12). Describe the
+**Product name and repository — user instruction, 2026-11-16.** The project is
+**OpenBGA Toxicology LIMS**, hosted at `openbga/toxicology-lims` under the **OpenBGA**
+organization. Use this exact identity in the application, OS bundles, presentation,
+website and documentation; download filenames use `toxicology-lims`. Primary brand
+lockups carry the full **OpenBGA Toxicology LIMS** name with the existing mark. Keep
+the clinical toxicology LIS scope despite LIMS in the product name. Describe the
 substantial AI-assisted development alongside the human work in requirements
 analysis, research, architecture review, testing and
 iteration; distinguish required review from completed evidence. Keep persistent
@@ -15,7 +15,7 @@ data/security identifiers compatible. See
 [development controls](docs/governance/engineering-standards.md#ai-assisted-development-controls)
 and [packaging identity](docs/development/packaging.md#product-name-and-compatibility).
 
-**Public repository — user instruction, 2026-10-20.** `openbga/steady-state-lims` is
+**Public repository — user instruction, 2026-10-20.** `openbga/toxicology-lims` is
 public and the presentation website is published through GitHub Pages from
 `website/`. Publication does not authorize signing, supported releases, cloud
 implementation or clinical use; those keep their own gates (Q-19, Q-34).
@@ -43,7 +43,7 @@ the 2026-10-20 instruction to retain GPL-3.0-only; builds published earlier stay
 GPL-3.0-only. Keep `LICENSE` as the unmodified official AGPLv3 text and all metadata,
 notices and documents in agreement with it. The README, [NOTICE](NOTICE), the website,
 installer metadata and release notes carry the notice `Copyright (C) 2026 BGASoft Inc.
-and OpenBGA contributors.` and the statement that Steady State LIMS, OpenBGA and their
+and OpenBGA contributors.` and the statement that OpenBGA Toxicology LIMS, OpenBGA and their
 logos are trademarks of BGASoft Inc. that the license does not grant (AGPL-3.0 section
 7(e)), except as needed to describe the origin of the software.
 

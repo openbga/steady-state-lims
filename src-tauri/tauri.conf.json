@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Steady State LIMS",
+  "productName": "OpenBGA Toxicology LIMS",
   "identifier": "org.vibetox.lis",
   "build": {
     "frontendDist": "../ui/dist",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Steady State LIMS",
+        "title": "OpenBGA Toxicology LIMS",
         "width": 1280,
         "height": 800,
         "minWidth": 1024,

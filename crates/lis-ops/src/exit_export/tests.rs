@@ -159,6 +159,12 @@ fn the_package_lists_a_byte_identical_copy_of_the_verifier() {
     );
 
     if std::env::var("VIBE_TOX_RUN_PY_VERIFIER").as_deref() == Ok("1") {
-        check_tampered_variants(&script, &package, &manifest, &manifest_bytes);
+        assert!(verifier_succeeds(&script, &package));
+        // Outer directory names do not version the format; historical names stay valid.
+        let legacy = folder
+            .path()
+            .join(format!("vibe-tox-exit-{}", manifest.installation_id));
+        fs::rename(&package, &legacy).unwrap();
+        check_tampered_variants(&script, &legacy, &manifest, &manifest_bytes);
     }
 }

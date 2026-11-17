@@ -19,6 +19,7 @@ import { GET_SUBJECT } from "../contract";
 import { StandingOrders } from "../orders/StandingOrders";
 import { newOrderPath, orNotRecorded, patientPath, subjectName } from "../subjects";
 import { MANAGE_QUALITY } from "./contract";
+import { IdentityHistory } from "./IdentityHistory";
 import { IdentityHolds } from "./IdentityHolds";
 import { PatientMaintenance } from "./PatientMaintenance";
 
@@ -55,8 +56,9 @@ function assertionColumns(
 const getAssertionId = (assertion: IdentityAssertionView) => assertion.id;
 
 /**
- * One patient: identifiers, open identity holds and demographic history (REQ-IDN-001). The
- * header stays in place while another patient loads, so focus stays on Previous or Next.
+ * One patient: identifiers, open identity holds, the incomplete intake it resolved and
+ * demographic history (REQ-IDN-001, DM-06). The header stays in place while another patient
+ * loads, so focus stays on Previous or Next.
  */
 export function PatientDetailPage() {
   const { subjectId = "" } = useParams();
@@ -103,6 +105,7 @@ function PatientDetail({ subject }: { subject: SubjectView }) {
   return (
     <>
       <IdentityHolds subjectId={subject.id} holds={subject.openHolds} canResolve={canResolve} />
+      <IdentityHistory intakes={subject.resolvedIntakes} />
       <PatientMaintenance subject={subject} />
       {canEnterOrders && <StandingOrders subjectId={subject.id} />}
       {(canEnterOrders || canBill) && (

@@ -89,7 +89,12 @@ describe("RegisterSourceDialog for an AU analyzer (REQ-INT-001)", {
       within(dialog).getAllByRole("textbox", { name: /^Source test code/ })[1] as HTMLElement,
       "02",
     );
-    await user.click(within(dialog).getAllByRole("button", { name: /Analyte$/ })[1] as HTMLElement);
+    await user.click(
+      within(dialog).getAllByRole("button", {
+        name: /Analyte$/,
+        expanded: false,
+      })[1] as HTMLElement,
+    );
     await user.click(
       await screen.findByRole("option", { name: "Synthetic amphetamine (SYN-AMP)" }),
     );

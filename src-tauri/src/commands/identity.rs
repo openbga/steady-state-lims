@@ -165,7 +165,7 @@ pub(crate) async fn resolve_intake_deferral(
 pub(crate) async fn list_intake_deferrals(
     engine: State<'_, Engine>,
     input: lis_engine::ListIntakeDeferralsInput,
-) -> Result<Vec<lis_engine::IntakeDeferralView>, CommandError> {
+) -> Result<lis_engine::IntakeDeferralPage, CommandError> {
     engine.list_intake_deferrals(input).await
 }
 

@@ -6,7 +6,7 @@ copyright and trademark notice in [NOTICE](../../NOTICE);
 the [development disclaimer](development-disclaimer.md) states the development
 and clinical-validation limits without adding license restrictions.
 
-The repository [openbga/steady-state-lims](https://github.com/openbga/steady-state-lims) is public,
+The repository [openbga/toxicology-lims](https://github.com/openbga/toxicology-lims) is public,
 and the presentation website is published from `website/`. Supported software
 releases, signing and security-response commitments remain open
 ([Q-19](../planning/open-questions.md#decision-and-discovery-queue)).
@@ -18,14 +18,14 @@ releases, signing and security-response commitments remain open
 | Original repository code, documentation, synthetic fixtures, website and presentation assets | AGPL-3.0-only unless identified otherwise; builds published before 2026-11-11 remain GPL-3.0-only | Preserve the unmodified [LICENSE](../../LICENSE), consistent SPDX metadata and the [NOTICE](../../NOTICE) copyright line |
 | Third-party dependencies, fonts, media and other incorporated material | Their respective terms and notices | Check compatibility and retain required notices/source obligations for the actual distributed artifact |
 | Contributions | AGPL-3.0-only, from people with the right to grant that license | Follow [contribution guidance](../../CONTRIBUTING.md); no copyright assignment, separate DCO or CLA is adopted |
-| Steady State LIMS and OpenBGA names and logos | Trademarks of BGASoft Inc., not licensed under AGPL-3.0-only (section 7(e)) | Others may use them only as needed to describe the origin of the software |
+| OpenBGA Toxicology LIMS and OpenBGA names and logos | Trademarks of BGASoft Inc., not licensed under AGPL-3.0-only (section 7(e)) | Others may use them only as needed to describe the origin of the software |
 | Separately developed future hosted-service code | Undecided, Q-11 | Obtain a scope and license decision before development; reuse of covered project material remains subject to its license |
 
 The [license decision and primary
 sources](../architecture/decisions/0021-agplv3-license.md#consequences-and-limits)
 explain commercial use, private modification, conveying obligations, the
 network-source offer for modified versions used over a network and the
-version-3-only grant. Steady State LIMS, OpenBGA and their logos are trademarks of BGASoft Inc.; the license does not grant permission to use them
+version-3-only grant. OpenBGA Toxicology LIMS, OpenBGA and their logos are trademarks of BGASoft Inc.; the license does not grant permission to use them
 (AGPLv3 section 7(e)), except as needed to describe the origin of the software.
 A written trademark-use policy and any separate contribution agreement remain Q-11.
 

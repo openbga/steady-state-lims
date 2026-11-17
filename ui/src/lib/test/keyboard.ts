@@ -22,7 +22,8 @@ export async function tabTo(user: UserEvent, target: Element, maxTabs = 200) {
  * the trigger, open it with the down arrow, move to the option and press Enter.
  */
 export async function chooseWithKeyboard(user: UserEvent, label: string | RegExp, option: string) {
-  await tabTo(user, screen.getByRole("button", { name: label }));
+  // Only the trigger has aria-expanded: a form field's "Clear <label>" button is left out.
+  await tabTo(user, screen.getByRole("button", { name: label, expanded: false }));
   await user.keyboard("{ArrowDown}");
   const listbox = await screen.findByRole("listbox");
   // Opening moves focus into the list; wait for it rather than racing the next key.
