@@ -33,6 +33,18 @@ Var OpenBGALegacyDirectory
   ${EndIf}
 !macroend
 
+!macro OPENBGA_CHECK_SHORTCUT Directory
+  ${If} ${FileExists} "${Directory}\${PRODUCTNAME}.lnk"
+    !insertmacro IsShortcutTarget "${Directory}\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe"
+    Pop $0
+    ${If} $0 != 1
+      MessageBox MB_ICONSTOP "An unrelated shortcut already uses this product name. Resolve it before installing." /SD IDOK
+      SetErrorLevel 1
+      Abort
+    ${EndIf}
+  ${EndIf}
+!macroend
+
 !macro NSIS_HOOK_PREINSTALL
   StrCpy $OpenBGALegacyDirectory ""
   ; A current-name registration takes priority; normal Tauri upgrade handling applies.
@@ -54,6 +66,8 @@ Var OpenBGALegacyDirectory
       SetOutPath $INSTDIR
     ${EndIf}
   ${EndIf}
+  !insertmacro OPENBGA_CHECK_SHORTCUT "$SMPROGRAMS"
+  !insertmacro OPENBGA_CHECK_SHORTCUT "$DESKTOP"
 !macroend
 
 !macro OPENBGA_MIGRATE_SHORTCUT Directory
