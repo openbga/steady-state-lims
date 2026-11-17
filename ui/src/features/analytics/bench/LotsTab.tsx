@@ -16,6 +16,7 @@ import { openRecordPanel } from "@/lib/openRecordPanel";
 import { useSearchParam } from "@/lib/searchParam";
 import { LIST_LOTS, MANAGE_QUALITY } from "../contract";
 import { lotStatus, MATERIAL_KINDS } from "../labels";
+import { CorrectLotDialog } from "./CorrectLotDialog";
 import { LotPanel } from "./LotPanel";
 import { RegisterLotDialog } from "./RegisterLotDialog";
 import { WithdrawLotDialog } from "./WithdrawLotDialog";
@@ -69,14 +70,19 @@ function useShownParam(): [Shown, (shown: Shown) => void] {
   return [choiceOf(SHOWN, shown) ?? "active", (next) => setShown(next === "all" ? next : null)];
 }
 
-const ACTIONS: readonly OfferedAction<"withdraw_lot">[] = [
+type LotAction = "correct_lot" | "withdraw_lot";
+
+const ACTIONS: readonly OfferedAction<LotAction>[] = [
+  { id: "correct_lot", label: "Correct lot" },
   { id: "withdraw_lot", label: "Withdraw lot", variant: "danger" },
 ];
+
+const ACTIVE_LOT_ACTIONS: readonly LotAction[] = ["correct_lot", "withdraw_lot"];
 
 /**
  * Reagent, calibrator, control and internal-standard lots (REQ-ANA-007), opening in a panel.
  * Expiry is derived by the engine; an expired or withdrawn lot cannot be used on a new run.
- * Lots carry no `allowedActions` yet: quality staff may withdraw an active lot.
+ * Lots carry no `allowedActions` yet: quality staff may correct or withdraw an active lot.
  */
 export function LotsTab({
   isRegistering,
@@ -89,9 +95,11 @@ export function LotsTab({
   const canManage = useHasCapability(MANAGE_QUALITY);
   const record = useOpenRecord();
   const [shown, setShown] = useShownParam();
-  const [withdrawn, setWithdrawn] = useState<LotView | null>(null);
-  const allowed = (lot: LotView) => (canManage && lot.state === "active" ? ["withdraw_lot"] : []);
-  const withdraw = (lot: LotView) => setWithdrawn(lot);
+  const [acting, setActing] = useState<{ action: LotAction; lot: LotView } | null>(null);
+  const allowed = (lot: LotView) => (canManage && lot.state === "active" ? ACTIVE_LOT_ACTIONS : []);
+  const act = (action: LotAction, lot: LotView) => setActing({ action, lot });
+  const panelActions = (lot: LotView) =>
+    allowedActionItems(ACTIONS, allowed(lot), (action) => act(action, lot));
   const rows = useMemo(
     () =>
       lots.data &&
@@ -103,7 +111,7 @@ export function LotsTab({
   const panel = openRecordPanel(record, lots.data, getRowId, (open) => (
     <LotPanel
       lot={open}
-      actions={allowedActionItems(ACTIONS, allowed(open), () => withdraw(open))}
+      actions={panelActions(open)}
       onClose={record.close}
       onPrevious={record.previous}
       onNext={record.next}
@@ -112,7 +120,7 @@ export function LotsTab({
   const rowActions = allowedRowActions(ACTIONS, {
     label: (lot: LotView) => lot.lotNumber,
     allowed,
-    onAction: (_, lot) => withdraw(lot),
+    onAction: act,
   });
   return (
     <>
@@ -161,7 +169,12 @@ export function LotsTab({
       {isRegistering && (
         <RegisterLotDialog onDone={(lot) => record.open(lot.lotId)} onClose={onCloseRegistration} />
       )}
-      {withdrawn && <WithdrawLotDialog lot={withdrawn} onClose={() => setWithdrawn(null)} />}
+      {acting?.action === "correct_lot" && (
+        <CorrectLotDialog lot={acting.lot} onClose={() => setActing(null)} />
+      )}
+      {acting?.action === "withdraw_lot" && (
+        <WithdrawLotDialog lot={acting.lot} onClose={() => setActing(null)} />
+      )}
     </>
   );
 }

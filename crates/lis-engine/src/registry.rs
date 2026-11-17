@@ -212,6 +212,8 @@ pub const COMMANDS: &[CommandSpec] = &[
     crate::commands::analytical::LIST_LOTS,
     crate::commands::analytical::REGISTER_LOT,
     crate::commands::analytical::WITHDRAW_LOT,
+    crate::commands::analytical::CORRECT_LOT,
+    crate::commands::analytical::LOT_HISTORY,
     crate::commands::analytical::CREATE_PREP_BATCH,
     crate::commands::analytical::RECORD_PREP_STEP,
     crate::commands::analytical::LIST_WORKLIST,

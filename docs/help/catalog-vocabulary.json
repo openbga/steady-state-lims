@@ -2,7 +2,7 @@
   "id": "catalog-vocabulary",
   "title": "Analytes and specimen types",
   "summary": "Maintain named catalog items and the versioned validity policies attached to specimen types.",
-  "reviewedOn": "2026-10-30",
+  "reviewedOn": "2026-11-17",
   "routes": [
     "/configuration/analytes",
     "/configuration/specimen-types",
@@ -87,7 +87,7 @@
         },
         {
           "name": "Correction history: Revision / Saved facts / Recorded / Recorded by / Reason",
-          "meaning": "Shows the analyte's addition and each correction or retirement in revision order.",
+          "meaning": "Shows the analyte's addition and each correction or retirement, newest revision first.",
           "values": "Saved code, name, LOINC, drug class and availability; time; the acting person's account name; reason.",
           "rules": "Read-only and immutable; loaded when you choose Show correction history. Analytes added before history was kept start with Unknown — legacy baseline and their creation time; no author is invented."
         }
@@ -346,7 +346,7 @@
     "crates/lis-catalog/src/content.rs",
     "ui/src/features/configuration/analytes/AnalytesPage.tsx",
     "ui/src/features/configuration/analytes/CorrectAnalyteDialog.tsx",
-    "ui/src/features/configuration/CorrectionHistory.tsx",
+    "ui/src/lib/CorrectionHistory.tsx",
     "crates/lis-catalog/src/commands/analytes.rs",
     "crates/lis-catalog/src/repo/analytes.rs",
     "ui/src/features/configuration/validity/SpecimenTypesPage.tsx",

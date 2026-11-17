@@ -43,6 +43,9 @@ pub(crate) async fn analytical_call(
     if let Some(result) = quality_call(engine, name).await {
         return Some(result);
     }
+    if let Some(result) = crate::lot_corrections::lot_correction_call(engine, name).await {
+        return Some(result);
+    }
     let instrument_id = InstrumentId::generate();
     Some(match name {
         "list_instrument_readiness" => engine.list_instrument_readiness().await.map(drop),

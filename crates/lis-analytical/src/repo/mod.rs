@@ -4,6 +4,7 @@
 pub(crate) mod au_profiles;
 pub(crate) mod conflicts;
 pub(crate) mod deviations;
+pub(crate) mod lot_history;
 pub(crate) mod lots;
 pub(crate) mod published;
 pub(crate) mod qc;
