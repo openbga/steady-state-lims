@@ -37,6 +37,21 @@
   overflow-wrap: anywhere;
 }
 
+/* The copy icon sits in the box's bottom corner, below the last line. */
+.messageBox {
+  position: relative;
+}
+
+.messageBox > .message {
+  padding-block-end: calc(var(--space-2) + var(--control-height));
+}
+
+.copy {
+  position: absolute;
+  inset-block-end: var(--space-1);
+  inset-inline-end: var(--space-1);
+}
+
 .segment {
   margin-inline-start: calc(-1 * var(--segment-indent));
 }

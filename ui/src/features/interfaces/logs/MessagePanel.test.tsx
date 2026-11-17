@@ -71,6 +71,15 @@ describe("Logs message details (ticket #4678)", () => {
     expect(message.textContent).toBe(DETAIL.segments.join("\n"));
   });
 
+  it("copies the whole message, one segment per line, from the icon in its corner", async () => {
+    const { user } = renderPage(() => DETAIL);
+    await openRow(user, "A26000009-UR r1");
+    const panel = await screen.findByRole("region", { name: /^A26000009-UR r1/ });
+    await user.click(await within(panel).findByRole("button", { name: "Copy message" }));
+    expect(await navigator.clipboard.readText()).toBe(DETAIL.segments.join("\n"));
+    await screen.findByText("Message copied");
+  });
+
   it("opens a sent message with its control ID, the message as sent, the ACK and the attempts", async () => {
     const detail = vi.fn(() => DETAIL);
     const { user, container } = renderPage(detail);
