@@ -615,7 +615,7 @@
         {
           "name": "Search (Search report, handoff, file or control ID…)",
           "meaning": "Narrow the rows.",
-          "values": "Part of a report or accession number, such as A26000009, a handoff number (digits only, exact), the control ID (MSH-10) of an outgoing message, such as the one a partner quotes, whole or any part of at least 6 characters, such as its first characters 01a1c02c, in any letter case; a test message's control ID starts with TEST-, and one sent by an earlier version is not found by it, or part of a file name or folder. Spaces copied around a value are ignored. Several values separated by commas, such as A26000009, A26000022, show the rows of any of them.",
+          "values": "Part of a report or accession number, such as A26000009, a handoff number (digits only, exact), the control ID (MSH-10) of an outgoing message, such as the one a partner quotes, whole or any part of at least 6 characters, such as its last characters fb18fc49e4aa, in any letter case (its first characters are the time it was made, so they also find other messages made around then); a test message's control ID starts with TEST-, and one sent by an earlier version is not found by it, or part of a file name or folder. Spaces copied around a value are ignored. Several values separated by commas, such as A26000009, A26000022, show the rows of any of them.",
           "rules": "Optional; kept in the address. Changing it closes the message panel, if one is open."
         },
         {
