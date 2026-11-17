@@ -19,17 +19,26 @@
   gap: var(--space-2);
 }
 
-/* One segment per line, as sent: never wrapped, so fields keep their positions. */
+/* One segment per line, as sent. A long segment wraps inside the panel; its continuation
+   lines are indented by the panel's start padding, and each segment's first line is pulled
+   back by the same amount (a margin on an inline box applies to its first line only). The
+   text itself is never changed, so copying gives the message exactly as sent. */
 .message {
+  --segment-indent: 2ch;
   margin: 0;
   padding: var(--space-2) var(--space-3);
-  overflow-x: auto;
+  padding-inline-start: calc(var(--space-3) + var(--segment-indent));
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface-sunken);
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.segment {
+  margin-inline-start: calc(-1 * var(--segment-indent));
 }
 
 .note {

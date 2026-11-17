@@ -55,6 +55,22 @@ function renderPage(detail: (args: unknown) => unknown, rows = [SENT]) {
 describe("Logs message details (ticket #4678)", () => {
   beforeEach(mockGridLayout);
 
+  it("wraps long segments by CSS only, so copying gives the message exactly as sent (#4818)", async () => {
+    const { user } = renderPage(() => DETAIL);
+    await openRow(user, "A26000009-UR r1");
+    const panel = await screen.findByRole("region", { name: /^A26000009-UR r1/ });
+    const message = (await within(panel).findByText(/^MSH\|/)).closest("pre");
+    if (!message) throw new Error("Message as sent is not shown");
+    // One span per segment, holding the segment's text unchanged; only the original line
+    // breaks sit between them: no inserted spaces, breaks or indent characters.
+    const segments = [...message.querySelectorAll("span")].map((span) => span.textContent);
+    expect(segments).toEqual(DETAIL.segments);
+    const selection = window.getSelection();
+    selection?.selectAllChildren(message);
+    expect(selection?.toString()).toBe(DETAIL.segments.join("\n"));
+    expect(message.textContent).toBe(DETAIL.segments.join("\n"));
+  });
+
   it("opens a sent message with its control ID, the message as sent, the ACK and the attempts", async () => {
     const detail = vi.fn(() => DETAIL);
     const { user, container } = renderPage(detail);
@@ -66,8 +82,10 @@ describe("Logs message details (ticket #4678)", () => {
     expect(detail).toHaveBeenCalledWith({ input: { deliveryId: DELIVERY } });
     expect(await within(panel).findByText("Matches what was sent")).toBeTruthy();
     expect(within(panel).getAllByText(DELIVERY).length).toBeGreaterThan(0);
-    const message = within(panel).getByText(/^MSH\|/);
-    expect(message.textContent?.split("\n")).toEqual(DETAIL.segments);
+    const message = within(panel)
+      .getByText(/^MSH\|/)
+      .closest("pre");
+    expect(message?.textContent?.split("\n")).toEqual(DETAIL.segments);
     expect(within(panel).getByText("Accepted (AA)")).toBeTruthy();
     expect(within(panel).getByText("Message accepted")).toBeTruthy();
     expect(within(panel).getByText(/Failed: No acknowledgement in time/)).toBeTruthy();

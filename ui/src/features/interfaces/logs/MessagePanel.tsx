@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { Fragment, useId } from "react";
 import { Link } from "react-router";
 import { Alert } from "@/components/Alert";
 import { DetailPanel, useWidePanel } from "@/components/DetailPanel";
@@ -111,6 +111,22 @@ function Answer({ row }: { row: PartnerMessageRow }) {
   return <>None yet.</>;
 }
 
+/** The message's text exactly as sent: one inline span per segment, joined by the original
+ * line breaks, so copying gives the bytes as sent while CSS wraps and indents continuations. */
+function SegmentLines({ segments }: { segments: readonly string[] }) {
+  return (
+    <pre className={styles.message}>
+      {segments.map((segment, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: segments repeat and never reorder
+        <Fragment key={index}>
+          {index > 0 && "\n"}
+          <span className={styles.segment}>{segment}</span>
+        </Fragment>
+      ))}
+    </pre>
+  );
+}
+
 function SentMessage({ detail, test }: { detail: PartnerMessageDetail; test: boolean }) {
   const id = useId();
   return (
@@ -124,7 +140,7 @@ function SentMessage({ detail, test }: { detail: PartnerMessageDetail; test: boo
       {detail.content === "sent" ? (
         <>
           {test && <p className={styles.note}>Synthetic test message: no patient data.</p>}
-          <pre className={styles.message}>{detail.segments.join("\n")}</pre>
+          <SegmentLines segments={detail.segments} />
         </>
       ) : detail.content === "unavailable" ? (
         <Alert tone="danger" compact>
