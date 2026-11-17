@@ -3,7 +3,22 @@
     "targets": ["deb", "appimage"],
     "linux": {
       "deb": {
-        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0", "libudev1"]
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0", "libudev1"],
+        "provides": [
+          "vibe-tox-lis",
+          "open-bga-tox",
+          "steady-state-lims"
+        ],
+        "conflicts": [
+          "vibe-tox-lis",
+          "open-bga-tox",
+          "steady-state-lims"
+        ],
+        "replaces": [
+          "vibe-tox-lis",
+          "open-bga-tox",
+          "steady-state-lims"
+        ]
       },
       "appimage": {
         "bundleMediaFramework": false
