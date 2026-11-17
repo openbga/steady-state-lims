@@ -6,8 +6,7 @@ use super::{
     orders, partner, report_layouts, reporting, result_files, results, security_keys, session,
     specimens, unsaved_forms, updates, users, window_theme, work_queues,
 };
-use tauri::Runtime;
-use tauri::ipc::Invoke;
+use tauri::{Runtime, ipc::Invoke};
 
 /// The single list of app commands registered with the window.
 #[expect(
