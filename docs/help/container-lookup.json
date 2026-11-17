@@ -2,14 +2,14 @@
   "id": "container-lookup",
   "title": "Container lookup",
   "summary": "Scan a container barcode to find its accession and current state.",
-  "reviewedOn": "2026-10-15",
+  "reviewedOn": "2026-11-17",
   "routes": ["/containers"],
   "sections": [
     {
       "title": "How to use this page",
       "paragraphs": [
         "Scan or type the label code in Container barcode, then choose Find container or press Enter. The header\u2019s scan field also opens this lookup. The input clears after submission so another label can be scanned.",
-        "A match shows the patient identity and accession together with the specimen\u2019s acceptance state, container kind, recorded volume and location, open holds and latest label-printing status. Open the accession link for receipt decisions and container actions."
+        "A match shows the patient identity and accession together with the specimen\u2019s acceptance state, container kind, recorded volume and location, open holds and latest label-printing status. When the specimen still waits for a receipt decision, the container card says so: people who receive specimens choose Record receipt decision to record it here, in the same steps as on Finish receiving, and everyone can open Finish receiving for the whole accession. After a decision recorded here, the card says where work continues. Open the accession link for label requests and aliquots."
       ]
     },
     {
@@ -37,6 +37,10 @@
   ],
   "reviewSources": [
     "ui/src/features/accessioning/specimens/ContainerLookupPage.tsx",
+    "ui/src/features/accessioning/specimens/LookupReceipt.tsx",
+    "ui/src/features/accessioning/specimens/ReceiptOutcome.tsx",
+    "ui/src/features/accessioning/specimens/ReceiptDecisionDialog.tsx",
+    "crates/lis-engine/src/commands/specimens.rs",
     "ui/src/features/accessioning/specimens/containerColumns.tsx",
     "ui/src/features/accessioning/specimens/labels.ts",
     "crates/lis-specimens/src/input.rs",
@@ -55,7 +59,7 @@
       "title": "Container lookup",
       "routes": ["/containers"],
       "purpose": "Identify physical material and manage its lifecycle, holds, location and retained history.",
-      "access": "Accession or Manage quality permits audited container lookup and material-history reads. Accession is separately required for moves, depletion and disposal; Manage quality permits holds/releases. The application rechecks record revisions, specimen state and applicable holds on submission.",
+      "access": "Accession or Manage quality permits audited container lookup and material-history reads. Accession is separately required for receipt decisions, moves, depletion and disposal; Perform analysis is needed to open the Worklist; Manage quality permits holds/releases. The application rechecks record revisions, specimen state and applicable holds on submission.",
       "fields": [
         {
           "name": "Container barcode",
@@ -79,7 +83,19 @@
           "name": "Specimen / Acceptance",
           "meaning": "The configured specimen type and receipt decision state.",
           "values": "Received, not yet decided; Accepted; Accepted conditionally; Held; Rejected.",
-          "rules": "Read-only current state; completion of a receipt decision is not proof that all testing gates are clear."
+          "rules": "Read-only current state; completion of a receipt decision is not proof that all testing gates are clear. Accepted shows green; Received, not yet decided and Accepted conditionally show amber."
+        },
+        {
+          "name": "This specimen waits for a receipt decision",
+          "meaning": "Notice in the container card while the specimen is Received, not yet decided.",
+          "values": "With Accession: Record the decision to finish receiving this container. Without it: Someone who receives specimens records the decision on Finish receiving.",
+          "rules": "Shown only while no receipt decision is recorded. For people with Accession the page also reads the accession (an audited read) so the decision dialog has the specimen's current revision and containers; if that read fails, the error is shown under the notice with Retry, and Open Finish receiving still works."
+        },
+        {
+          "name": "Receipt finished / Receipt decision recorded",
+          "meaning": "Outcome shown after a receipt decision is recorded while the container is on screen.",
+          "values": "Accepted or Accepted conditionally: Receipt finished. Work continues in the Worklist, and the Worklist lists the container once its holds and order checks allow a run. Held: Receipt decision recorded: held, with review under laboratory policy. Rejected: Receipt decision recorded: rejected; the specimen will not be tested and its containers and decision are kept. Who recorded the decision and when follow the text.",
+          "rules": "Receipt is not readiness for testing: open holds, an unresolved receipt chronology and order checks still keep a container off the Worklist. A container that was already decided when it was scanned shows no receipt notice."
         },
         {
           "name": "Kind",
@@ -156,6 +172,24 @@
           "result": "Provides receipt decisions, label requests and any permitted aliquot action."
         },
         {
+          "name": "Record receipt decision",
+          "does": "Opens the receipt decision for the specimen: scan or type the label of one of its containers, then choose Accept, Accept with condition, Hold or Reject, any discrepancies and the details the decision needs. Rejection is confirmed separately.",
+          "availableWhen": "Accession permission, the specimen Received, not yet decided, and the engine allowing a receipt decision. It shows as busy while the accession loads.",
+          "result": "Records the decision with the specimen's revision; the badge and the container card update. A stale revision is refused: Refresh and record it again. The same dialog, fields and rules as Record receipt decision on Finish receiving."
+        },
+        {
+          "name": "Open Finish receiving",
+          "does": "Opens the accession's Finish receiving page.",
+          "availableWhen": "The specimen waits for a receipt decision.",
+          "result": "Shows every specimen of the accession, its receipt decisions, containers and label printing."
+        },
+        {
+          "name": "Go to Worklist",
+          "does": "Opens Bench \u203a Worklist.",
+          "availableWhen": "After an Accepted or Accepted conditionally decision recorded here, for people with Perform analysis.",
+          "result": "The Worklist lists the container for a run only once its holds and order checks allow testing."
+        },
+        {
           "name": "Move container",
           "does": "Record verified location.",
           "availableWhen": "Accession; engine allows move.",
@@ -193,6 +227,7 @@
       "workflow": [
         "Scan the physical barcode.",
         "Check the identity banner, accession, acceptance and holds.",
+        "If the specimen waits for a receipt decision, choose Record receipt decision, scan the container label and record the decision, or open Finish receiving.",
         "Open the accession for the permitted next action, or scan the next container."
       ],
       "troubleshooting": [
@@ -203,6 +238,10 @@
         {
           "problem": "The lookup failed.",
           "recovery": "Read the error, correct the cause and resubmit the barcode. No result is not proof that no record exists."
+        },
+        {
+          "problem": "The specimen waits for a receipt decision but Record receipt decision is not offered.",
+          "recovery": "Recording a receipt decision needs the Accession permission. Ask someone who receives specimens to record it, or open Finish receiving to see the accession. If you have Accession and the notice shows an error, choose Retry."
         },
         {
           "problem": "Label status says Handed off to printer.",

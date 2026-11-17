@@ -18,6 +18,7 @@ import styles from "../accessioning.module.css";
 import { ContainerMaterial } from "./ContainerMaterial";
 import { HoldCount, LatestLabelJob } from "./containerColumns";
 import { FIND_CONTAINER } from "./contract";
+import { LookupReceipt } from "./LookupReceipt";
 import { acceptanceStatus, containerStateLabel, volumeText } from "./labels";
 
 /**
@@ -127,6 +128,7 @@ function ContainerResult({ labelCode }: { labelCode: string }) {
           { label: "Label printing", value: <LatestLabelJob container={container} /> },
         ]}
       />
+      <LookupReceipt lookup={match.data} />
       <ContainerMaterial container={container} />
     </Section>
   );
