@@ -32,6 +32,7 @@ function renderPage(
       depletion: null,
       hasMore: false,
       snapshot: { maxMoveRowId: "0", maxHoldRowId: "0" },
+      totals: { moves: 0, holds: 0 },
     }),
     current_session: () => sessionWith(["accession", "enter_orders"]),
     ...commands,
@@ -200,5 +201,51 @@ describe("ContainerLookupPage (REQ-SPC-001)", () => {
     expect(await screen.findByRole("link", { name: "A26000001" })).toBeTruthy();
     expect(screen.queryByText(/receipt decision|Receipt finished/)).toBeNull();
     expect(getAccession).not.toHaveBeenCalled();
+  });
+
+  it("shows one container card with one Refresh, and the last barcode beside the empty field (#4794)", async () => {
+    const find = vi.fn(() => LOOKUP);
+    const { user } = renderPage(find);
+    await user.keyboard("C00000001{Enter}");
+    const card = await screen.findByRole("region", { name: /^Container C00000001/ });
+    expect(within(card).getAllByRole("button", { name: "Refresh" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Refresh" })).toHaveLength(1);
+    expect(within(card).getByText("urine · Primary")).toBeTruthy();
+    expect(within(card).getByRole("button", { name: "Storage excursions" })).toBeTruthy();
+    expect(screen.getByText(/^Last: C00000001 · /)).toBeTruthy();
+    const field = screen.getByRole("textbox", { name: /Container barcode/ });
+    expect(field).toHaveProperty("value", "");
+    expect(document.activeElement).toBe(field);
+    expect(await screen.findByRole("tab", { name: "Location moves (0)" })).toBeTruthy();
+  });
+
+  it("refreshes the container and its history together", async () => {
+    const find = vi.fn(() => LOOKUP);
+    const history = vi.fn(() => ({
+      moves: [],
+      holds: [],
+      disposal: null,
+      depletion: null,
+      hasMore: false,
+      snapshot: { maxMoveRowId: "0", maxHoldRowId: "0" },
+      totals: { moves: 0, holds: 0 },
+    }));
+    const { user } = renderPage(find, "/containers?labelCode=C00000001", {
+      get_container_history: history,
+    });
+    await screen.findByRole("tab", { name: "Location moves (0)" });
+    await user.click(screen.getByRole("button", { name: "Refresh" }));
+    await vi.waitFor(() => expect(history).toHaveBeenCalledTimes(2));
+    expect(find).toHaveBeenCalledTimes(2);
+  });
+
+  it("opens a History tab without looking the container up again", async () => {
+    const find = vi.fn(() => LOOKUP);
+    const { user, router } = renderPage(find, "/containers?labelCode=C00000001");
+    await user.click(await screen.findByRole("tab", { name: "Label jobs (0)" }));
+    expect(await screen.findByText("No labels requested.")).toBeTruthy();
+    expect(router.state.location.search).toBe("?labelCode=C00000001&history=labels");
+    expect(screen.getByRole("tab", { name: "Label jobs (0)", selected: true })).toBeTruthy();
+    expect(find).toHaveBeenCalledTimes(1);
   });
 });

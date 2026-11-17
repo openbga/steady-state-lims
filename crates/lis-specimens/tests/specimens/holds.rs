@@ -56,6 +56,11 @@ fn holds_need_a_reason_and_release_once() {
         (ContainerHoldState::Released, 2)
     );
     assert_eq!(last_event(&f.t).0, "specimen.release_hold");
+    // A hold and its release are one row of the holds stream, counted once.
+    let history = read(&f.t, move |conn| {
+        lis_specimens::get_container_history(conn, container_id, 0, None)
+    });
+    assert_eq!((history.totals.holds, history.holds.len()), (1, 1));
     let mut again = release;
     again.expected_revision = 2;
     assert_eq!(

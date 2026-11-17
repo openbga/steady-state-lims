@@ -8,14 +8,6 @@ import { ContainerMaterial } from "./ContainerMaterial";
 import { observedInstant } from "./ObservedTimeInput";
 import { StorageExcursionsPage } from "./StorageExcursionsPage";
 
-const history = {
-  moves: [],
-  holds: [],
-  depletion: null,
-  disposal: null,
-  hasMore: false,
-  snapshot: { maxMoveRowId: "0", maxHoldRowId: "0" },
-};
 describe("Material workflows", () => {
   beforeEach(mockGridLayout);
   it.each([
@@ -85,20 +77,42 @@ describe("Material workflows", () => {
   it("lets quality review material without granting accession mutations", async () => {
     mockCommands({
       current_session: () => sessionWith(["manage_quality"]),
-      get_container_history: () => history,
     });
     renderRoutes([{ path: "/", element: <ContainerMaterial container={container()} /> }], "/");
     expect(await screen.findByRole("button", { name: "Place hold" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Move container" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Mark depleted" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Dispose container" })).toBeNull();
-    expect(screen.getByRole("link", { name: "Storage excursions" })).toBeTruthy();
+    // Every material action is a button, Storage excursions too (#4794).
+    expect(screen.getByRole("button", { name: "Storage excursions" })).toBeTruthy();
+    // No open holds: the Holds fact says None, so no empty holds list is repeated.
+    expect(screen.queryByRole("list", { name: "Open holds" })).toBeNull();
+  });
+  it("lists open holds once, each with its release for quality", async () => {
+    mockCommands({ current_session: () => sessionWith(["manage_quality"]) });
+    const held = container({
+      openHolds: [
+        {
+          holdId: "00000000-0000-7000-8000-000000001801",
+          containerId: container().containerId,
+          kind: "quality",
+          state: "open",
+          excursionId: null,
+          reason: "Synthetic leaking container",
+          placedAt: "2026-11-05T10:00:00.000000000Z",
+          revision: 1,
+        },
+      ],
+    });
+    renderRoutes([{ path: "/", element: <ContainerMaterial container={held} /> }], "/");
+    const holds = await screen.findByRole("list", { name: "Open holds" });
+    expect(holds.textContent).toContain("quality hold: Synthetic leaking container.");
+    expect(await screen.findByRole("button", { name: "Release quality hold" })).toBeTruthy();
   });
   it("requires an attributable reason before terminal material action", async () => {
     const deplete = vi.fn(() => ({}));
     mockCommands({
       current_session: () => sessionWith(["accession"]),
-      get_container_history: () => history,
       mark_container_depleted: deplete,
     });
     const { user } = renderRoutes(

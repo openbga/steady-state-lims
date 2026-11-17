@@ -8,7 +8,7 @@
     {
       "title": "How to use this page",
       "paragraphs": [
-        "Scan or type the label code in Container barcode, then choose Find container or press Enter. The header\u2019s scan field also opens this lookup. The input clears after submission so another label can be scanned.",
+        "Scan or type the label code in Container barcode, then choose Find container or press Enter. The header\u2019s scan field also opens this lookup. After each lookup the field is emptied and keeps focus for the next scan, and Last beside Find container shows the barcode looked up and when.",
         "A match shows the patient identity and accession together with the specimen\u2019s acceptance state, container kind, recorded volume and location, open holds and latest label-printing status. When the specimen still waits for a receipt decision, the container card says so: people who receive specimens choose Record receipt decision to record it here, in the same steps as on Finish receiving, and everyone can open Finish receiving for the whole accession. After a decision recorded here, the card says where work continues. Open the accession link for label requests and aliquots."
       ]
     },
@@ -28,10 +28,10 @@
     {
       "title": "Container material and label history",
       "paragraphs": [
-        "Open Material history and actions beside a container, or scan its barcode in Container lookup. The identity banner, accession, barcode, material state, volume, location and open holds identify the material. Refresh retrieves current state before actions. Location moves and hold/release history are separate evidence streams; Previous history and Next history retrieve 50 events per stream without requiring earlier work to be resolved. New events do not shift the current history pages: Refresh starts a fresh snapshot at the first page. Snapshot boundaries control membership only; they do not establish unknown historical event order.",
+        "Open Material history and actions beside a container, or scan its barcode in Container lookup. The container card shows the barcode with the specimen\u2019s acceptance, the facts that identify the material and its actions; its one Refresh reads the container and its history again before you act. The History card below has one tab per evidence stream \u2014 Location moves, Holds and releases, Terminal events and Label jobs \u2014 each with its total count, and opens on Location moves. The tab is kept in the page address (history=moves, holds, terminal or labels), so Back and reload keep it; changing tabs does not look the container up again. An empty tab says so in one line. Location moves and Holds and releases show 50 events per page; Previous history and Next history appear only in a tab with more than 50 events. New events do not shift the pages being browsed, and the counts stay those of the history first read: Refresh starts again from the latest history. Snapshot boundaries control membership only; they do not establish unknown historical event order. A short line under each tab summarises this; its ? button opens the full explanation and Escape closes it.",
         "Move container selects an active named location and records a reason. An unresolved legacy location requires checking the physical material and recording a new attributable move; the application does not fabricate past movement order. Manage quality can place retention, legal or quality holds and release individual open holds with a reason. Excursion holds are recorded through a storage incident assessment. Open holds block testing, aliquots and disposal.",
         "Mark depleted and Dispose container require confirmation and an attributable reason. Depletion prevents further use; disposal is permanent and requires all holds released. Engine permissions and optimistic revision checks remain authoritative. On conflict, cancel, refresh, review the updated material and reopen the action.",
-        "Label jobs show every requested print/reprint, recorded time and queued, handed-off or failed outcome. Queued after interruption does not prove printing failed or succeeded. Refresh, inspect the physical printer and material, and use a reasoned reprint only when another label is needed. A reprint preserves the barcode. The configuration link is shown only to administrators and opens local printer setup; no active printer means printing remains unavailable. Receiving staff must ask an administrator to configure a missing destination."
+        "The Label jobs tab shows every requested print/reprint, recorded time and queued, handed-off or failed outcome. Queued after interruption does not prove printing failed or succeeded. Refresh, inspect the physical printer and material, and use a reasoned reprint only when another label is needed. A reprint preserves the barcode. The configuration link is shown only to administrators and opens local printer setup; no active printer means printing remains unavailable. Receiving staff must ask an administrator to configure a missing destination."
       ]
     }
   ],
@@ -48,6 +48,8 @@
     "ui/src/features/accessioning/specimens/ContainerMaterial.tsx",
     "ui/src/features/accessioning/specimens/MaterialActionDialog.tsx",
     "ui/src/features/accessioning/specimens/MaterialHistory.tsx",
+    "ui/src/features/accessioning/specimens/ContainerResult.tsx",
+    "ui/src/features/accessioning/specimens/DetailsTip.tsx",
     "ui/src/features/accessioning/specimens/LocationChoice.tsx",
     "crates/lis-specimens/src/material_history.rs",
     "crates/lis-engine/src/commands/specimens/names.rs",
@@ -65,7 +67,13 @@
           "name": "Container barcode",
           "meaning": "Barcode printed on the physical container.",
           "values": "Scan or type the exact label code.",
-          "rules": "Required. Press Enter or Find container; the field clears and regains focus for the next scan."
+          "rules": "Required. Press Enter or Find container; the field clears and keeps focus for the next scan."
+        },
+        {
+          "name": "Last",
+          "meaning": "The barcode looked up last on this page, and the time of that lookup.",
+          "values": "Last: barcode \u00b7 time, in the laboratory\u2019s time zone.",
+          "rules": "Read-only; shown after the first lookup. A repeated scan of the same barcode updates the time."
         },
         {
           "name": "Patient identity banner",
@@ -80,8 +88,8 @@
           "rules": "Compare both against the physical material before a specimen or aliquot action."
         },
         {
-          "name": "Specimen / Acceptance",
-          "meaning": "The configured specimen type and receipt decision state.",
+          "name": "Acceptance badge",
+          "meaning": "The specimen\u2019s receipt decision state, beside the barcode in the container card\u2019s title.",
           "values": "Received, not yet decided; Accepted; Accepted conditionally; Held; Rejected.",
           "rules": "Read-only current state; completion of a receipt decision is not proof that all testing gates are clear. Accepted shows green; Received, not yet decided and Accepted conditionally show amber."
         },
@@ -98,9 +106,9 @@
           "rules": "Receipt is not readiness for testing: open holds, an unresolved receipt chronology and order checks still keep a container off the Worklist. A container that was already decided when it was scanned shows no receipt notice."
         },
         {
-          "name": "Kind",
-          "meaning": "Whether this is original material or a derived container.",
-          "values": "Primary; Aliquot, with parent barcode on the accession.",
+          "name": "Specimen",
+          "meaning": "The configured specimen type, then whether this is original material or a derived container.",
+          "values": "Specimen type code \u00b7 Primary, or \u00b7 Aliquot (its parent barcode shows on the accession).",
           "rules": "Read-only lineage; an aliquot remains linked to its parent and specimen."
         },
         {
@@ -124,8 +132,8 @@
         {
           "name": "Holds",
           "meaning": "Unresolved container holds.",
-          "values": "None/0 or a count of open holds.",
-          "rules": "Open holds block aliquoting, disposal and testing as applicable."
+          "values": "None, or a count of open holds.",
+          "rules": "Open holds block aliquoting, disposal and testing as applicable. When there are open holds, each is listed under the facts with its kind, reason, placed time, any View excursion link and, for Manage quality, its Release button."
         },
         {
           "name": "Label printing",
@@ -152,10 +160,10 @@
           "rules": "Release needs current hold revision; depletion requires available state; disposal needs no open holds."
         },
         {
-          "name": "Material history / Label job history",
-          "meaning": "Retained action and print evidence.",
-          "values": "Moves by known causal sequence; hold/release stream; depletion/disposal. Each event shows who recorded it by the current account display name (an account that cannot be found shows as user followed by its identifier), the time and any reason. Print job outcomes/errors.",
-          "rules": "Separate streams do not invent shared chronology; unknown legacy sequence is explicit;50 events per stream per page."
+          "name": "History tabs: Location moves / Holds and releases / Terminal events / Label jobs",
+          "meaning": "Retained action and print evidence, one tab per stream, each named with its total count.",
+          "values": "Location moves by known causal sequence; holds with any release; depletion and disposal; every print and reprint with its outcome and any failure reason. Each event shows who recorded it by the current account display name (an account that cannot be found shows as user followed by its identifier), the time and any reason. Empty tabs read: No location moves recorded for this container; No holds placed on this container; Not marked depleted or disposed; No labels requested.",
+          "rules": "Counts of Location moves and Holds and releases come from the engine for the whole history, not only the page shown; Terminal events and Label jobs are read in full. Separate streams do not invent shared chronology; unknown legacy sequence is explicit; 50 events per stream per page."
         }
       ],
       "actions": [
@@ -210,14 +218,32 @@
         {
           "name": "Previous history / Next history",
           "does": "Read adjacent 50-event history pages within the retained membership snapshot.",
-          "availableWhen": "Bounded page available.",
+          "availableWhen": "Shown in the Location moves or Holds and releases tab when that stream has more than 50 events; Previous history is disabled on the first page and Next history on the last.",
           "result": "Reach older moves and holds even when new events arrive. Refresh starts at the latest first page."
         },
         {
-          "name": "Refresh / Storage excursions",
-          "does": "Read current container state or open storage incident directory.",
-          "availableWhen": "Receiving access.",
-          "result": "Review refreshed gates before mutation; incident links reopen exact affected work."
+          "name": "Refresh",
+          "does": "Reads the container and its history again; Updated beside it shows when.",
+          "availableWhen": "A container is shown.",
+          "result": "History returns to its first page with current counts. Review refreshed gates before an action. Each refresh is an audited read."
+        },
+        {
+          "name": "Storage excursions",
+          "does": "Opens Front desk \u203a Storage excursions.",
+          "availableWhen": "A container is shown.",
+          "result": "Lists storage incidents; incident links reopen the exact affected work."
+        },
+        {
+          "name": "History tab",
+          "does": "Shows that stream\u2019s events.",
+          "availableWhen": "A container is shown. Arrow keys move between tabs; Enter, Space or a click opens one.",
+          "result": "The tab is added to the page address without a new lookup of the container."
+        },
+        {
+          "name": "? (About history order / About label job outcomes)",
+          "does": "Opens the full explanation of the short note under a History tab.",
+          "availableWhen": "Always beside the note.",
+          "result": "A popover with the explanation; Escape or a click elsewhere closes it."
         }
       ],
       "restrictions": [
@@ -250,6 +276,10 @@
         {
           "problem": "Current location says legacy chronology unresolved.",
           "recovery": "Verify physical material and source evidence, then record an attributable move to the actual location. Historical events remain unchanged."
+        },
+        {
+          "problem": "A History tab count differs from what another person sees.",
+          "recovery": "Counts are those of the history read when the container was looked up or last refreshed. Choose Refresh to read the latest history."
         },
         {
           "problem": "State changed while an action dialog was open.",

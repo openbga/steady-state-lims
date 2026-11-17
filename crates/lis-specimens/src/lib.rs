@@ -120,7 +120,7 @@ pub use label_delivery::{
 };
 pub use material_history::{
     ExcursionPage, MaterialHistoryEntry, MaterialHistoryPage, MaterialHistorySnapshot,
-    get_container_history, list_excursions,
+    MaterialHistoryTotals, get_container_history, list_excursions,
 };
 pub use model::{
     AccessionId, CollectionId, CollectionObservationId, CollectionPrecision, ContainerHoldKind,

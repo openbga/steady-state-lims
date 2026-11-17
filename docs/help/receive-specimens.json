@@ -35,10 +35,10 @@
     {
       "title": "Container material and label history",
       "paragraphs": [
-        "Open Material history and actions beside a container, or scan its barcode in Container lookup. The identity banner, accession, barcode, material state, volume, location and open holds identify the material. Refresh retrieves current state before actions. Location moves and hold/release history are separate evidence streams; Previous history and Next history retrieve 50 events per stream without requiring earlier work to be resolved.",
+        "Open Material history and actions beside a container, or scan its barcode in Container lookup. The identity banner, accession, barcode, material state, volume, location and open holds identify the material. Its one Refresh reads the container and its history again before actions. The History card has one tab per evidence stream \u2014 Location moves, Holds and releases, Terminal events and Label jobs \u2014 each with its total count; Previous history and Next history appear in a tab with more than 50 events and do not require earlier work to be resolved.",
         "Move container selects an active named location and records a reason. An unresolved legacy location requires checking the physical material and recording a new attributable move; the application does not fabricate past movement order. Manage quality can place retention, legal or quality holds and release individual open holds with a reason. Excursion holds are recorded through a storage incident assessment. Open holds block testing, aliquots and disposal.",
         "Mark depleted and Dispose container require confirmation and an attributable reason. Depletion prevents further use; disposal is permanent and requires all holds released. Engine permissions and optimistic revision checks remain authoritative. On conflict, cancel, refresh, review the updated material and reopen the action.",
-        "Label jobs show every requested print/reprint, recorded time and queued, handed-off or failed outcome. Queued after interruption does not prove printing failed or succeeded. Refresh, inspect the physical printer and material, and use a reasoned reprint only when another label is needed. A reprint preserves the barcode. The configuration link is shown only to administrators and opens local printer setup; no active printer means printing remains unavailable. Receiving staff must ask an administrator to configure a missing destination."
+        "The Label jobs tab shows every requested print/reprint, recorded time and queued, handed-off or failed outcome. Queued after interruption does not prove printing failed or succeeded. Refresh, inspect the physical printer and material, and use a reasoned reprint only when another label is needed. A reprint preserves the barcode. The configuration link is shown only to administrators and opens local printer setup; no active printer means printing remains unavailable. Receiving staff must ask an administrator to configure a missing destination."
       ]
     }
   ],
@@ -849,7 +849,7 @@
           "name": "Material history and actions",
           "does": "Open the exact container by immutable barcode.",
           "availableWhen": "Container shown on accession.",
-          "result": "Inspect moves, holds/releases, terminal states and label history; see Container lookup help for actions."
+          "result": "Opens Container lookup for that barcode: inspect the History tabs for moves, holds and releases, terminal events and label jobs; see Container lookup help for actions."
         }
       ],
       "restrictions": [

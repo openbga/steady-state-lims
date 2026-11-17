@@ -4,8 +4,8 @@ use lis_core::{Capability, DecimalText, ErrorCode};
 use lis_specimens::{
     AccessionDetail, ConfigureStorageLocationInput, ContainerHoldKind, ContainerId, ContainerState,
     CreateAliquotInput, DisposeContainerInput, LocationId, MarkContainerDepletedInput,
-    MoveContainerInput, PlaceContainerHoldInput, ReceiptDecision, RecordReceiptDecisionInput,
-    ReleaseContainerHoldInput, SpecimenError, VolumeKind,
+    MaterialHistoryTotals, MoveContainerInput, PlaceContainerHoldInput, ReceiptDecision,
+    RecordReceiptDecisionInput, ReleaseContainerHoldInput, SpecimenError, VolumeKind,
 };
 
 use crate::{Fixture, STAFF, code_of, counts, fixture, last_event, read, run};
@@ -345,6 +345,14 @@ fn material_history_pages_committed_moves_and_retains_terminal_attribution() {
     });
     assert_eq!(head.moves.len(), 50);
     assert!(head.has_more);
+    // Totals count every page of each stream, so a tab shows the true number.
+    assert_eq!(
+        head.totals,
+        MaterialHistoryTotals {
+            moves: 51,
+            holds: 0
+        }
+    );
     assert_eq!(head.moves[0].causal_sequence, Some(52));
     move_to(&f, id, 52, first).unwrap();
     let snapshot = head.snapshot;
@@ -353,6 +361,8 @@ fn material_history_pages_committed_moves_and_retains_terminal_attribution() {
     });
     assert_eq!(tail.moves.len(), 1);
     assert!(!tail.has_more);
+    // A later move does not change the totals of the snapshot being browsed.
+    assert_eq!(tail.totals.moves, 51);
     assert_eq!(tail.moves[0].causal_sequence, Some(2));
     run(&f.t, STAFF, move |ctx| {
         lis_specimens::mark_container_depleted(
@@ -368,6 +378,7 @@ fn material_history_pages_committed_moves_and_retains_terminal_attribution() {
     let history = read(&f.t, move |conn| {
         lis_specimens::get_container_history(conn, id, 0, None)
     });
+    assert_eq!(history.totals.moves, 52);
     let depleted = history.depletion.unwrap();
     assert_eq!(
         depleted.reason.as_deref(),
