@@ -204,13 +204,18 @@ impl Engine {
         .await
     }
 
-    /// `get_subject` (audited): every assertion, identifier and open hold.
+    /// `get_subject` (audited): every assertion, identifier, open hold and the incomplete
+    /// intake resolved with the subject, with who recorded and resolved each intake named.
     pub async fn get_subject(&self, input: GetSubjectInput) -> Result<SubjectView, CommandError> {
         self.run(&GET_SUBJECT, |call| async move {
             let subject_id = input.subject_id;
             self.audited_read(
                 &call,
-                move |conn| lis_identity::get_subject(conn, subject_id),
+                move |conn| {
+                    let mut subject = lis_identity::get_subject(conn, subject_id)?;
+                    intake::name_intake_people(conn, &mut subject.resolved_intakes)?;
+                    Ok::<_, IdentityError>(subject)
+                },
                 move |_| access(GET_SUBJECT.action).record("subject", subject_id),
             )
             .await

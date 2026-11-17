@@ -6,7 +6,13 @@ import { mockGridLayout } from "@/lib/test/layout";
 import { renderRoutes } from "@/lib/test/router";
 import { expectNextKeepsFocus, renderFromList } from "@/lib/test/sequence";
 import { patientPath } from "../subjects";
-import { HELD_SUBJECT_VIEW, SUBJECT_ID, SUBJECT_VIEW, sessionWith } from "../testData";
+import {
+  HELD_SUBJECT_VIEW,
+  RESOLVED_INTAKE,
+  SUBJECT_ID,
+  SUBJECT_VIEW,
+  sessionWith,
+} from "../testData";
 import { PatientDetailPage } from "./PatientDetailPage";
 
 function renderPage(commands: Record<string, (args: unknown) => unknown>) {
@@ -44,7 +50,45 @@ describe("PatientDetailPage (REQ-IDN-001)", () => {
     expect(within(history).getByText("First record")).toBeTruthy();
     expect(within(history).getByText(/^Jan 1, 1970/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "New order" })).toBeTruthy();
+    // No incomplete intake was resolved with this patient.
+    expect(screen.queryByRole("heading", { name: "Identity history" })).toBeNull();
     await expectNoA11yViolations(container, { wholePage: true });
+  });
+
+  it("shows the incomplete intake the patient resolved, with links (DM-06)", async () => {
+    const { container } = renderPage({
+      get_subject: () => ({ ...SUBJECT_VIEW, resolvedIntakes: [RESOLVED_INTAKE] }),
+      current_session: () => sessionWith(["enter_orders", "view_audit"]),
+    });
+    const heading = await screen.findByRole("heading", { name: "Identity history" });
+    const section = heading.closest("section") ?? document.body;
+    expect(within(section).getByText("Resolved from incomplete intake")).toBeTruthy();
+    // One label/value row per fact.
+    const fact = (label: string) => within(section).getByText(label).nextElementSibling;
+    expect(fact("Supplied as")?.textContent).toBe("TEST, Partial");
+    expect(fact("Birth information")?.textContent).toBe("Partial date: 1985");
+    expect(fact("Resolved")?.textContent).toMatch(/ by Test Accessioner$/);
+    expect(fact("Source")?.textContent).toBe("Phone call to clinic, full DOB confirmed");
+    const intake = within(section).getByRole("link", { name: "REQ-TEST-001" });
+    expect(intake.getAttribute("href")).toBe(
+      `/patients/incomplete-intake?show=resolved&open=${RESOLVED_INTAKE.intakeId}`,
+    );
+    const audit = within(section).getByRole("link", { name: "View in audit trail" });
+    expect(audit.getAttribute("href")).toBe(
+      `/audit?recordType=intake_deferral&recordId=${RESOLVED_INTAKE.intakeId}`,
+    );
+    await expectNoA11yViolations(container, { wholePage: true });
+  });
+
+  it("names the intake without links the session may not open", async () => {
+    renderPage({
+      get_subject: () => ({ ...SUBJECT_VIEW, resolvedIntakes: [RESOLVED_INTAKE] }),
+      current_session: () => sessionWith(["manage_quality"]),
+    });
+    expect(await screen.findByRole("heading", { name: "Identity history" })).toBeTruthy();
+    expect(screen.getByText(/REQ-TEST-001/)).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "REQ-TEST-001" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "View in audit trail" })).toBeNull();
   });
 
   it("lets quality staff confirm different people, with a reason", async () => {

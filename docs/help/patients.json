@@ -2,13 +2,13 @@
   "id": "patients",
   "title": "Patients and registration",
   "summary": "Find a patient, review identifying details and check possible matches before registration.",
-  "reviewedOn": "2026-11-09",
+  "reviewedOn": "2026-11-16",
   "routes": ["/patients", "/patients/register", "/patients/:subjectId"],
   "sections": [
     {
       "title": "How to use this page",
       "paragraphs": [
-        "Use Patients to find an existing record before starting an order. Open the patient to review identifiers, identity holds and demographic history. Orders opens that patient’s orders; New order starts a request for the displayed patient. Quality-only users can find and correct identity or resolve holds; order-entry actions are shown only to accounts with that separate permission.",
+        "Use Patients to find an existing record before starting an order. Open the patient to review identifiers, identity holds, identity history and demographic history. Orders opens that patient’s orders; New order starts a request for the displayed patient. Quality-only users can find and correct identity or resolve holds; order-entry actions are shown only to accounts with that separate permission.",
         "Register patient first collects the supplied details, then shows possible existing matches before saving. If you started registration from New order, choosing or registering the patient returns you to order entry."
       ]
     },
@@ -43,6 +43,9 @@
     "ui/src/features/accessioning/patients/PatientDetailPage.tsx",
     "ui/src/features/accessioning/patients/DetailsSummary.tsx",
     "ui/src/features/accessioning/patients/IdentityHolds.tsx",
+    "ui/src/features/accessioning/patients/IdentityHistory.tsx",
+    "ui/src/features/accessioning/patients/intakeEvidence.ts",
+    "crates/lis-identity/src/intake.rs",
     "ui/src/features/accessioning/patients/registration.ts",
     "ui/src/features/accessioning/SubjectPicker.tsx",
     "crates/lis-identity/src/commands/subjects.rs",
@@ -299,8 +302,8 @@
     {
       "title": "Patient record",
       "routes": ["/patients/:subjectId"],
-      "purpose": "Review a person’s identity, demographic history, holds and reusable billing profile.",
-      "access": "Order-entry or quality-management authority permits audited patient browsing, matching and identity reads. Quality-management authority permits demographic correction, identifier deactivation and identity-hold resolution. Register patient, Add identifier, Orders, New order and standing-order actions require order-entry authority. Patient billing is available only with order-entry or billing authority. The engine checks each action separately.",
+      "purpose": "Review a person’s identity, identity history, demographic history, holds and reusable billing profile.",
+      "access": "Order-entry or quality-management authority permits audited patient browsing, matching and identity reads. Quality-management authority permits demographic correction, identifier deactivation and identity-hold resolution. Register patient, Add identifier, Orders, New order and standing-order actions require order-entry authority. Patient billing is available only with order-entry or billing authority. Identity history is part of the patient read; its intake link needs order-entry authority and its audit link needs audit-view authority. The engine checks each action separately.",
       "fields": [
         {
           "name": "Patient identity banner",
@@ -313,6 +316,12 @@
           "meaning": "An unresolved possible match and links to the other involved records.",
           "values": "Open hold status, opening time and comparison patient links.",
           "rules": "All patients named by an open hold are prevented from result release."
+        },
+        {
+          "name": "Identity history: Resolved from incomplete intake / Supplied as / Birth information / Resolved / Source",
+          "meaning": "Incomplete identity intake that was resolved by choosing this patient on Incomplete identity intake: what was supplied at first, and when, by whom and from what verification source it was resolved.",
+          "values": "Read-only. Each intake starts with the Resolved from incomplete intake badge and the intake’s source reference. Supplied as shows the name exactly as supplied; Birth information shows Unknown, or Partial date or Supplied age followed by the exact supplied text (for example Partial date: 1985); Resolved shows the resolution time in the laboratory time zone and the account that recorded it; Source shows the verification source entered when resolving. One block per resolved intake, separated by a rule, oldest resolution first.",
+          "rules": "The section appears only when at least one intake was resolved with this patient; declined and still-open intake never appear here. The supplied evidence is kept as it arrived and is never copied into the patient’s details or demographic history."
         },
         {
           "name": "Reason — Confirm different people",
@@ -627,6 +636,18 @@
           "does": "Resolves an open possible-duplicate hold with evidence.",
           "availableWhen": "Quality authority and an open hold.",
           "result": "The records remain separate; this identity hold is resolved. Other holds remain applicable."
+        },
+        {
+          "name": "Intake source reference link (Identity history)",
+          "does": "Opens Incomplete identity intake showing resolved intake, with this intake open in its details panel.",
+          "availableWhen": "Order-entry authority; without it the reference is shown as text.",
+          "result": "The panel shows the intake’s original evidence, disposition and Open resolved patient. The list loads 50 records at a time, oldest first: if the intake is beyond the loaded records the panel says Record not found; use Load more, or find the intake by name or source reference."
+        },
+        {
+          "name": "View in audit trail",
+          "does": "Opens the audit trail filtered on that intake record: its recording and its resolution. Shown under each intake’s facts.",
+          "availableWhen": "Audit-view authority; otherwise the link is not shown.",
+          "result": "Lists the intake’s audit events, newest first, across every stream. Viewing the trail is recorded."
         },
         {
           "name": "Previous / Next",

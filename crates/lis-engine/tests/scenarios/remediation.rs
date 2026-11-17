@@ -41,6 +41,7 @@ fn correction(id: lis_identity::ClientId) -> UpdateClient {
 
 mod dispatch;
 mod identity_quality;
+mod intake_history;
 mod material;
 mod method_continuity;
 mod paging;
