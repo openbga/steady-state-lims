@@ -11,6 +11,8 @@ pub const APPROVE_SOURCE: &str = "analytical.approve_source";
 pub const REGISTER_LOT: &str = "analytical.register_lot";
 /// `withdraw_lot`.
 pub const WITHDRAW_LOT: &str = "analytical.withdraw_lot";
+/// `correct_lot`.
+pub const CORRECT_LOT: &str = "analytical.correct_lot";
 /// `create_prep_batch`.
 pub const CREATE_PREP_BATCH: &str = "analytical.create_prep_batch";
 /// `record_prep_step`.

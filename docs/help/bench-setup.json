@@ -2,7 +2,7 @@
   "id": "bench-setup",
   "title": "Bench setup",
   "summary": "Review instrument readiness, result sources and material lots before analytical work.",
-  "reviewedOn": "2026-11-09",
+  "reviewedOn": "2026-11-10",
   "routes": ["/bench/setup/:tab?"],
   "sections": [
     {
@@ -42,6 +42,10 @@
     "ui/src/features/analytics/bench/LotPanel.tsx",
     "ui/src/features/analytics/bench/RegisterLotDialog.tsx",
     "ui/src/features/analytics/bench/WithdrawLotDialog.tsx",
+    "ui/src/features/analytics/bench/CorrectLotDialog.tsx",
+    "ui/src/lib/CorrectionHistory.tsx",
+    "crates/lis-analytical/src/commands/lot_corrections.rs",
+    "crates/lis-analytical/src/queries/lot_history.rs",
     "ui/src/features/analytics/labels.ts",
     "crates/lis-analytical/src/commands/readiness.rs",
     "crates/lis-analytical/src/commands/au_sources.rs",
@@ -58,7 +62,7 @@
       "title": "Bench setup: Instruments and Lots",
       "routes": ["/bench/setup/:tab?"],
       "purpose": "Review service readiness and result sources, and register the materials used at the bench.",
-      "access": "Any signed-in account can read instrument readiness, lots and source registrations. Setting service status and managing lots requires quality-management authority. Registering sources requires configuration-management authority; approving requires configuration-approval authority.",
+      "access": "Any signed-in account can read instrument readiness, lots and source registrations. Setting service status and registering, correcting or withdrawing lots requires quality-management authority. Registering sources requires configuration-management authority; approving requires configuration-approval authority.",
       "fields": [
         {
           "name": "Tabs",
@@ -91,8 +95,8 @@
           "rules": "Required; no default."
         },
         {
-          "name": "Set status / Withdraw lot: Reason",
-          "meaning": "Explains the quality decision.",
+          "name": "Set status / Withdraw lot / Correct lot: Reason",
+          "meaning": "Explains the quality decision or the correction.",
           "values": "Free text.",
           "rules": "Required, trimmed 1–1,000 characters; retained in the audit history."
         },
@@ -184,7 +188,7 @@
           "name": "Lot number",
           "meaning": "Identifies the manufacturer’s lot.",
           "values": "Text copied from packaging.",
-          "rules": "Required, trimmed 1–64 characters; material kind, product and lot number must not duplicate an existing lot."
+          "rules": "Required, trimmed 1–64 characters; material kind, product and lot number must not duplicate an existing lot, also when corrected."
         },
         {
           "name": "Level",
@@ -196,19 +200,31 @@
           "name": "Sample label",
           "meaning": "Identifies the control/calibrator label sent by the analyzer.",
           "values": "Exact label text.",
-          "rules": "Shown and required (*) only for Control and Calibrator; trimmed 1–64 characters. Hidden for Reagent and Internal standard, which have no sample label."
+          "rules": "Shown and required (*) only for Control and Calibrator; trimmed 1–64 characters. Hidden for Reagent and Internal standard, which have no sample label. A correction is refused when another active lot already uses the label; the message names that lot."
         },
         {
           "name": "Expires on / Expires",
           "meaning": "Records the stated expiry date.",
           "values": "Valid calendar date in YYYY-MM-DD format. Type it, or pick it from the calendar button in the field.",
-          "rules": "Required; expired lots cannot be used for new analytical work."
+          "rules": "Required; expired lots cannot be used for new analytical work. A correction to a date in the past makes the lot Expired at once."
         },
         {
-          "name": "Lot Status / Registered",
+          "name": "Lot Status / Registered / Revision",
           "meaning": "Shows eligibility and registration time.",
-          "values": "Active, Expires today / Expires in N days (warning), Expired or Withdrawn; recorded date/time.",
-          "rules": "Read-only; withdrawal takes precedence in the display. Expires in N days marks an active lot inside the laboratory's Warning before a lot expires setting (System › Operations settings, 14 days by default); it is still usable through its expiry date, and it is also listed in the Lots expiring soon work queue. Runs retain historical lot associations."
+          "values": "Active, Expires today / Expires in N days (warning), Expired or Withdrawn; recorded date/time; revision number from 1.",
+          "rules": "Read-only; withdrawal takes precedence in the display. Expires in N days marks an active lot inside the laboratory's Warning before a lot expires setting (System › Operations settings, 14 days by default); it is still usable through its expiry date, and it is also listed in the Lots expiring soon work queue. Runs retain historical lot associations. The revision starts at 1 and goes up with each correction and with withdrawal."
+        },
+        {
+          "name": "Correct lot: Product / Lot number / Level / Sample label / Expires on",
+          "meaning": "The lot's corrected values, prefilled with the current ones.",
+          "values": "As for Register lot. Material is not offered: it stays as registered, and the dialog's note names it.",
+          "rules": "The same limits as Register lot. Save correction stays disabled until at least one value differs from the current one; the engine also refuses an unchanged correction."
+        },
+        {
+          "name": "Correction history: Revision / Saved facts / Recorded / Recorded by / Reason",
+          "meaning": "Every saved version of the lot's values: its registration, then each correction.",
+          "values": "Revision number; product · lot number · level · sample label · expiry at that revision; date/time; the person's current account display name; the correction reason, or Initial registration.",
+          "rules": "Read-only and immutable. Shown on request with Show correction history in the lot panel; any signed-in account can read it. Withdrawal is not listed here: its reason is in the Audit trail."
         },
         {
           "name": "Source approval: Confirm self-approval",
@@ -285,6 +301,18 @@
           "result": "Prevents future use; prior run associations remain."
         },
         {
+          "name": "Correct lot",
+          "does": "Saves corrected product, lot number, level, sample label or expiry date as a new revision with a reason.",
+          "availableWhen": "Quality-management authority and the lot is still active (an expired lot can be corrected; a withdrawn lot cannot). In the lot panel and the row menu.",
+          "result": "The lot shows the corrected values and the next revision; the correction history and the Audit trail record it, with the old and new values in the audit event's Changes. Runs already created keep the lot values they used; new runs, QC positions and imports use the corrected values. Refused when nothing changed, when the product and lot number already exist for the material, when another active lot uses the sample label, or when someone changed the lot since it was opened (reopen it and try again)."
+        },
+        {
+          "name": "Show correction history / Hide correction history",
+          "does": "Loads and shows, or hides, the lot's correction history.",
+          "availableWhen": "A lot panel is open.",
+          "result": "The panel widens while the history is shown."
+        },
+        {
           "name": "Cancel",
           "does": "Closes an unsubmitted dialog.",
           "availableWhen": "A dialog is open.",
@@ -295,12 +323,13 @@
         "Service readiness does not configure serial, network or watched-folder connections; those are in Laboratory setup.",
         "Source approval does not approve patient results. Self-approval is possible only when the laboratory separation-of-duties policy allows it and the author explicitly confirms it.",
         "An AU source cannot have its own wire settings: they come from the analyzer's connection, which is changed only in Laboratory setup › Instruments.",
-        "There is no lot-edit or restore-withdrawn-lot action here. Record material identity accurately before registration."
+        "A lot's material cannot be corrected: withdraw the lot and register a new one. A withdrawn lot cannot be corrected or restored."
       ],
       "workflow": [
         "Open the instrument and confirm its service state and active source.",
         "If updating a source, register or draft it, verify the mapping, and have an authorized approver activate it.",
-        "In Lots, register the actual materials from their packaging. Use All lots to investigate a withdrawn or expired record."
+        "In Lots, register the actual materials from their packaging. Use All lots to investigate a withdrawn or expired record.",
+        "If a lot was entered wrong, open it and use Correct lot with a reason; for a wrong material, withdraw it and register a new lot."
       ],
       "troubleshooting": [
         {
@@ -322,6 +351,14 @@
         {
           "problem": "No active lot is listed.",
           "recovery": "Choose All lots to check expiry or withdrawal; register the actual replacement material rather than reusing its identity."
+        },
+        {
+          "problem": "Correct lot says another active lot already uses the sample label.",
+          "recovery": "Check which lot the message names. Choose the label the analyzer actually sends for this lot, or withdraw the other lot first if it is no longer in use."
+        },
+        {
+          "problem": "A run still shows the lot's old lot number or expiry after a correction.",
+          "recovery": "This is expected: a run keeps the lot values in effect when it was created. Open the lot's correction history to see the correction."
         }
       ]
     }

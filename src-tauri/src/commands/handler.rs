@@ -6,7 +6,6 @@ use super::{
     orders, partner, report_layouts, reporting, result_files, results, security_keys, session,
     specimens, unsaved_forms, updates, users, window_theme, work_queues,
 };
-
 use tauri::Runtime;
 use tauri::ipc::Invoke;
 
@@ -220,6 +219,8 @@ pub(crate) fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync 
         analytical::list_lots,
         analytical::register_lot,
         analytical::withdraw_lot,
+        analytical::correct_lot,
+        analytical::lot_history,
         analytical::create_prep_batch,
         analytical::record_prep_step,
         analytical::list_worklist,

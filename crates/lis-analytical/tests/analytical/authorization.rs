@@ -4,12 +4,12 @@
 
 use lis_analytical::{
     AddQcPositionInput, AnalyticalError, ApproveSourceInput, AssessQcInput, CloseDeviationInput,
-    CloseRunInput, CompletePrepBatchInput, CreatePrepBatchInput, CreateRunInput, DeviationId,
-    DeviationTarget, ExecutionId, FailExecutionInput, InstrumentStatus, LotId, MaterialKind,
-    OpenDeviationInput, PrepBatchId, QcConflictId, QcConflictResolution, QcOutcome, QcRole,
-    QcScope, RecordPrepStepInput, RegisterFileSourceInput, RegisterLotInput, RegisterSourceInput,
-    ResolveQcConflictInput, RevisionIndicator, RunId, SampleIdField, SetInstrumentStatusInput,
-    SourceRegistrationId, WithdrawLotInput,
+    CloseRunInput, CompletePrepBatchInput, CorrectLotInput, CreatePrepBatchInput, CreateRunInput,
+    DeviationId, DeviationTarget, ExecutionId, FailExecutionInput, InstrumentStatus, LotId,
+    MaterialKind, OpenDeviationInput, PrepBatchId, QcConflictId, QcConflictResolution, QcOutcome,
+    QcRole, QcScope, RecordPrepStepInput, RegisterFileSourceInput, RegisterLotInput,
+    RegisterSourceInput, ResolveQcConflictInput, RevisionIndicator, RunId, SampleIdField,
+    SetInstrumentStatusInput, SourceRegistrationId, WithdrawLotInput,
 };
 use lis_core::{Capability, ErrorCode, InstrumentId};
 use lis_store::CommandContext;
@@ -50,6 +50,7 @@ fn reason() -> String {
 
 fn commands(f: &Fixture) -> Vec<Entry> {
     let mut all = configuration_commands(f.instrument);
+    all.extend(lot_commands());
     all.extend(run_commands(f.urine.method));
     all.extend(quality_commands(f.urine.analytes[0]));
     all
@@ -105,6 +106,11 @@ fn configuration_commands(instrument: InstrumentId) -> Vec<Entry> {
             };
             lis_analytical::approve_source(ctx, input).map(drop)
         }),
+    ]
+}
+
+fn lot_commands() -> Vec<Entry> {
+    vec![
         entry("register_lot", Capability::ManageQuality, |ctx| {
             let input = RegisterLotInput {
                 material_kind: MaterialKind::Reagent,
@@ -123,6 +129,19 @@ fn configuration_commands(instrument: InstrumentId) -> Vec<Entry> {
                 reason: reason(),
             };
             lis_analytical::withdraw_lot(ctx, input).map(drop)
+        }),
+        entry("correct_lot", Capability::ManageQuality, |ctx| {
+            let input = CorrectLotInput {
+                lot_id: LotId::generate(),
+                expected_revision: 1,
+                product_name: "Synthetic material".to_owned(),
+                lot_number: "L-1".to_owned(),
+                level_text: None,
+                sample_label: None,
+                expires_on: "2027-12-31".to_owned(),
+                reason: reason(),
+            };
+            lis_analytical::correct_lot(ctx, input).map(drop)
         }),
     ]
 }
@@ -263,7 +282,7 @@ fn every_command_refuses_a_principal_without_its_capability() {
         assert_eq!(counts(&f), before, "{name} wrote something");
         checked += 1;
     }
-    assert_eq!(checked, 19);
+    assert_eq!(checked, 20);
 }
 
 #[test]

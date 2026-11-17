@@ -11,6 +11,8 @@
     "allow-list-lots",
     "allow-register-lot",
     "allow-withdraw-lot",
+    "allow-correct-lot",
+    "allow-lot-history",
     "allow-create-prep-batch",
     "allow-record-prep-step",
     "allow-list-worklist",

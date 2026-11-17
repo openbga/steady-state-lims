@@ -346,7 +346,7 @@
     "crates/lis-catalog/src/content.rs",
     "ui/src/features/configuration/analytes/AnalytesPage.tsx",
     "ui/src/features/configuration/analytes/CorrectAnalyteDialog.tsx",
-    "ui/src/features/configuration/CorrectionHistory.tsx",
+    "ui/src/lib/CorrectionHistory.tsx",
     "crates/lis-catalog/src/commands/analytes.rs",
     "crates/lis-catalog/src/repo/analytes.rs",
     "ui/src/features/configuration/validity/SpecimenTypesPage.tsx",

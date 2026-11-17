@@ -16,6 +16,8 @@ export const LIST_INSTRUMENT_READINESS = "list_instrument_readiness";
 export const LIST_SOURCE_REGISTRATIONS = "list_source_registrations";
 /** `list_lots({input:{activeOnly}}) → LotView[]`, with expiry derived by the engine. */
 export const LIST_LOTS = "list_lots";
+/** `lot_history({input:{lotId}}) → LotHistoryEntry[]`, registration first, then corrections. */
+export const LOT_HISTORY = "lot_history";
 /**
  * `list_instruments() → InstrumentConfiguration[]` (`manage_configuration`, as for
  * `register_source`): an AU source restates its analyzer's exact wire settings.

@@ -412,7 +412,7 @@ describe("BenchSetupPage (REQ-ANA-003, REQ-ANA-007)", { timeout: WALKTHROUGH_TIM
     });
     expect(router.state.location.search).toBe(`?open=${CONTROL_LOT.lotId}`);
 
-    expect(await rowActionLabels(user, "CTL-001")).toEqual(["Withdraw lot"]);
+    expect(await rowActionLabels(user, "CTL-001")).toEqual(["Correct lot", "Withdraw lot"]);
     await user.click(within(panel("Lot CTL-001")).getByRole("button", { name: "Withdraw lot" }));
     const confirm = await screen.findByRole("alertdialog", { name: "Withdraw lot CTL-001" });
     await user.type(within(confirm).getByRole("textbox", { name: /Reason/ }), "Contaminated");
@@ -420,6 +420,57 @@ describe("BenchSetupPage (REQ-ANA-003, REQ-ANA-007)", { timeout: WALKTHROUGH_TIM
     expect(await screen.findByText("Lot CTL-001 withdrawn")).toBeTruthy();
     expect(withdraw).toHaveBeenCalledWith({
       input: { lotId: CONTROL_LOT.lotId, expectedRevision: 1, reason: "Contaminated" },
+    });
+  });
+
+  it("corrects a lot once a value changed, with a reason, and shows its history (#4558)", async () => {
+    const correct = vi.fn(() => ({ ...CONTROL_LOT, expiresOn: "2027-12-31", revision: 2 }));
+    const history = vi.fn(() => [
+      {
+        revision: 1,
+        productName: "Synthetic control",
+        lotNumber: "CTL-001",
+        levelText: "Level 1",
+        sampleLabel: "QC-L1",
+        expiresOn: "2027-01-31",
+        recordedAt: "2026-10-12T07:00:00Z",
+        recordedBy: "00000000-0000-7000-8000-000000000001",
+        reason: null,
+        origin: "registered",
+      },
+    ]);
+    const { user } = renderPage(`/bench/setup/lots?open=${CONTROL_LOT.lotId}`, ["manage_quality"], {
+      correct_lot: correct,
+      lot_history: history,
+    });
+    const lot = await screen.findByRole("region", { name: "Lot CTL-001" });
+    expect(within(lot).getByText("Revision")).toBeTruthy();
+    await user.click(within(lot).getByRole("button", { name: "Show correction history" }));
+    expect(await screen.findByText("Initial registration")).toBeTruthy();
+
+    await user.click(within(lot).getByRole("button", { name: "Correct lot" }));
+    const dialog = await screen.findByRole("dialog", { name: "Correct lot CTL-001" });
+    expect(within(dialog).getByText(/The material stays Control/)).toBeTruthy();
+    const save = within(dialog).getByRole<HTMLButtonElement>("button", { name: "Save correction" });
+    expect(save.disabled).toBe(true);
+    const expires = within(dialog).getByRole("textbox", { name: /^Expires on/ });
+    await user.clear(expires);
+    await user.type(expires, "2027-12-31");
+    await user.type(within(dialog).getByRole("textbox", { name: /^Reason/ }), "Typo on entry");
+    await waitFor(() => expect(save.disabled).toBe(false));
+    await user.click(save);
+    expect(await screen.findByText("Lot CTL-001 corrected")).toBeTruthy();
+    expect(correct).toHaveBeenCalledWith({
+      input: {
+        lotId: CONTROL_LOT.lotId,
+        expectedRevision: 1,
+        productName: "Synthetic control",
+        lotNumber: "CTL-001",
+        levelText: "Level 1",
+        sampleLabel: "QC-L1",
+        expiresOn: "2027-12-31",
+        reason: "Typo on entry",
+      },
     });
   });
 

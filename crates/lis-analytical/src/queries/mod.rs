@@ -4,13 +4,14 @@
 //! demographics; the engine audits the reads that disclose container
 //! sample labels and accession numbers (worklist, run detail).
 
+pub(crate) mod lot_history;
 pub(crate) mod lot_list;
 pub(crate) mod preparation;
 pub(crate) mod qc;
 pub(crate) mod queues;
 pub(crate) mod runs;
 
-pub(crate) use lot_list::lot_view;
+pub(crate) use lot_list::{lot_view, lot_view_at};
 pub(crate) use qc::qc_assessment;
 pub(crate) use runs::get_run;
 

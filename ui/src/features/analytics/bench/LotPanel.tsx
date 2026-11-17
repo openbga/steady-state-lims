@@ -4,8 +4,11 @@ import type { ActionItem } from "@/components/RowActions";
 import { RecordActions } from "@/components/RowActions";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Timestamp } from "@/components/Timestamp";
+import type { LotHistoryEntry } from "@/generated/LotHistoryEntry";
 import type { LotView } from "@/generated/LotView";
+import { CorrectionHistory } from "@/lib/CorrectionHistory";
 import { labelOf } from "@/lib/choices";
+import { LOT_HISTORY } from "../contract";
 import { lotStatus, MATERIAL_KINDS } from "../labels";
 
 interface LotPanelProps {
@@ -17,7 +20,19 @@ interface LotPanelProps {
   onNext: (() => void) | undefined;
 }
 
-/** One lot as registered from its packaging, with its expiry as the engine derives it. */
+const historyFacts = (row: LotHistoryEntry) =>
+  [
+    row.productName,
+    `Lot ${row.lotNumber}`,
+    row.levelText ?? "No level",
+    row.sampleLabel ?? "No sample label",
+    `Expires ${row.expiresOn}`,
+  ].join(" · ");
+
+/**
+ * One lot as registered from its packaging and corrected since, with its expiry as the engine
+ * derives it, its revision and, on request, its correction history (#4558).
+ */
 export function LotPanel({ lot, actions, ...navigation }: LotPanelProps) {
   const status = lotStatus(lot);
   return (
@@ -36,7 +51,15 @@ export function LotPanel({ lot, actions, ...navigation }: LotPanelProps) {
           { label: "Sample label", value: lot.sampleLabel ?? "Not recorded" },
           { label: "Expires on", value: lot.expiresOn },
           { label: "Registered", value: <Timestamp value={lot.recordedAt} /> },
+          { label: "Revision", value: lot.revision },
         ]}
+      />
+      <CorrectionHistory<LotHistoryEntry>
+        key={lot.lotId}
+        command={LOT_HISTORY}
+        input={{ lotId: lot.lotId }}
+        label="Lot correction history"
+        facts={historyFacts}
       />
     </DetailPanel>
   );
