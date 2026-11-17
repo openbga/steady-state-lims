@@ -305,6 +305,8 @@ describe("UserMenu", () => {
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
     expect(themes.at(-1)).toEqual({ theme: "dark" });
     expect(localStorage.getItem(`vibe-tox.appearance-v1.${TEST_SESSION.userId}`)).toBe("dark");
+    // Kept as this computer's last appearance too: the sign-in screen's at the next start (#4789).
+    expect(localStorage.getItem("vibe-tox.appearance-v1.last")).toBe("dark");
     localStorage.clear();
   });
 });
