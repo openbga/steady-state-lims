@@ -49,6 +49,12 @@ registrations and custom directories, repeat upgrades, fresh installation and
 uninstall on its ephemeral runner. It tests the Debian artifact's package ownership
 in private dpkg roots with dependency enforcement disabled; that is not a runtime
 library or clinical qualification. These checks do not replace real-host testing.
+If a migration refuses ambiguous installations or a different destination, keep the
+verified backup and existing application data untouched. Identify the intended
+registered installation and its version, reconcile duplicate application copies
+with the responsible operator, and retry using that existing directory. Resolve
+an unrelated shortcut-name collision before retrying; do not delete unrelated links
+or application data to force an update.
 
 Changing Tauri's product name also changes platform bundle/install names. Before
 publishing a renamed build, qualify upgrade from the previous development build on
