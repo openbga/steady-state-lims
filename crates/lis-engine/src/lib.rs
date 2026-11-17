@@ -137,7 +137,10 @@ pub use lis_analytical::{
     CompletePrepBatchInput, PrepBatchState, QcConflictId, QcConflictResolution, QcConflictState,
     QcConflictView, ResolveQcConflictInput,
 };
-pub use lis_analytical::{ListPrepBatchesInput, PrepBatchSummary, RecordRunPerformingSiteInput};
+pub use lis_analytical::{
+    CorrectLotInput, ListPrepBatchesInput, LotHistoryEntry, LotHistoryInput, PrepBatchSummary,
+    RecordRunPerformingSiteInput,
+};
 // analytical: end
 // results: begin
 mod result_import;

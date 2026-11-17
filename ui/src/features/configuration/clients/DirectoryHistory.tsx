@@ -1,6 +1,6 @@
 import type { DirectoryHistoryEntry } from "@/generated/DirectoryHistoryEntry";
 import type { DirectoryRecord } from "@/generated/DirectoryRecord";
-import { CorrectionHistory } from "../CorrectionHistory";
+import { CorrectionHistory } from "@/lib/CorrectionHistory";
 
 function facts(row: DirectoryHistoryEntry) {
   const value = row.snapshot;

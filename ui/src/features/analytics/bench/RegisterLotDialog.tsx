@@ -66,7 +66,7 @@ export function RegisterLotDialog({ onDone, onClose }: RegisterLotDialogProps) {
 }
 
 /** Controls and calibrators carry the label the analyzer reports; the engine refuses it on other kinds. */
-function hasSampleLabel(kind: MaterialKind | null): boolean {
+export function hasSampleLabel(kind: MaterialKind | null): boolean {
   return kind === "control" || kind === "calibrator";
 }
 

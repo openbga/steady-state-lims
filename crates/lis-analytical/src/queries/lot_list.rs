@@ -7,6 +7,7 @@ use rusqlite::Connection;
 
 use crate::error::AnalyticalError;
 use crate::model::{CivilDate, LotId, LotState, is_expired};
+use crate::repo::lot_history;
 use crate::repo::lots::{self, LotRow};
 use crate::views::LotView;
 
@@ -62,6 +63,25 @@ pub(crate) fn lot_view(
         now,
         None,
     )
+}
+
+/// The lot with the values in effect at `at`, such as when a run used it; a later correction
+/// does not change them (#4558). State and revision are current; expiry is derived at `now`.
+pub(crate) fn lot_view_at(
+    conn: &Connection,
+    id: LotId,
+    at: UtcTimestamp,
+    now: UtcTimestamp,
+) -> Result<LotView, AnalyticalError> {
+    let mut row = lots::lot(conn, id)?.ok_or(AnalyticalError::NotFound("lot"))?;
+    if let Some(then) = lot_history::values_at(conn, id, at)? {
+        row.product_name = then.product_name;
+        row.lot_number = then.lot_number;
+        row.level_text = then.level_text;
+        row.sample_label = then.sample_label;
+        row.expires_on = then.expires_on;
+    }
+    lot_view_of(row, now, None)
 }
 
 fn lot_view_of(
