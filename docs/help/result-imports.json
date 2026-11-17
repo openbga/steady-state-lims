@@ -85,16 +85,16 @@
           "rules": "Optional. Kept in the address (?outcome=)."
         },
         {
-          "name": "Hide duplicates",
-          "meaning": "Leaves out the attempts of messages or files identical to one received earlier from the same instrument.",
-          "values": "Checked or not; not checked by default, so duplicates are listed.",
-          "rules": "Optional. Applied by the engine before the list is paged, so every page stays full. Combines with the other filters; Clear filters unchecks it. Kept in the address (?duplicates=hidden)."
-        },
-        {
           "name": "More filters: Received from / Received to",
           "meaning": "Show the attempts of messages or files received on these days.",
           "values": "Days as YYYY-MM-DD, typed or picked from the calendar, in the laboratory's time zone. Both days are included; either may be left empty. Days after today can't be picked.",
           "rules": "Optional. A day applies once it is a real day; until then the field says what is wrong. The end day can't be before the start day. Filters on when the message or file was received, not when it was processed: a retry keeps its receipt's received time. Kept in the address (?from=, ?to=); the applied days show under the toolbar while More filters is closed."
+        },
+        {
+          "name": "Hide duplicates",
+          "meaning": "Leaves out the attempts of messages or files identical to one received earlier from the same instrument.",
+          "values": "Checked or not; not checked by default, so duplicates are listed.",
+          "rules": "Optional. Applied by the engine before the list is paged, so every page stays full. Combines with the other filters; Clear filters unchecks it. Kept in the address (?duplicates=hidden)."
         },
         {
           "name": "Check column",
