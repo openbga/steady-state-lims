@@ -180,7 +180,7 @@ Opening a patient, order, report or audit record is an audited read ([security s
 
 - **Engine state** goes through TanStack Query, via the command hooks only. Each query key starts with the command name. Mutations invalidate the queries they affect, and the success path does not refetch by hand.
 - **Local UI state** uses `useState` or `useReducer`. There is no global store; the [library policy](library-policy.md#rejected-or-avoided) explains why.
-- **The URL holds the view:** the find text, filters, sort, the open record (`?open=`), the tab (a path segment) and the version shown (`?version=`). Back closes the panel, or returns to the list exactly as it was. Multi-row selection is session state, not part of the URL.
+- **The URL holds the view:** the find text, filters, sort, the open record (`?open=`), the tab (a path segment) and the version shown (`?version=`). Back closes the panel, or returns to the list exactly as it was. Changing the find text closes the open panel, because a new find is a new look at the list. Multi-row selection is session state, not part of the URL.
 - **Reference data** (catalog, clients, practitioners, instruments, users) changes only through this app's own commands, which invalidate it. Its queries may therefore stay fresh until invalidated (a long `staleTime`), so moving between screens is instant. Signing out, locking and the MFA step already reset every query, so cached data never carries over to another session.
 - **Sensitive reads** load only when the person explicitly opens the record ([record views](#sensitive-records)).
 - **Effects.** Never use `useEffect` to fetch or derive data. Use it only to synchronize with something outside React.
