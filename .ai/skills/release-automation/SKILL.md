@@ -19,7 +19,7 @@ The operator's prompt supplies these values:
 
 | Input | Meaning |
 | --- | --- |
-| `REPO` | GitHub repository, for example `openbga/steady-state-lims` |
+| `REPO` | GitHub repository, for example `openbga/toxicology-lims` |
 | `CLONE` | A clone used only by this task. Create it with `git clone https://github.com/$REPO.git "$CLONE"` when missing. Never use a developer's working checkout. |
 | `REPORT_DIR` | Directory for the run report |
 | Time budget | How long to wait for runs; default 4 hours |
@@ -71,12 +71,15 @@ The operator's prompt supplies these values:
    and check all of the following:
    - The release is not a draft.
    - `nightly` is a prerelease; `v<version>` is not.
-   - There are five non-empty assets: four `steady-state-lims_<version>_*` installers and
+   - There are five non-empty assets: four `toxicology-lims_<version>_*` installers and
      `SHA256SUMS.txt`. When in-app updates are configured
      ([in-app updates](../../../docs/development/releases.md#in-app-updates)), there are also
-     `latest.json` and `steady-state-lims_<version>_macos-arm64.app.tar.gz`, and `nightly` also
+     `latest.json` and `toxicology-lims_<version>_macos-arm64.app.tar.gz`, and `nightly` also
      carries `nightly.json`. Its first build entry names the new version, and the
-     `nightly-<date>.<run>` release it points to exists.
+     `nightly-<date>.<run>` release it points to exists. `nightly.json` names the current
+     repository (`"repository"`); for each name in `"formerRepositories"` the index lists the
+     new version once more, and the `nightly-<date>.<run>` release carries the matching
+     `latest-<owner>-<name>.json` copy, so the asset count there is higher by that many.
    - After a fresh fetch, the tag's commit equals the dispatched SHA.
 8. **Release summary (versioned releases only).** Summarize the changes since the
    previous `v*` tag from

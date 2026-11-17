@@ -62,14 +62,20 @@ section[id] {
   text-decoration: none;
 }
 .brand-mark {
-  width: 34px;
-  height: 34px;
-  color: var(--blue);
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
 }
-.wordmark-suffix {
-  font-weight: 400;
-  color: var(--muted);
+.wordmark-text {
+  display: grid;
+  gap: 3px;
+}
+.wordmark-product {
+  max-width: 17rem;
+  text-wrap: balance;
+  font-size: 21px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 nav {
   display: flex;
