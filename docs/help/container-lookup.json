@@ -196,7 +196,7 @@
         },
         {
           "name": "Record receipt decision",
-          "does": "Opens the receipt decision for the specimen: scan or type the label of one of its containers, then choose Accept, Accept with condition, Hold or Reject, any discrepancies and the details the decision needs. Rejection is confirmed separately.",
+          "does": "Opens the receipt decision for the specimen: scan or type the label of one of its containers, then choose Accept, Accept conditionally, Hold or Reject, any discrepancies and the details the decision needs. Rejection is confirmed separately.",
           "availableWhen": "Accession permission, the specimen Received, not yet decided, and the engine allowing a receipt decision. It shows as busy while the accession loads.",
           "result": "Records the decision with the specimen's revision; the badge and the container card update. A stale revision is refused: Refresh and record it again. The same dialog, fields and rules as Record receipt decision on Finish receiving."
         },

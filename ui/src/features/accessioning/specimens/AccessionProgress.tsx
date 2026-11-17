@@ -36,14 +36,13 @@ export function AccessionProgress({ accession }: { accession: AccessionDetail })
           { label: "Rejected", value: rejected },
         ]}
       />
-      {pending > 0 && (
+      {pending > 0 ? (
         <p>
-          Print the labels you need, then check each container label and record its specimen's
-          receipt decision below.
+          <strong>{decisionsNeeded(pending)}</strong> Print the labels you need, then check each
+          container label and record its specimen's receipt decision below.
         </p>
-      )}
-      {held > 0 && (
-        <p className={styles.hint}>Held specimens need review under laboratory policy.</p>
+      ) : (
+        <p>Every specimen has a receipt decision. Each one below says where its work continues.</p>
       )}
       {canOpenOrder && (
         <QueryContent query={order} what="order summary">
@@ -66,4 +65,10 @@ export function AccessionProgress({ accession }: { accession: AccessionDetail })
       )}
     </Section>
   );
+}
+
+function decisionsNeeded(pending: number): string {
+  return pending === 1
+    ? "1 receipt decision still needed."
+    : `${pending} receipt decisions still needed.`;
 }

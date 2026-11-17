@@ -9,7 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "Receive specimens shows tests eligible for new material and any existing accessions. Select the relevant tests, enter the supplied collection information and describe the specimens and containers that arrived. Saving opens the new accession.",
-        "The accession page shows collection details, each specimen’s receipt decisions and its containers. Use the available actions to print labels, record a receipt decision or create an aliquot. Check label status refreshes the printing outcome."
+        "The accession page (Finish receiving) shows collection details, each specimen’s receipt step, its receipt decisions and its containers. While a specimen has no decision, its card says Receipt decision still needed with the barcode to scan and Record receipt decision; once recorded, the card shows the outcome, who recorded it and where work continues. Use the available actions to print labels, record a receipt decision or create an aliquot. Check label status refreshes the printing outcome."
       ]
     },
     {
@@ -55,6 +55,8 @@
     "ui/src/features/accessioning/specimens/AccessionPage.tsx",
     "ui/src/features/accessioning/specimens/AccessionProgress.tsx",
     "ui/src/features/accessioning/specimens/SpecimenPanel.tsx",
+    "ui/src/features/accessioning/specimens/ReceiptStep.tsx",
+    "ui/src/features/accessioning/specimens/ReceiptOutcome.tsx",
     "ui/src/features/accessioning/specimens/ReceiptDecisionDialog.tsx",
     "ui/src/features/accessioning/specimens/LabelCheckDialog.tsx",
     "ui/src/features/accessioning/specimens/PrintLabelsDialog.tsx",
@@ -289,7 +291,19 @@
           "name": "Receipt decisions / Held / Rejected",
           "meaning": "Progress of receipt review for this accession.",
           "values": "Read-only decisions recorded out of total specimens, held count and rejected count.",
-          "rules": "A completed decision may be a hold or rejection; the count does not mean all material is ready for testing."
+          "rules": "A completed decision may be a hold or rejection; the count does not mean all material is ready for testing. Under the counts, the page says how many receipt decisions are still needed (for example 1 receipt decision still needed.), or, once every specimen has one, that each specimen below says where its work continues."
+        },
+        {
+          "name": "Receipt decision still needed",
+          "meaning": "A specimen\u2019s receipt step while it is Received, not yet decided.",
+          "values": "Receipt decision still needed: scan the label on followed by the specimen\u2019s barcodes. With Accession: scanning confirms the tube matches this specimen, then choose Accept, Accept conditionally, Hold or Reject. Without it: someone who receives specimens scans the label and records the decision.",
+          "rules": "Record receipt decision is in this card, shown only with Accession and when the engine allows a decision."
+        },
+        {
+          "name": "Receipt finished / Receipt decision recorded",
+          "meaning": "A specimen\u2019s receipt step once a decision is recorded.",
+          "values": "Accepted or Accepted conditionally: Receipt finished. Work continues in the Worklist, and the Worklist lists the container (or its containers) once its holds and order checks allow a run. Held: Receipt decision recorded: held, and held specimens need review under laboratory policy. Rejected: Receipt decision recorded: rejected; the specimen will not be tested and its containers and decision are kept. The latest decision, who recorded it and when follow.",
+          "rules": "Receipt is not readiness for testing: open holds, an unresolved receipt chronology and order checks still keep a container off the Worklist. The specimen\u2019s Accepted badge shows green."
         },
         {
           "name": "Collected / Collected by / Tests in this accession",
@@ -739,8 +753,8 @@
         },
         {
           "name": "Record receipt decision / Check label / Record decision",
-          "does": "Checks the physical label and records acceptance, conditional acceptance, hold or rejection.",
-          "availableWhen": "Receipt decision offered for a Received or Held specimen.",
+          "does": "Checks the physical label and records acceptance, conditional acceptance, hold or rejection. Record receipt decision is in the specimen\u2019s Receipt decision still needed card; the same dialog opens from Container lookup.",
+          "availableWhen": "Accession, and the engine offering a receipt decision for a Received or Held specimen.",
           "result": "Updates the specimen state and appends its decision history. Reject leads to a separate Reject specimen confirmation."
         },
         {
@@ -846,6 +860,12 @@
           "result": "Testing/release chronology gate clears only after valid complete order is recorded. Other gates remain effective."
         },
         {
+          "name": "Go to Worklist / Runs",
+          "does": "Open Bench \u203a Worklist or Bench \u203a Runs from an accepted specimen\u2019s Receipt finished card.",
+          "availableWhen": "The specimen is Accepted or Accepted conditionally, for people with Perform analysis.",
+          "result": "The Worklist lists the container for a run only once its holds and order checks allow testing; Runs shows runs already created."
+        },
+        {
           "name": "Material history and actions",
           "does": "Open the exact container by immutable barcode.",
           "availableWhen": "Container shown on accession.",
@@ -861,7 +881,8 @@
       ],
       "workflow": [
         "Check identity, accession number and receipt progress.",
-        "Request the needed labels, verify output and scan the correct container for each receipt decision.",
+        "Request the needed labels, verify output, then in each Receipt decision still needed card choose Record receipt decision and scan the correct container.",
+        "After an acceptance, continue from Go to Worklist or Runs if you work at the bench; otherwise the bench picks the container up from its Worklist.",
         "Record any observed discrepancy and laboratory-approved conditional scope.",
         "Review outstanding holds, collection corrections and order billing separately."
       ],
