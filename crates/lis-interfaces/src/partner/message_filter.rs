@@ -42,14 +42,14 @@ fn in_view(row: &PartnerMessageRow, view: MessageView) -> bool {
     }
 }
 
-/// Digits find a handoff number; other text is found in the report number, a
-/// handoff's accession label or the written file's path.
+/// The fewest characters of a control ID that find its message: shorter text, such as a
+/// handoff number, would match the hex digits of many control IDs.
+const CONTROL_ID_PART: usize = 6;
+
+/// Part of a control ID finds its message; digits find a handoff number; other text is
+/// found in the report number, a handoff's accession label or the written file's path.
 fn found(row: &PartnerMessageRow, search: &str) -> bool {
-    // A whole control ID (MSH-10, the delivery ID) finds its message (#4678).
-    if row
-        .delivery_id
-        .is_some_and(|id| id.to_string().eq_ignore_ascii_case(search))
-    {
+    if control_id_has(row, search) {
         return true;
     }
     let numbered = row.source == MessageSource::BillingHandoff || row.source_label.is_none();
@@ -63,6 +63,17 @@ fn found(row: &PartnerMessageRow, search: &str) -> bool {
         .into_iter()
         .flatten()
         .any(|text| text.to_lowercase().contains(&search))
+}
+
+/// Whether the row's control ID (MSH-10, the delivery ID) contains the text, in any letter
+/// case (#4678, #4819). The whole ID always matches, however short the text.
+fn control_id_has(row: &PartnerMessageRow, search: &str) -> bool {
+    let Some(id) = row.delivery_id else {
+        return false;
+    };
+    let id = id.to_string(); // canonical lowercase hyphenated text
+    let search = search.to_lowercase();
+    id == search || (search.chars().count() >= CONTROL_ID_PART && id.contains(&search))
 }
 
 #[cfg(test)]
@@ -146,6 +157,47 @@ mod tests {
         assert!(kept(&second, &search));
         assert!(!kept(&other, &search));
         assert!(kept(&other, &input(Some(" , "), false)));
+    }
+
+    const CONTROL_ID: &str = "01a1c02c-b86a-76b1-9fbe-fb18fc49e4aa";
+
+    fn sent(number: i64) -> PartnerMessageRow {
+        PartnerMessageRow {
+            delivery_id: Some(CONTROL_ID.parse().unwrap()),
+            ..row(MessageSource::ReportRevision, Some("A26000009-UR"), number)
+        }
+    }
+
+    #[test]
+    fn finds_a_message_by_its_whole_control_id_in_any_letter_case() {
+        let message = sent(1);
+        assert!(kept(&message, &input(Some(CONTROL_ID), false)));
+        let upper = format!("  {}  ", CONTROL_ID.to_uppercase());
+        assert!(kept(&message, &input(Some(&upper), false)));
+    }
+
+    #[test]
+    fn finds_a_message_by_part_of_its_control_id() {
+        let message = sent(1);
+        for part in [" 01a1c02c ", "FB18FC49E4AA", "b86a-76b1", "01a1c0"] {
+            assert!(kept(&message, &input(Some(part), false)), "{part}");
+        }
+        // Other matches stay as they were: the report number still finds it.
+        assert!(kept(&message, &input(Some("a26000009"), false)));
+        assert!(!kept(&message, &input(Some("01a1c02c-ffff"), false)));
+    }
+
+    #[test]
+    fn short_text_does_not_match_inside_a_control_id() {
+        let handoff = PartnerMessageRow {
+            delivery_id: Some(CONTROL_ID.parse().unwrap()),
+            ..row(MessageSource::BillingHandoff, None, 12)
+        };
+        // "18" and "e4aa" appear in the control ID but are too short to search it.
+        assert!(!kept(&handoff, &input(Some("18"), false)));
+        assert!(!kept(&handoff, &input(Some("e4aa"), false)));
+        assert!(!kept(&handoff, &input(Some("01a1c"), false)));
+        assert!(kept(&handoff, &input(Some("12"), false)));
     }
 
     #[test]

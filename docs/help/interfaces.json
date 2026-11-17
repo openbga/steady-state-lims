@@ -613,9 +613,9 @@
           "rules": "Kept in the address. A connection's own Logs tab always lists its test messages."
         },
         {
-          "name": "Search (Search report, handoff, file…)",
+          "name": "Search (Search report, handoff, file or control ID…)",
           "meaning": "Narrow the rows.",
-          "values": "Part of a report or accession number, such as A26000009, a handoff number (digits only, exact), a whole control ID (MSH-10) of an outgoing message, such as the one a partner quotes, in any letter case, or part of a file name or folder. Several values separated by commas, such as A26000009, A26000022, show the rows of any of them.",
+          "values": "Part of a report or accession number, such as A26000009, a handoff number (digits only, exact), the control ID (MSH-10) of an outgoing message, such as the one a partner quotes, whole or any part of at least 6 characters, such as its first characters 01a1c02c, in any letter case, or part of a file name or folder. Spaces copied around a value are ignored. Several values separated by commas, such as A26000009, A26000022, show the rows of any of them.",
           "rules": "Optional; kept in the address."
         },
         {
@@ -736,7 +736,7 @@
         },
         {
           "problem": "A partner quotes a control ID and searching finds nothing",
-          "recovery": "Type the whole control ID, as the partner's MSH-10 or MSA-2 shows it, and choose All time in Period: the search does not match part of a control ID. A control ID the LIS did not send, such as the ID of an order the partner sent, is not found."
+          "recovery": "Type the control ID as the partner's MSH-10 or MSA-2 shows it, or at least 6 of its characters, and choose All time in Period: the search covers only the chosen period. A shorter part is read as a report, handoff or file search, as it would match many control IDs. A control ID the LIS did not send, such as the ID of an order the partner sent, is not found."
         },
         {
           "problem": "Message as sent says the kept copy is missing or no longer matches its digest",
