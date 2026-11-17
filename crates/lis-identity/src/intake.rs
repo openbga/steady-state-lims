@@ -16,6 +16,8 @@ lis_core::text_enum!(/// The exact kind of incomplete evidence supplied.
     BirthEvidenceKind { Unknown = "unknown", PartialDate = "partial_date", SuppliedAge = "supplied_age", });
 lis_core::text_enum!(/// Terminal disposition of an incomplete intake.
     IntakeDisposition { Declined = "declined", Resolved = "resolved", });
+lis_core::text_enum!(/// Which intake a list shows: open intake, one disposition, or every intake.
+    IntakeShow { Awaiting = "awaiting", Resolved = "resolved", Declined = "declined", All = "all", });
 #[derive(Debug, Clone, Deserialize, TS)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export)]
@@ -42,10 +44,31 @@ pub struct ResolveIntakeDeferralInput {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[ts(export)]
 pub struct ListIntakeDeferralsInput {
+    pub show: IntakeShow,
+    /// Find text: part of the name as supplied or of the source reference, ignoring ASCII
+    /// case.
     #[serde(default)]
-    pub include_closed: bool,
+    #[ts(optional = nullable)]
+    pub search: Option<Phi<String>>,
     #[serde(default)]
     pub after_id: Option<IntakeDeferralId>,
+}
+/// One page of intake, oldest first, with the counts the Show filter offers.
+#[derive(Debug, Clone, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct IntakeDeferralPage {
+    pub rows: Vec<IntakeDeferralView>,
+    pub counts: IntakeDeferralCounts,
+}
+/// How many intake records match the find text in each state, whatever is shown.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct IntakeDeferralCounts {
+    pub awaiting: u32,
+    pub resolved: u32,
+    pub declined: u32,
 }
 #[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
@@ -102,11 +125,51 @@ fn get(conn: &Connection, id: IntakeDeferralId) -> Result<IntakeDeferralView, Id
         .optional()?
         .ok_or(IdentityError::NotFound("intake deferral"))
 }
+/// Intake whose name as supplied or source reference contains the `LIKE` pattern `?1`.
+const MATCHES: &str = "(?1 IS NULL OR d.supplied_name LIKE ?1 ESCAPE '\\' \
+     OR d.source_reference LIKE ?1 ESCAPE '\\')";
+/// The intake's state: its disposition, or `awaiting` while it has none.
+const STATE: &str = "coalesce(x.disposition, 'awaiting')";
+/// Up to 50 intake records after `after_id`, oldest first, of the state `show` names and
+/// matching the find text, with the counts by state. The engine pages and filters, so
+/// Load more continues the same filtered list. PHI: the engine audits the read.
 pub fn list_intake_deferrals(
     conn: &Connection,
     input: ListIntakeDeferralsInput,
-) -> Result<Vec<IntakeDeferralView>, IdentityError> {
-    Ok(conn.prepare(&format!("{COLUMNS} WHERE (?1 OR x.id IS NULL) AND (?2 IS NULL OR d.id > ?2) ORDER BY d.id LIMIT 50"))?.query_map(params![input.include_closed,input.after_id],row)?.collect::<Result<_,_>>()?)
+) -> Result<IntakeDeferralPage, IdentityError> {
+    let text = input.search.as_ref().map(|text| text.expose().as_str());
+    let pattern = optional_text("search", text, 200)?
+        .map(|text| format!("%{}", lis_core::like_prefix(&text)));
+    let rows = conn
+        .prepare(&format!(
+            "{COLUMNS} WHERE {MATCHES} AND (?2 = 'all' OR {STATE} = ?2) \
+             AND (?3 IS NULL OR d.id > ?3) ORDER BY d.id LIMIT 50"
+        ))?
+        .query_map(params![pattern, input.show, input.after_id], row)?
+        .collect::<Result<_, _>>()?;
+    let counts = intake_counts(conn, pattern.as_deref())?;
+    Ok(IntakeDeferralPage { rows, counts })
+}
+fn intake_counts(
+    conn: &Connection,
+    pattern: Option<&str>,
+) -> Result<IntakeDeferralCounts, IdentityError> {
+    let mut counts = IntakeDeferralCounts::default();
+    let mut statement = conn.prepare(&format!(
+        "SELECT {STATE}, count(*) FROM idn_intake_deferrals d \
+         LEFT JOIN idn_intake_dispositions x ON x.id=d.id WHERE {MATCHES} GROUP BY 1"
+    ))?;
+    let mut rows = statement.query([pattern])?;
+    while let Some(found) = rows.next()? {
+        let count: u32 = found.get(1)?;
+        match found.get::<_, String>(0)?.as_str() {
+            "awaiting" => counts.awaiting = count,
+            "resolved" => counts.resolved = count,
+            "declined" => counts.declined = count,
+            _ => {}
+        }
+    }
+    Ok(counts)
 }
 pub fn record_intake_deferral(
     ctx: &mut CommandContext<'_>,
@@ -127,7 +190,7 @@ pub fn record_intake_deferral(
         return Err(invalid(
             "birthEvidenceText",
             "required",
-            "Preserve the supplied partial date or age as text.",
+            "Enter the partial date or age exactly as supplied.",
         ));
     }
     let source = required_text("sourceReference", &input.source_reference, 1000)?;

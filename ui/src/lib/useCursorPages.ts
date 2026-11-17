@@ -17,9 +17,9 @@ interface CursorPagesOptions<Page> {
  * An engine list read page by page, the next page only when asked ("Load more"). The query key
  * starts with the command name, so commands refresh it like any other read.
  *
- * `useCommandPages` in `lib/commands.ts` takes numeric cursors and array pages; the report
- * lists page by a release time or an opaque obligation cursor, so they page here until that
- * hook takes other cursors.
+ * `useCommandPages` in `lib/commands.ts` takes numeric cursors and array pages. Lists paged by
+ * a string cursor, such as a release time or an opaque obligation cursor, or whose page is an
+ * object, such as incomplete intake with its counts, page here.
  */
 export function useCursorPages<Page>(
   command: CommandName,
