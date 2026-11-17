@@ -99,11 +99,14 @@ describe("OrdersPage (REQ-ORD-001)", { timeout: WALKTHROUGH_TIMEOUT_MS }, () => 
     const headers = within(grid)
       .getAllByRole("columnheader")
       .map((header) => header.textContent);
-    expect(headers.slice(0, 9)).toEqual([
+    expect(headers).toEqual([
       "Patient",
       "Birth date",
       "Patient identifiers",
       "Order number",
+      // Read together, and never at the right edge (#4790).
+      "Status",
+      "Open holds",
       "Sample barcode",
       "Accession",
       "Client",
