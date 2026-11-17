@@ -7,6 +7,7 @@ import { Timestamp } from "@/components/Timestamp";
 import type { CommandName } from "@/generated/CommandName";
 import { useCommandQuery } from "@/lib/commands";
 import { usePersonText } from "@/lib/person";
+import styles from "./CorrectionHistory.module.css";
 
 /** The columns every immutable correction history shares. */
 export interface CorrectionHistoryRow {
@@ -76,7 +77,7 @@ export function CorrectionHistory<Row extends CorrectionHistoryRow>({
   const person = usePersonText();
   const query = useCommandQuery<Row[]>(command, { input }, { enabled: open });
   return (
-    <>
+    <div className={styles.history}>
       <Button onPress={() => setOpen((value) => !value)}>
         {open ? "Hide correction history" : "Show correction history"}
       </Button>
@@ -92,6 +93,6 @@ export function CorrectionHistory<Row extends CorrectionHistoryRow>({
           )}
         </QueryContent>
       )}
-    </>
+    </div>
   );
 }
