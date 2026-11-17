@@ -65,13 +65,20 @@ fn found(row: &PartnerMessageRow, search: &str) -> bool {
         .any(|text| text.to_lowercase().contains(&search))
 }
 
-/// Whether the row's control ID (MSH-10, the delivery ID) contains the text, in any letter
-/// case (#4678, #4819). The whole ID always matches, however short the text.
+/// Whether the row's control ID (MSH-10) contains the text, in any letter case (#4678,
+/// #4819): the delivery ID, or for a test message `TEST-` and its message ID. The whole ID
+/// always matches, however short the text. A test message sent before #4819 has another
+/// control ID, which is kept only in its bytes, so the search does not find it.
 fn control_id_has(row: &PartnerMessageRow, search: &str) -> bool {
-    let Some(id) = row.delivery_id else {
+    let Some(delivery) = row.delivery_id else {
         return false;
     };
-    let id = id.to_string(); // canonical lowercase hyphenated text
+    // Canonical lowercase hyphenated text.
+    let id = if row.source == MessageSource::Test {
+        format!("test-{}", row.message_id)
+    } else {
+        delivery.to_string()
+    };
     let search = search.to_lowercase();
     id == search || (search.chars().count() >= CONTROL_ID_PART && id.contains(&search))
 }
@@ -198,6 +205,21 @@ mod tests {
         assert!(!kept(&handoff, &input(Some("e4aa"), false)));
         assert!(!kept(&handoff, &input(Some("01a1c"), false)));
         assert!(kept(&handoff, &input(Some("12"), false)));
+    }
+
+    #[test]
+    fn finds_a_test_message_by_its_test_control_id() {
+        let test = PartnerMessageRow {
+            delivery_id: Some(CONTROL_ID.parse().unwrap()),
+            ..row(MessageSource::Test, None, 1)
+        };
+        let control_id = format!("TEST-{}", test.message_id);
+        let tail = &control_id[control_id.len() - 8..];
+        for search in [control_id.as_str(), &control_id.to_lowercase(), tail] {
+            assert!(kept(&test, &input(Some(search), false)), "{search}");
+        }
+        // Its delivery ID is not its control ID.
+        assert!(!kept(&test, &input(Some(CONTROL_ID), false)));
     }
 
     #[test]

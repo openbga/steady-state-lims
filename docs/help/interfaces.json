@@ -473,7 +473,7 @@
         },
         {
           "name": "Send test message",
-          "does": "Writes a synthetic file with no patient data to the folder or SFTP server now: toxicology-lims-test-<date>-<time>.hl7, an ORU^R01 with processing ID T, a synthetic patient and its own control ID (MSH-10: TEST- and a new ID each time), for HL7 Results; a one-page PDF for Report PDF; a .json file for Billing JSON. Over MLLP, the synthetic ORU^R01 is sent to the partner and its acknowledgement read.",
+          "does": "Writes a synthetic file with no patient data to the folder or SFTP server now: toxicology-lims-test-<date>-<time>.hl7, an ORU^R01 with processing ID T, a synthetic patient and its own control ID (MSH-10: TEST- and the ID of its row in Logs, new each time, so Search finds it), for HL7 Results; a one-page PDF for Report PDF; a .json file for Billing JSON. Over MLLP, the synthetic ORU^R01 is sent to the partner and its acknowledgement read.",
           "availableWhen": "A saved connection that sends, stopped or not verified too; an HL7 Orders connection has none, as the LIS sends it nothing.",
           "result": "The file name, or the problem, shows; over MLLP the partner's answer, such as ✓ Synthetic test message sent; the partner accepted it (AA), or ✗ … the partner found an error (AE): <its reason>. The test appears in Logs with a Test badge once Show test messages is on, and on the connection's Logs tab. A failed test is not retried."
         },
@@ -615,8 +615,8 @@
         {
           "name": "Search (Search report, handoff, file or control ID…)",
           "meaning": "Narrow the rows.",
-          "values": "Part of a report or accession number, such as A26000009, a handoff number (digits only, exact), the control ID (MSH-10) of an outgoing message, such as the one a partner quotes, whole or any part of at least 6 characters, such as its first characters 01a1c02c, in any letter case, or part of a file name or folder. Spaces copied around a value are ignored. Several values separated by commas, such as A26000009, A26000022, show the rows of any of them.",
-          "rules": "Optional; kept in the address."
+          "values": "Part of a report or accession number, such as A26000009, a handoff number (digits only, exact), the control ID (MSH-10) of an outgoing message, such as the one a partner quotes, whole or any part of at least 6 characters, such as its first characters 01a1c02c, in any letter case; a test message's control ID starts with TEST-, and one sent by an earlier version is not found by it, or part of a file name or folder. Spaces copied around a value are ignored. Several values separated by commas, such as A26000009, A26000022, show the rows of any of them.",
+          "rules": "Optional; kept in the address. Changing it closes the message panel, if one is open."
         },
         {
           "name": "All / Failed / Rejected / Awaiting ACK / Outcome unknown / Duplicates",

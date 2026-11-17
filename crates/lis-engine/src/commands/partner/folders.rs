@@ -8,6 +8,7 @@ use std::sync::Arc;
 use lis_core::{CommandError, ErrorCode};
 use lis_interfaces::partner::{
     AckCode, AttemptOutcome, ConnectionTarget, Destination, MovedTo, PartnerConnectionId,
+    PartnerMessageId,
 };
 use lis_interfaces::without_verbatim_prefix;
 use serde::{Deserialize, Serialize};
@@ -199,13 +200,15 @@ impl Engine {
                     .flatten()
             })
             .await?;
-            let (bytes, extension) =
-                test_file(id, &target, laboratory.as_ref(), now).ok_or_else(|| {
-                    Failure::refused(
-                        ErrorCode::Conflict,
-                        "An incoming connection receives orders; the LIS sends it nothing.",
-                    )
-                })?;
+            // The log message's ID, made now, so the test message's control ID names it.
+            let message_id = PartnerMessageId::generate();
+            let (bytes, extension) = test_file(id, message_id, &target, laboratory.as_ref(), now)
+                .ok_or_else(|| {
+                Failure::refused(
+                    ErrorCode::Conflict,
+                    "An incoming connection receives orders; the LIS sends it nothing.",
+                )
+            })?;
             let destination = target.destination;
             let db = Arc::clone(&self.db);
             let stored = blocking(move || db.artifacts().put(&bytes).map(|stored| (stored, bytes)))
@@ -223,7 +226,9 @@ impl Engine {
             let result = FolderTestResult::sent(&outcome);
             let digest = stored.digest.to_string();
             self.write(&call, move |ctx| {
-                lis_interfaces::partner::record_partner_test_message(ctx, id, &digest, &outcome)
+                lis_interfaces::partner::record_partner_test_message(
+                    ctx, id, message_id, &digest, &outcome,
+                )
             })
             .await?;
             Ok(result)
