@@ -14,7 +14,8 @@
       "steps": [
         "Open Page help from the application header to read guidance for the current page.",
         "Choose Browse all topics to search the guides without leaving your task. Current page returns to the guide for the screen you are using.",
-        "Use Close page help when finished. Your entered information stays on the working page."
+        "Use Close page help when finished. Your entered information stays on the working page.",
+        "Choose What's new, beside Page help, to see what changed in this app. A number beside it counts the changes you have not seen yet."
       ]
     },
     {

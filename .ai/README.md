@@ -22,6 +22,7 @@ Implementation skills for the scope authorized by [ADR 0013](../docs/architectur
 | [Engine command](skills/engine-command/SKILL.md) | Adding a state-changing command or sensitive query: authorization, gates, audit, outbox, logging, IPC |
 | [UI screen](skills/ui-screen/SKILL.md) | Building screens and components from the design system |
 | [User manual](skills/user-manual/SKILL.md) | Documenting pages, fields, values, actions, restrictions and recovery alongside UI or engine changes |
+| [Changelog entry](skills/changelog-entry/SKILL.md) | Recording an observable change in `changelog.d/` for CHANGELOG.md and What's new |
 | [Quality gate](skills/quality-gate/SKILL.md) | Running and interpreting format, lint, type, test, duplication and unused-code checks |
 | [Release automation](skills/release-automation/SKILL.md) | Running the scheduled nightly and versioned GitHub releases through the package workflow |
 

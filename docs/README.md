@@ -9,6 +9,7 @@
 | How do I build, test or contribute? | [Developer guide](development/README.md), [contribution guidance](../CONTRIBUTING.md) and [implementation status](planning/implementation-plan.md#status) |
 | How do AI assistance and human effort fit together? | [Development approach](../README.md#vibe-coded-with-sustained-human-effort) and [human direction and review](governance/engineering-standards.md#human-direction-and-review) |
 | Where are installers published? | [Branches and releases](development/releases.md) |
+| What changed in each version? | [Changelog](../CHANGELOG.md), also shown in the application under What's new |
 | What prevents clinical or supported use? | [Quality guidance](quality/README.md), [open gate items](quality/open-items-g1-g2.md) and [validation plan](quality/validation-plan.md) |
 | What license and governance apply? | [license decision](architecture/decisions/0021-agplv3-license.md), [project governance](governance/open-source-strategy.md) and [development disclaimer](governance/development-disclaimer.md) |
 

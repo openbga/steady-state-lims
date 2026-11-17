@@ -13,6 +13,8 @@ Use [GitHub issues](https://github.com/openbga/toxicology-lims/issues) for bugs,
 
 Describe the problem, evidence, affected requirement or decision IDs, proposed change, and remaining uncertainties. Prefer focused changes that update the canonical document rather than creating another competing summary. Include direct primary-source links and the date checked for claims that may change. Keep examples synthetic and avoid copying restricted standards or proprietary interface manuals.
 
+Every change that people using, installing or connecting the application can observe adds one entry file in `changelog.d/` and regenerates [CHANGELOG.md](CHANGELOG.md) and the in-app What's new list with `python3 scripts/changelog.py`. The [changelog-entry skill](.ai/skills/changelog-entry/SKILL.md) explains when an entry is needed, how to rate and word it, and how to move hand edits of CHANGELOG.md into entries. If nothing in your pull request is observable, say so in its description; a maintainer adds the `no-changelog` label.
+
 Before submitting a change, check local links and requirement references, distinguish research from approved decisions, and explain any conflicting evidence. A lab workflow or regulatory change should identify the qualified human role needed to review it. Ordinary wording corrections do not require a new architecture decision record.
 
 Contributions follow the [project scope](docs/project-scope.md). Build and verification commands are in the [quality-gate skill](.ai/skills/quality-gate/SKILL.md); engineering and contribution requirements are in the [engineering standards](docs/governance/engineering-standards.md) and [coding standards](docs/governance/coding-standards.md).
