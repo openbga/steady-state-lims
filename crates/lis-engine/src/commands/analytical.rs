@@ -1,7 +1,7 @@
 //! Instrument readiness, source registrations, lots, the worklist, runs and
 //! positions (REQ-ANA-001, REQ-ANA-003 registration part, REQ-ANA-006,
 //! REQ-ANA-007, REQ-OPS-001). Preparation batches are in [`prep`], QC
-//! commands in [`qc`].
+//! commands in [`qc`], lot corrections in [`lot_corrections`].
 //!
 //! No analytical view carries demographics, but the worklist and run detail
 //! disclose container labels and accession numbers that lead to a patient,
@@ -13,11 +13,13 @@
 //! signed-in user may list them; the same holds for reading runs, which QC
 //! review starts from.
 
+pub(crate) mod lot_corrections;
 pub(crate) mod names;
 pub(crate) mod performing_site;
 pub(crate) mod prep;
 pub(crate) mod qc;
 
+pub(crate) use lot_corrections::{CORRECT_LOT, LOT_HISTORY};
 pub(crate) use prep::{CREATE_PREP_BATCH, RECORD_PREP_STEP};
 
 use lis_analytical::{

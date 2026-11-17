@@ -160,7 +160,7 @@
           "name": "Lots",
           "meaning": "Shows the materials attached when the run was created.",
           "values": "Material kind, product, lot number, expiry and Active, Expired or Withdrawn state.",
-          "rules": "Read-only historical associations; a later status change does not erase usage."
+          "rules": "Read-only historical associations; a later status change does not erase usage. Product, lot number, level and expiry are the values in effect when the run was created: a later lot correction does not change them here (the state is current)."
         },
         {
           "name": "Position",

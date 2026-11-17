@@ -3,14 +3,15 @@
 use lis_core::{InstrumentId, UtcTimestamp};
 use rusqlite::Connection;
 
-use super::{instrument_name, lot_view};
+use super::{instrument_name, lot_view_at};
 use crate::error::AnalyticalError;
 use crate::model::{ExecutionId, ExecutionState, RunId, RunState};
 use crate::repo::runs::{self as repo, PositionRow};
 use crate::served::{CatalogCache, expected_analytes};
 use crate::views::{ExecutionView, RunDetail, RunPositionView, RunSummary};
 
-/// A run with its lots, positions and executions; lot expiry derived at `now`.
+/// A run with its lots, positions and executions; lot expiry derived at `now`. Each lot shows
+/// the values in effect when the run was created.
 pub fn get_run(
     conn: &Connection,
     run_id: RunId,
@@ -20,7 +21,7 @@ pub fn get_run(
     let method = lis_catalog::get_method_version(conn, run.method_version_id)?;
     let lots = repo::run_lots(conn, run.id)?
         .into_iter()
-        .map(|lot| lot_view(conn, lot, now))
+        .map(|lot| lot_view_at(conn, lot, run.created_at, now))
         .collect::<Result<_, _>>()?;
     let mut cache = CatalogCache::default();
     let mut positions = Vec::new();

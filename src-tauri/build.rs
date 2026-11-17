@@ -207,6 +207,8 @@ const APP_COMMANDS: &[&str] = &[
     "list_lots",
     "register_lot",
     "withdraw_lot",
+    "correct_lot",
+    "lot_history",
     "create_prep_batch",
     "record_prep_step",
     "list_worklist",

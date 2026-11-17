@@ -2,7 +2,8 @@
 //! changed field, read from the record's own history when the event is opened.
 //!
 //! Events hold no values (ADR 0008). Owner modules read them: identity
-//! (patients, laboratory profile, directory), catalog (analytes), and the
+//! (patients, laboratory profile, directory), catalog (analytes), analytical
+//! (lots), and the
 //! instrument state its events record (`enabled`, `transport`). Patient values
 //! are returned only to a user who also holds the record's read capability;
 //! otherwise only the names of the changed fields are. The engine records the
@@ -217,6 +218,9 @@ fn record_changes(
         return Ok(Some(changes));
     }
     if let Some(changes) = lis_catalog::audit_record_changes(conn, &query)? {
+        return Ok(Some(changes));
+    }
+    if let Some(changes) = lis_analytical::audit_record_changes(conn, &query)? {
         return Ok(Some(changes));
     }
     Ok(instrument_changes(conn, stream, &query)?)
