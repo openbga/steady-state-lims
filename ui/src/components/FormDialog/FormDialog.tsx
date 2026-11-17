@@ -33,6 +33,8 @@ interface FormDialogProps<Values extends FieldValues> {
    * then follow it at the end of the bar: Cancel, the extra actions, the submit button last.
    */
   footnote?: string;
+  /** Disables the submit button, such as while a correction changes nothing. */
+  isSubmitDisabled?: boolean;
   children: ReactNode;
 }
 
@@ -55,10 +57,16 @@ export function FormDialog<Values extends FieldValues>({
   fieldPaths,
   size,
   footnote,
+  isSubmitDisabled = false,
   children,
 }: FormDialogProps<Values>) {
   const submit = (
-    <Button type="submit" variant="primary" isPending={command.isPending}>
+    <Button
+      type="submit"
+      variant="primary"
+      isPending={command.isPending}
+      isDisabled={isSubmitDisabled}
+    >
       {submitLabel}
     </Button>
   );

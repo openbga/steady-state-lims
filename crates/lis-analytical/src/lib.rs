@@ -8,7 +8,9 @@
 //!   log; no event means not ready. The latest event is chosen by a
 //!   per-instrument sequence assigned in the writing transaction, never by
 //!   the host clock (a trigger refuses any other number). Lots move `active` → `withdrawn`; expiry
-//!   is derived from `expires_on` (usable through that UTC date).
+//!   is derived from `expires_on` (usable through that UTC date). [`correct_lot`] corrects an
+//!   active lot's values, never its material, as a new revision with a reason in an immutable
+//!   history; a run shows its lots as they were when it was created.
 //!   [`create_run`] rechecks, in its transaction, that the instrument is in
 //!   service, the pinned method version remains approved and every lot
 //!   is active and unexpired.
@@ -111,6 +113,7 @@ pub use commands::deviations::{
     CloseDeviationInput, DeviationTarget, OpenDeviationInput, close_deviation, open_deviation,
 };
 pub use commands::file_sources::{RegisterFileSourceInput, register_file_source};
+pub use commands::lot_corrections::{CorrectLotInput, correct_lot};
 pub use commands::lots::{
     CompletePrepBatchInput, CreatePrepBatchInput, RecordPrepStepInput, RegisterLotInput,
     WithdrawLotInput, complete_prep_batch, create_prep_batch, record_prep_step, register_lot,
@@ -140,6 +143,7 @@ pub use model::{
     QcConflictState, QcObservationId, QcOutcome, QcRole, QcScope, QcStatus, RegistrationState,
     RevisionIndicator, RunId, RunState, SampleIdField, SourceRegistrationId,
 };
+pub use queries::lot_history::{LotHistoryInput, audit_record_changes, lot_history};
 pub use queries::lot_list::{ExpiringLot, list_lots, lots_expiring_soon};
 pub use queries::preparation::{ListPrepBatchesInput, PrepBatchSummary, list_prep_batches};
 pub use queries::qc::get_run_qc;
@@ -155,10 +159,11 @@ pub use queries::{
 };
 pub use views::{
     ComponentExecution, DependencySnapshot, DeviationView, ExecutionView, InstrumentReadinessView,
-    LotView, PositionMatch, PositionRef, PrepBatchQcView, PrepBatchView, PrepStepView,
-    QcAssessmentHistory, QcAssessmentView, QcConflictView, QcObservationView, QcRunWorkItem,
-    QcWorkAnalyte, QcWorkItem, RegistrationSummary, RunDetail, RunPositionView, RunQcAnalyteView,
-    RunQcView, RunSummary, SourceRegistrationView, SourceTestCodeView, WorklistEntry,
+    LotHistoryEntry, LotView, PositionMatch, PositionRef, PrepBatchQcView, PrepBatchView,
+    PrepStepView, QcAssessmentHistory, QcAssessmentView, QcConflictView, QcObservationView,
+    QcRunWorkItem, QcWorkAnalyte, QcWorkItem, RegistrationSummary, RunDetail, RunPositionView,
+    RunQcAnalyteView, RunQcView, RunSummary, SourceRegistrationView, SourceTestCodeView,
+    WorklistEntry,
 };
 
 /// Forward-only migrations, numbered from `0001` (coding standards).
@@ -207,6 +212,11 @@ pub const MIGRATIONS: &[Migration] = &[
         version: 9,
         name: "qc_receipt_positions",
         sql: include_str!("../migrations/0009_qc_receipt_positions.sql"),
+    },
+    Migration {
+        version: 10,
+        name: "lot_corrections",
+        sql: include_str!("../migrations/0010_lot_corrections.sql"),
     },
 ];
 

@@ -43,6 +43,37 @@ pub struct LotView {
     pub revision: i64,
 }
 
+/// One immutable revision of a lot's values: its registration or a correction (#4558).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct LotHistoryEntry {
+    /// The lot revision these values took effect at, from 1.
+    #[ts(type = "number")]
+    pub revision: i64,
+    /// The product name at this revision.
+    pub product_name: String,
+    /// The manufacturer's lot number at this revision.
+    pub lot_number: String,
+    /// The level at this revision.
+    pub level_text: Option<String>,
+    /// The sample label at this revision.
+    pub sample_label: Option<String>,
+    /// The last day of use at this revision, `YYYY-MM-DD`.
+    pub expires_on: String,
+    /// When the revision was recorded.
+    pub recorded_at: UtcTimestamp,
+    /// Who recorded it.
+    pub recorded_by: String,
+    /// Current display name of who recorded it, resolved by the engine.
+    #[ts(optional)]
+    pub recorded_by_display: Option<String>,
+    /// The correction reason; `None` for the registration.
+    pub reason: Option<String>,
+    /// `registered` or `corrected`.
+    pub origin: String,
+}
+
 /// A preparation batch with its steps (REQ-ANA-001).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, TS)]
 #[serde(rename_all = "camelCase")]

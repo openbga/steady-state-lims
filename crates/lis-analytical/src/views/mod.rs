@@ -12,7 +12,7 @@ use ts_rs::TS;
 mod prep;
 mod qc;
 
-pub use prep::{LotView, PrepBatchView, PrepStepView};
+pub use prep::{LotHistoryEntry, LotView, PrepBatchView, PrepStepView};
 
 pub use qc::{
     DependencySnapshot, DeviationView, PrepBatchQcView, QcAssessmentHistory, QcAssessmentView,
@@ -169,7 +169,8 @@ pub struct RunDetail {
     /// Optimistic-concurrency revision.
     #[ts(type = "number")]
     pub revision: i64,
-    /// The lots used by the run.
+    /// The lots used by the run, with the values in effect when it was created; a later
+    /// correction does not change them (#4558).
     pub lots: Vec<LotView>,
     /// The positions, in the order added.
     pub positions: Vec<RunPositionView>,

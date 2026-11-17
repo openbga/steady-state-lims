@@ -4,17 +4,14 @@ use lis_catalog::MethodVersionId;
 use lis_core::UtcTimestamp;
 use rusqlite::{Connection, OptionalExtension, Row, params};
 
-use crate::model::{CivilDate, LotId, LotState, MaterialKind, PrepBatchId, PrepStepId};
+use super::lot_history::LotFacts;
+use crate::model::{LotId, LotState, MaterialKind, PrepBatchId, PrepStepId};
 use crate::views::{PrepBatchView, PrepStepView};
 
 pub(crate) struct NewLot<'a> {
     pub(crate) id: LotId,
     pub(crate) material_kind: MaterialKind,
-    pub(crate) product_name: &'a str,
-    pub(crate) lot_number: &'a str,
-    pub(crate) level_text: Option<&'a str>,
-    pub(crate) sample_label: Option<&'a str>,
-    pub(crate) expires_on: CivilDate,
+    pub(crate) facts: LotFacts<'a>,
     pub(crate) by: &'a str,
     pub(crate) at: UtcTimestamp,
 }
@@ -28,11 +25,11 @@ pub(crate) fn insert_lot(conn: &Connection, new: &NewLot<'_>) -> rusqlite::Resul
     .execute(params![
         new.id,
         new.material_kind,
-        new.product_name,
-        new.lot_number,
-        new.level_text,
-        new.sample_label,
-        new.expires_on.to_text(),
+        new.facts.product_name,
+        new.facts.lot_number,
+        new.facts.level_text,
+        new.facts.sample_label,
+        new.facts.expires_on.to_text(),
         new.by,
         new.at
     ])?;
