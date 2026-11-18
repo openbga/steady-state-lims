@@ -27,6 +27,14 @@ newest first. The application shows the same list under **What's new**.
 
   **Find** on **Reports** now matches the accession number and any part of the report number, in upper or lower case, not only the start of the report number.
 
+- **Added:** See every row of an import attempt and what happened to it (2026-11-18)
+
+  An import attempt in **Result imports** now opens on a **Rows** tab listing each row as received: record, sample label, test code, analyte, value and what happened to it (New result, Duplicate, Reprocessed, QC row, Quarantined or Measured, not ordered (kept)). A patient row links to its results in **Result review** and a QC row to its run's QC review. Filter the rows with **What happened**, or click a count under **Outcome** to show just those rows.
+
+  Technical notes:
+
+  Results migration 10 adds the append-only table `res_import_rows`, written by each new import attempt. Attempts imported before this version list no rows; their counts are unchanged. `get_import_attempt` returns the rows in a new `rows` field.
+
 - **Changed:** Incomplete identity intake: required supplied text and readable labels (2026-11-17, [#106](https://github.com/openbga/toxicology-lims/pull/106))
 
   The exact supplied date or age text is required for a partial date or supplied age and is checked before saving. Birth information and status read plainly in the form and the list, for example Partial date: 1985 or Supplied age: About 40, with Awaiting verified identity, Resolved and Declined as badges.

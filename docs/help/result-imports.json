@@ -2,13 +2,13 @@
   "id": "result-imports",
   "title": "Result imports",
   "summary": "Account for received results and investigate rows that were not applied.",
-  "reviewedOn": "2026-11-17",
+  "reviewedOn": "2026-11-18",
   "routes": ["/review/imports", "/review/imports/:importAttemptId/:tab?"],
   "sections": [
     {
       "title": "How to use this page",
       "paragraphs": [
-        "Result imports lists attempts to process received data. Narrow it by instrument, outcome and received days, or find the attempts that brought a sample label, accession, container label or file name; the filters combine and stay in the address. Load results file lets you choose a registered instrument and a file. Open an attempt to see its outcome, counts and refusal reasons; file attempts also show file provenance and the template version used.",
+        "Result imports lists attempts to process received data. Narrow it by instrument, outcome and received days, or find the attempts that brought a sample label, accession, container label or file name; the filters combine and stay in the address. Load results file lets you choose a registered instrument and a file. Open an attempt to see its outcome, counts, every row with what happened to it, and refusal reasons; file attempts also show file provenance and the template version used.",
         "A message or file identical to one received earlier from the same instrument is listed as Duplicate – not imported: nothing in it is read or imported again, and its attempt links to the earlier one, which holds its samples and results. Hide duplicates leaves these out of the list.",
         "Quarantined rows need investigation. Set aside lists rows kept outside patient results. Retry import processes the received message again as a new attempt and replaces earlier open quarantine outcomes with the retry’s outcome. After fixing a cause shared by many attempts, check them in the list, or use Select all quarantined, and use Retry selected to retry them together with one reason."
       ]
@@ -57,7 +57,11 @@
     "ui/src/features/analytics/paths.ts",
     "crates/lis-results/src/queries/quarantine_items.rs",
     "crates/lis-results/src/import/attempt.rs",
-    "crates/lis-engine/src/result_import.rs"
+    "crates/lis-engine/src/result_import.rs",
+    "ui/src/features/analytics/imports/ImportRows.tsx",
+    "ui/src/features/analytics/imports/rowOutcomes.ts",
+    "crates/lis-results/src/queries/import_rows.rs",
+    "crates/lis-results/src/import/rows.rs"
   ],
   "pages": [
     {
@@ -273,7 +277,7 @@
     {
       "title": "Import attempt",
       "routes": ["/review/imports/:importAttemptId/:tab?"],
-      "purpose": "Reconcile one processing attempt, investigate quarantined rows and retry a corrected source receipt.",
+      "purpose": "Reconcile one processing attempt row by row, investigate quarantined rows and retry a corrected source receipt.",
       "access": "Requires result-review authority. Opening details containing sample labels and values is audited.",
       "fields": [
         {
@@ -304,13 +308,13 @@
           "name": "Rows / New results / Duplicates / Reprocessed / QC rows / Quarantined",
           "meaning": "Accounts for rows processed by category.",
           "values": "Nonnegative counts.",
-          "rules": "Read-only; duplicate does not create a second result. Reprocessing may create a new result revision."
+          "rules": "Read-only; duplicate does not create a second result. Reprocessing may create a new result revision. A count above zero is a link: it opens the Rows tab showing only those rows (Rows shows them all). A zero count, and every count of an attempt with no rows listed, is plain text."
         },
         {
           "name": "Not results / Set aside / Measured, not ordered (kept)",
           "meaning": "Accounts for file rows outside ordinary result insertion.",
           "values": "Counts of named nonresults, listed exclusions and measurements retained outside ordered scope.",
-          "rules": "Read-only; retained measurements are not automatically reported or billable ordered work."
+          "rules": "Read-only; retained measurements are not automatically reported or billable ordered work. Set aside opens the Set aside tab and Measured, not ordered (kept) opens the Rows tab showing those rows; Not results is a count only, since those rows are not listed."
         },
         {
           "name": "Origin / File name / Size / SHA-256 / Template",
@@ -320,9 +324,33 @@
         },
         {
           "name": "Tabs",
-          "meaning": "Separates rows requiring a decision from recorded exclusions.",
-          "values": "Quarantined and Set aside, each with a count. The Quarantined count matches the Outcome count.",
-          "rules": "File attempts only. Analyzer-message attempts show quarantine directly."
+          "meaning": "Separates every row of the attempt from the rows requiring a decision and recorded exclusions.",
+          "values": "Rows, Quarantined and, for a file attempt, Set aside, each with a count. Rows is selected when the attempt opens. The Quarantined count matches the Outcome count.",
+          "rules": "Analyzer-message attempts have no Set aside tab. The selected tab is kept in the address (/rows, /quarantine, /set-aside)."
+        },
+        {
+          "name": "Rows: What happened filter",
+          "meaning": "Shows only the rows with one outcome.",
+          "values": "Every row (default), New result, Duplicate, Reprocessed, QC row, Quarantined, Measured, not ordered (kept).",
+          "rules": "Optional. Kept in the address (?happened=); the counts in Outcome set it. The count beside it reads, for example, 1 row of 3 while it filters."
+        },
+        {
+          "name": "Rows: Record / Sample label / Test code / Analyte / Value as received",
+          "meaning": "Shows each row the attempt placed, exactly as the analyzer or file sent it, in received order.",
+          "values": "Row reference, label and test code as received (— when empty), the catalog analyte the test code maps to (Not mapped when none), and the value and units as received, or (no value) and (no units reported).",
+          "rules": "Read-only. Nothing is converted, rounded or interpreted. Rows not read as results and rows set aside are counted in Outcome and are not listed here; set-aside rows are on their own tab. Attempts imported before rows were recorded on the attempt list none: the tab says so and only their counts are shown. When the whole message or file was held, no row is listed and the tab points to Message failure or File failure."
+        },
+        {
+          "name": "Rows: What happened",
+          "meaning": "Says what the import did with the row.",
+          "values": "New result (green), Measured, not ordered (kept) (blue), Duplicate (gray: the same value was already stored, so no second result), Reprocessed (blue: a correction that made a new result revision), QC row (gray: recorded as a control, calibrator or blank observation), Quarantined (amber: held; see the Quarantined tab for why and the decision).",
+          "rules": "Read-only; recorded when the attempt ran and not changed by later decisions, such as accepting a quarantined row as reprocessing."
+        },
+        {
+          "name": "Rows: Open",
+          "meaning": "Links to where the row's result or QC is reviewed.",
+          "values": "Result review for a patient row (new, kept, duplicate or reprocessed), opening its sample's results; QC review for a QC row, opening its run's QC review; — for a quarantined row or a row with no known sample or run.",
+          "rules": "Read-only links. That screen's own access rules still apply."
         },
         {
           "name": "Quarantined: Record / Sample label / Test code / Value as received",
@@ -367,6 +395,18 @@
           "does": "Processes the original complete receipt again after a reasoned request. From a row it still retries the whole received message, not that row alone.",
           "availableWhen": "Result-review authority and a complete stored receipt that is not a duplicate. Offered in the page header and, once a row's cause is fixed, in each open quarantined row's menu and panel.",
           "result": "Queues a new attempt; earlier open quarantine outcomes are superseded by the retry’s outcome. Review the new attempt."
+        },
+        {
+          "name": "Outcome count links",
+          "does": "Open the Rows tab showing only the rows a count counts, or the Set aside tab for Set aside.",
+          "availableWhen": "The count is above zero and the attempt lists its rows.",
+          "result": "Changes the tab and the What happened filter; the list the attempt was opened from, and Previous and Next, are kept."
+        },
+        {
+          "name": "Result review / QC review (row)",
+          "does": "Opens a patient row's sample results in Result review, or a QC row's run in QC review.",
+          "availableWhen": "The row matched a sample or run position.",
+          "result": "Leaves the attempt; Back returns to it."
         },
         {
           "name": "Open quarantined row",
@@ -424,7 +464,7 @@
         "A successfully received message is separate from a successfully processed result."
       ],
       "workflow": [
-        "Read the overall failure and reconcile all outcome counts.",
+        "Read the overall failure and reconcile all outcome counts; click a count to see its rows on the Rows tab, and open each row's result or QC review where needed.",
         "For each quarantined row, compare the original label, analyte, value and units with the responsible run and approved source.",
         "Follow Where to fix to correct configuration or workflow causes in their owning screens; then use Retry import from the row or the page header, or record a justified decision on a conflicting row.",
         "Open the resulting attempt and verify the outcome rather than relying on the queued-retry confirmation."
