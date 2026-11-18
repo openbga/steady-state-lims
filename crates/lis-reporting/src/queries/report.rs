@@ -268,7 +268,8 @@ lis_core::text_enum! {
 pub struct ListReportsInput {
     /// Which reports.
     pub filter: ReportListFilter,
-    /// A report number prefix.
+    /// Text found anywhere in the report number or the specimen's accession
+    /// number, ignoring ASCII case. Both are PHI-free; blank finds every report.
     #[serde(default)]
     #[ts(optional)]
     pub search: Option<String>,
@@ -335,7 +336,12 @@ fn listed_revision_ids(
     conn: &Connection,
     input: &ListReportsInput,
 ) -> Result<Vec<ReportRevisionId>, ReportingError> {
-    let prefix = input.search.as_deref().map(str::trim).unwrap_or("");
+    let pattern = input
+        .search
+        .as_deref()
+        .map(str::trim)
+        .filter(|text| !text.is_empty())
+        .map(|text| format!("%{}", lis_core::like_prefix(text)));
     let query_limit = input.limit.saturating_add(1);
     let ids = conn
         .prepare_cached(
@@ -344,12 +350,16 @@ fn listed_revision_ids(
                                     WHERE o.report_id = v.report_id) \
                AND (?1 = 'all' OR (?1 = 'withdrawn' AND v.availability = 'withdrawn') \
                     OR (?1 = 'partial' AND v.availability = 'current' AND v.completeness = 'partial')) \
-               AND substr(v.report_number, 1, length(?2)) = ?2 \
+               AND (?2 IS NULL OR v.report_number LIKE ?2 ESCAPE '\\' \
+                    OR EXISTS (SELECT 1 FROM spc_specimens s \
+                               JOIN spc_collections c ON c.id = s.collection_id \
+                               JOIN spc_accessions a ON a.id = c.accession_id \
+                               WHERE s.id = v.specimen_id AND a.accession_number LIKE ?2 ESCAPE '\\')) \
                AND (?3 IS NULL OR v.released_at < ?3 OR (v.released_at = ?3 AND ?5 IS NOT NULL AND v.report_id > ?5)) \
              ORDER BY v.released_at DESC, v.report_id LIMIT ?4",
         )?
         .query_map(
-            params![input.filter, prefix, input.before_released_at, query_limit, input.before_report_id],
+            params![input.filter, pattern, input.before_released_at, query_limit, input.before_report_id],
             |row| row.get(0),
         )?
         .collect::<rusqlite::Result<Vec<ReportRevisionId>>>()?;
@@ -359,17 +369,64 @@ fn listed_revision_ids(
 #[cfg(test)]
 mod paging_tests {
     use super::*;
+
+    /// The listed view and the specimen tables the search reads, reduced to
+    /// the columns the list query uses.
+    fn list_tables() -> Connection {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "CREATE TABLE rpt_v_revisions(revision_id TEXT, report_id TEXT, specimen_id TEXT, \
+             report_number TEXT, revision_no INTEGER, availability TEXT, completeness TEXT, released_at TEXT); \
+             CREATE TABLE spc_specimens(id TEXT, collection_id TEXT); \
+             CREATE TABLE spc_collections(id TEXT, accession_id TEXT); \
+             CREATE TABLE spc_accessions(id TEXT, accession_number TEXT);",
+        )
+        .unwrap();
+        conn
+    }
+
+    fn searched(conn: &Connection, text: &str) -> usize {
+        let input = ListReportsInput {
+            filter: ReportListFilter::All,
+            search: Some(text.to_owned()),
+            limit: 10,
+            before_released_at: None,
+            before_report_id: None,
+        };
+        listed_revision_ids(conn, &input).unwrap().len()
+    }
+
+    #[test]
+    fn find_matches_any_part_of_the_report_or_accession_number() {
+        let conn = list_tables();
+        conn.execute_batch(
+            "INSERT INTO spc_accessions VALUES ('acc','A26000015'); \
+             INSERT INTO spc_collections VALUES ('col','acc'); \
+             INSERT INTO spc_specimens VALUES ('spe','col'); \
+             INSERT INTO rpt_v_revisions VALUES \
+             ('rev','rep','spe','A26000015-DEMO-UR',1,'current','final','2026-10-14T12:00:00.000000000Z');",
+        )
+        .unwrap();
+        for text in ["A26000015", "demo-ur", "  0015-D ", "", "6000"] {
+            assert_eq!(searched(&conn, text), 1, "{text:?} finds the report");
+        }
+        conn.execute("UPDATE rpt_v_revisions SET report_number = 'R-1'", [])
+            .unwrap();
+        assert_eq!(searched(&conn, "a2600"), 1, "the accession number alone matches");
+        for text in ["A26000016", "R_1", "R%", "\\"] {
+            assert_eq!(searched(&conn, text), 0, "{text:?} is literal text");
+        }
+    }
     #[test]
     fn equal_release_times_continue_after_retained_cursor_even_if_prior_row_disappears() {
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch("CREATE TABLE rpt_v_revisions(revision_id TEXT, report_id TEXT, report_number TEXT, revision_no INTEGER, availability TEXT, completeness TEXT, released_at TEXT)").unwrap();
+        let conn = list_tables();
         let at: UtcTimestamp = "2026-10-14T12:00:00.000000000Z".parse().unwrap();
         let mut ids = Vec::new();
         for _ in 0..205 {
             let id = ReportId::generate();
             ids.push(id);
             conn.execute(
-                "INSERT INTO rpt_v_revisions VALUES (?1,?2,?3,1,'current','final',?4)",
+                "INSERT INTO rpt_v_revisions VALUES (?1,?2,NULL,?3,1,'current','final',?4)",
                 params![ReportRevisionId::generate(), id, id.to_string(), at],
             )
             .unwrap();

@@ -88,12 +88,16 @@ describe("ReportsPage (REQ-RPT-002)", () => {
     expect(screen.queryByRole("button", { name: "Load older reports" })).toBeNull();
   });
 
-  it("finds by report number after a pause in typing, with no usage hint", async () => {
+  it("finds by report or accession number after a pause in typing, with no usage hint", async () => {
     const list = vi.fn(() => [ENTRY]);
     const { user, router } = renderPage("/reports", list);
     await screen.findByRole("gridcell", { name: "A26000001-URN" });
     expect(screen.queryByText(/Press Enter/)).toBeNull();
-    await user.type(screen.getByRole("searchbox", { name: "Find by report number" }), "A26");
+    expect(screen.getByPlaceholderText("Report or accession number")).toBeTruthy();
+    await user.type(
+      screen.getByRole("searchbox", { name: "Find by report or accession number" }),
+      "A26",
+    );
     await vi.waitFor(() => expect(router.state.location.search).toBe("?q=A26"));
     await vi.waitFor(() =>
       expect(list).toHaveBeenLastCalledWith({
@@ -109,7 +113,7 @@ describe("ReportsPage (REQ-RPT-002)", () => {
     await chooseWithKeyboard(user, /Show$/, "Partial reports");
     expect(list).toHaveBeenLastCalledWith({ input: { filter: "partial", limit: 200 } });
     await user.type(
-      screen.getByRole("searchbox", { name: "Find by report number" }),
+      screen.getByRole("searchbox", { name: "Find by report or accession number" }),
       "A26000001{Enter}",
     );
     expect(router.state.location.search).toBe("?filter=partial&q=A26000001");
@@ -126,10 +130,9 @@ describe("ReportsPage (REQ-RPT-002)", () => {
     await user.click(screen.getByRole("button", { name: "Show all reports" }));
     expect(await screen.findByText("No report has been released yet.")).toBeTruthy();
     expect(list).toHaveBeenLastCalledWith({ input: { filter: "all", limit: 200 } });
-    expect(screen.getByRole("searchbox", { name: "Find by report number" })).toHaveProperty(
-      "value",
-      "",
-    );
+    expect(
+      screen.getByRole("searchbox", { name: "Find by report or accession number" }),
+    ).toHaveProperty("value", "");
   });
 
   it("shows the engine's error", async () => {
