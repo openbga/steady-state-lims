@@ -43,7 +43,7 @@ export function ReportChips({ report }: { report: ReportDetail }) {
   const delivery = deliveryChip(report.obligations);
   return (
     <>
-      <StatusBadge tone={availability?.tone ?? "neutral"}>
+      <StatusBadge tone={availability?.tone ?? "neutral"} variant={availability?.variant}>
         {availability?.label ?? "Not released"}
       </StatusBadge>
       {latest && (

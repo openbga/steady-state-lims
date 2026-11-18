@@ -65,7 +65,10 @@ export function PreviewTab({ report, shown, revision }: PreviewTabProps) {
           onChange={(next) => setParam(next === String(shown.revisionNo) ? null : next)}
         />
         {picked.availability !== "current" && (
-          <StatusBadge tone={AVAILABILITY[picked.availability].tone}>
+          <StatusBadge
+            tone={AVAILABILITY[picked.availability].tone}
+            variant={AVAILABILITY[picked.availability].variant}
+          >
             {AVAILABILITY[picked.availability].label}
           </StatusBadge>
         )}
