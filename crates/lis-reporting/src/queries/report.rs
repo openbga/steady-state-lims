@@ -398,13 +398,14 @@ mod paging_tests {
 
     #[test]
     fn find_matches_any_part_of_the_report_or_accession_number() {
+        // The listed ID is read back as a typed revision ID, so it is a real UUID.
         let conn = list_tables();
         conn.execute_batch(
             "INSERT INTO spc_accessions VALUES ('acc','A26000015'); \
              INSERT INTO spc_collections VALUES ('col','acc'); \
              INSERT INTO spc_specimens VALUES ('spe','col'); \
              INSERT INTO rpt_v_revisions VALUES \
-             ('rev','rep','spe','A26000015-DEMO-UR',1,'current','final','2026-10-14T12:00:00.000000000Z');",
+             ('01a1efa2-0000-7000-8000-000000000001','rep','spe','A26000015-DEMO-UR',1,'current','final','2026-10-14T12:00:00.000000000Z');",
         )
         .unwrap();
         for text in ["A26000015", "demo-ur", "  0015-D ", "", "6000"] {
@@ -412,7 +413,11 @@ mod paging_tests {
         }
         conn.execute("UPDATE rpt_v_revisions SET report_number = 'R-1'", [])
             .unwrap();
-        assert_eq!(searched(&conn, "a2600"), 1, "the accession number alone matches");
+        assert_eq!(
+            searched(&conn, "a2600"),
+            1,
+            "the accession number alone matches"
+        );
         for text in ["A26000016", "R_1", "R%", "\\"] {
             assert_eq!(searched(&conn, text), 0, "{text:?} is literal text");
         }
