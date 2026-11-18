@@ -168,6 +168,9 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
         name: /Print labels|Record receipt decision|Open order billing/,
       }),
     ).toBeNull();
+    expect(
+      screen.getByText("Someone who receives specimens scans the label and records the decision."),
+    ).toBeTruthy();
     expect(screen.queryByRole("checkbox")).toBeNull();
     expect(
       screen.getByRole("link", { name: "Material history and actions: C00000001" }),
@@ -183,7 +186,89 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
     expect(await screen.findByRole("heading", { name: "Receipt decisions recorded" })).toBeTruthy();
     expect(screen.getByText("1 of 1 recorded")).toBeTruthy();
     expect(screen.getByText("Held specimens need review under laboratory policy.")).toBeTruthy();
+    expect(screen.getByText("Receipt decision recorded: held.")).toBeTruthy();
     expect(screen.queryByText(/ready for testing/i)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Go to Worklist" })).toBeNull();
+  });
+
+  it("says a receipt decision is still needed, and after it where work continues (#4816)", async () => {
+    let accession: AccessionDetail = ACCESSION;
+    const accepted: AccessionDetail = {
+      ...ACCESSION,
+      specimens: ACCESSION.specimens.map((specimen) => ({
+        ...specimen,
+        acceptance: "accepted",
+        revision: 2,
+        allowedActions: [],
+        decisions: [
+          {
+            decisionId: "00000000-0000-7000-8000-000000001701",
+            decision: "accepted",
+            discrepancies: [],
+            policyReference: null,
+            scope: null,
+            reason: null,
+            decidedBy: "00000000-0000-7000-8000-000000000e12",
+            decidedByDisplay: "Test Receiver",
+            decidedAt: "2026-11-05T10:00:00.000000000Z",
+            causalSequence: 1,
+          },
+        ],
+      })),
+    };
+    const record = vi.fn(() => {
+      accession = accepted;
+      return accepted;
+    });
+    const { user, router } = renderPage(() => accession, {
+      current_session: () => sessionWith(["accession", "perform_analysis"]),
+      record_receipt_decision: record,
+    });
+    expect(
+      await screen.findByText("Receipt decision still needed: scan the label on C00000001"),
+    ).toBeTruthy();
+    expect(screen.getByText("1 receipt decision still needed.")).toBeTruthy();
+    expect(screen.getAllByRole("button", { name: "Record receipt decision" })).toHaveLength(1);
+
+    const dialog = await startReceiptDecision(user);
+    await chooseWithKeyboard(user, /Decision$/, "Accept");
+    await user.click(within(dialog).getByRole("button", { name: "Record decision" }));
+    expect(
+      await screen.findByText("Receipt finished. Work continues in the Worklist."),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/lists C00000001 once its holds and order checks allow a run/),
+    ).toBeTruthy();
+    expect(screen.getByText(/Accepted by Test Receiver/)).toBeTruthy();
+    expect(screen.getByText("Accepted").closest("[data-tone]")?.getAttribute("data-tone")).toBe(
+      "success",
+    );
+    expect(screen.queryByText(/still needed/)).toBeNull();
+    expect(screen.queryByText(/ready for testing/i)).toBeNull();
+    expect(screen.getByRole("button", { name: "Runs" })).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Go to Worklist" }));
+    expect(router.state.location.pathname).toBe("/bench/worklist");
+  });
+
+  it("offers the bench next step only to people who may open it", async () => {
+    renderPage({
+      ...ACCESSION,
+      specimens: ACCESSION.specimens.map((specimen) => ({
+        ...specimen,
+        acceptance: "accepted",
+        allowedActions: [],
+      })),
+    });
+    expect(
+      await screen.findByText("Receipt finished. Work continues in the Worklist."),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Every specimen has a receipt decision. Each one below says where its work continues.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Go to Worklist" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Runs" })).toBeNull();
   });
 
   it("shows a date-only or unknown collection time as such", async () => {
