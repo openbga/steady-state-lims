@@ -46,6 +46,7 @@ pub(crate) fn patients(
                     OR substr(n.given || ' ' || n.family, 1, length(?3)) = ?3
                     OR substr(n.family || ' ' || n.given, 1, length(?3)) = ?3
                     OR substr(n.family || ', ' || n.given, 1, length(?3)) = ?3
+                    OR n.birth_date = ?4
                     OR EXISTS (SELECT 1 FROM idn_subject_identifiers i
                                WHERE i.subject_id = s.id AND i.status = 'active'
                                AND substr(i.value, 1, length(?4)) = ?4)))))

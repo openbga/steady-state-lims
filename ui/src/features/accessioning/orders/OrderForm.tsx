@@ -8,7 +8,7 @@ import type { OrderDetail } from "@/generated/OrderDetail";
 import type { RegisterOrderInput } from "@/generated/RegisterOrderInput";
 import { useCommandMutation, useHasCapability } from "@/lib/commands";
 import { UnsavedChangesGuard } from "@/lib/UnsavedChangesGuard";
-import { LIST_ORDERS, REGISTER_ORDER } from "./contract";
+import { FIND_ORDER_PATIENTS, LIST_ORDERS, REGISTER_ORDER } from "./contract";
 import { EvidenceFields } from "./EvidenceFields";
 import styles from "./OrderForm.module.css";
 import { orderPath } from "./orderColumns";
@@ -35,7 +35,7 @@ export function OrderForm({ subjectId, references }: OrderFormProps) {
   const receive = useRef(false);
   const canReceive = useHasCapability("accession");
   const register = useCommandMutation<OrderDetail, { input: RegisterOrderInput }>(REGISTER_ORDER, {
-    invalidates: [LIST_ORDERS],
+    invalidates: [LIST_ORDERS, FIND_ORDER_PATIENTS],
   });
   const onSubmit = form.handleSubmit((values) =>
     register.mutate(

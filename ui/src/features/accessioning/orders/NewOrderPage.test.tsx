@@ -49,6 +49,7 @@ function renderPage(commands: Record<string, (args: unknown) => unknown> = {}, p
     current_session: () => sessionWith(["enter_orders", "accession"]),
     get_subject: () => SUBJECT_VIEW,
     search_subjects: () => [SUMMARY],
+    find_order_patients: () => ({ recent: [], matches: [{ subject: SUMMARY, lastOrder: null }] }),
     list_clients: () => CLIENTS,
     list_practitioners: () => PRACTITIONERS,
     list_active_orderables: () => ORDERABLES,
@@ -435,7 +436,8 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
 
   it("asks for the patient first when none was chosen", async () => {
     const { user } = renderPage({}, "/orders/new");
-    expect(await screen.findByRole("heading", { name: "Choose patient" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Who is the order for?" })).toBeTruthy();
+    await user.keyboard("Patient");
     await openRowWithEnter(user, "MRN-00001 (SYN-CLINIC MR)");
     expect(await screen.findByRole("form", { name: "New order" })).toBeTruthy();
     expect(screen.getByRole("region", { name: "Patient identity" })).toBeTruthy();
@@ -490,6 +492,6 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await user.click(screen.getByRole("button", { name: "Change patient" }));
     const leave = await screen.findByRole("alertdialog", { name: "Leave without saving?" });
     await user.click(within(leave).getByRole("button", { name: "Leave without saving" }));
-    expect(await screen.findByRole("region", { name: "Choose patient" })).toBeTruthy();
+    expect(await screen.findByRole("region", { name: "Who is the order for?" })).toBeTruthy();
   });
 });

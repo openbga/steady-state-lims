@@ -15,6 +15,7 @@ pub(crate) mod interfaces;
 pub(crate) mod partner;
 // interfaces: end
 // orders: begin
+pub(crate) mod order_patients;
 pub(crate) mod orders;
 // orders: end
 // specimens: begin

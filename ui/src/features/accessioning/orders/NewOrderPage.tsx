@@ -2,18 +2,18 @@ import { useNavigate, useSearchParams } from "react-router";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { Page, PageHeader } from "@/components/Page";
-import { Section } from "@/components/Section";
 import { IdentityBanner } from "@/lib/IdentityBanner";
 import { IntakeSteps } from "../IntakeSteps";
-import { PatientDirectory } from "../patients/PatientDirectory";
 import { newOrderPath } from "../subjects";
 import { OrderForm } from "./OrderForm";
 import { OrderReferencesGate } from "./OrderReferencesGate";
+import { PatientStep } from "./PatientStep";
 import type { OrderReferences } from "./references";
 
 /**
  * Order entry for one patient (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007), for people with
- * `enter_orders`. Choose a patient here or start with one from the patient directory.
+ * `enter_orders`. The first step chooses the patient; a patient chosen elsewhere starts at the
+ * order details.
  */
 export function NewOrderPage() {
   const navigate = useNavigate();
@@ -41,19 +41,7 @@ export function NewOrderPage() {
           </OrderReferencesGate>
         </>
       ) : (
-        <Section
-          title="Choose patient"
-          actions={
-            <Button onPress={() => navigate("/patients/register?intent=new-order")}>
-              Register patient
-            </Button>
-          }
-        >
-          <PatientDirectory
-            onChoose={(subject) => navigate(newOrderPath(subject.subjectId))}
-            registrationPath="/patients/register?intent=new-order"
-          />
-        </Section>
+        <PatientStep onChoose={(id) => navigate(newOrderPath(id))} />
       )}
     </Page>
   );

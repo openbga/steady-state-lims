@@ -11,6 +11,14 @@ newest first. The application shows the same list under **What's new**.
 
 ### High impact
 
+- **Changed:** Choose the patient of a new order from one search box (2026-11-18)
+
+  **New order** now starts with **Who is the order for?**: one box finds patients by name, birth date or identifier as you type, and each row shows the birth date with the age, sex, identifiers and the patient's last order. Click a row, or use the arrow keys and Enter, to go on to the order details. The patients you entered orders for recently are one click away, **Register patient** sits right under the results, and the exact searches are folded under **Exact search**. The patient find on **Patients** and the **Find** on **Orders** also match an exact birth date (YYYY-MM-DD).
+
+  Technical notes:
+
+  New audited query `find_order_patients` (order-entry authority; audit action `order.find_patients`, recording only whether find text was used and the counts). No database migration.
+
 - **Changed:** The project is licensed under AGPL-3.0-only (2026-11-17, [#112](https://github.com/openbga/toxicology-lims/pull/112))
 
   The application is now licensed under the GNU Affero General Public License version 3 only, with the copyright and trademark notice of BGASoft Inc. and OpenBGA contributors in the README, NOTICE, website, installer metadata and release notes.

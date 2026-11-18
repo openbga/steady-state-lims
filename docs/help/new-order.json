@@ -2,13 +2,13 @@
   "id": "new-order",
   "title": "Entering a new order",
   "summary": "Choose the patient and capture the ordering source’s request before acceptance and receipt.",
-  "reviewedOn": "2026-11-03",
+  "reviewedOn": "2026-11-18",
   "routes": ["/orders/new"],
   "sections": [
     {
       "title": "How to use this page",
       "paragraphs": [
-        "New order begins with patient selection. Search existing patients or use Register patient if a new record is needed. Once a patient is chosen, the identity banner remains visible above the order form.",
+        "New order begins with the Patient step: Who is the order for? Type part of the name, the birth date or an identifier in the one search box, which has the focus when the page opens; the matching patients are listed as you type. Click a row, or move to it with the arrow keys and press Enter, to go on to Order details. Patients you entered orders for recently are offered under the box for one click. If nobody matches, Register patient sits right under the results, and you come back to New order with the new patient chosen. The exact searches by identifier or by name and birth date stay available under Exact search. Once a patient is chosen, the identity banner remains visible above the order form.",
         "The form uses configured clients, practitioners and approved tests or panels. For a long catalog, search and add several choices, then complete their required decisions directly below the picker. After saving, review the order record and explicitly accept the request before proceeding to specimen receipt when that action is available."
       ]
     },
@@ -44,6 +44,11 @@
     "ui/src/features/accessioning/orders/TestChecklist.tsx",
     "ui/src/features/accessioning/orders/orderValues.ts",
     "ui/src/features/accessioning/orders/labels.ts",
+    "ui/src/features/accessioning/orders/PatientStep.tsx",
+    "ui/src/features/accessioning/orders/PatientChoiceGrid.tsx",
+    "crates/lis-orders/src/order_patients.rs",
+    "crates/lis-engine/src/commands/order_patients.rs",
+    "crates/lis-identity/src/repo/search.rs",
     "ui/src/features/accessioning/patients/PatientDirectory.tsx",
     "ui/src/features/accessioning/patients/PatientSearch.tsx",
     "ui/src/features/accessioning/patients/SearchResults.tsx",
@@ -66,34 +71,28 @@
       "access": "Order-entry authority is required. Reads and decisions are recorded in the audit trail. The application checks your current permission and record state when you submit.",
       "fields": [
         {
-          "name": "Find by name or identifier",
-          "meaning": "Narrows the patient directory to records to compare.",
-          "values": "Literal name or active-identifier prefix, up to 402 characters. Names ignore case; identifiers are case-sensitive.",
-          "rules": "Optional; clearing it browses all patients. Searches also include former names, while result rows show current demographics. Search text stays in this session rather than being stored in a patient record."
+          "name": "Who is the order for? (find patient)",
+          "meaning": "One search box for the patient of the new order.",
+          "values": "The start of a family name, given names or full name (Given Family, Family Given or Family, Given), an exact birth date as YYYY-MM-DD, or the start of an active identifier value such as MRN-00001; up to 402 characters. Names ignore case and accents written differently; identifiers are case-sensitive; a partial birth date matches nothing.",
+          "rules": "Has the focus when the page opens. The list updates after a short pause in typing, or at once on Enter; Escape or the clear button empties the box. Former names are searched too, while rows show current demographics. The search text stays on this page: it is not put in the address or the audit trail, only that a search was used and how many patients were returned."
         },
         {
-          "name": "Find by identifier: Identifier / Assigning authority / Identifier type",
-          "meaning": "Looks up an identifier within the namespace of the organization that assigned it.",
-          "values": "Exact source values; Identifier type may be a source code such as MR.",
-          "rules": "All three required for this detailed search; each up to 64 characters. Values are compared exactly after surrounding spaces are removed."
+          "name": "Recent",
+          "meaning": "The patients you entered orders for most recently, one click away.",
+          "values": "Up to 10 patients, newest order first, each shown as name and birth date (YYYY-MM-DD).",
+          "rules": "Only orders you entered yourself count; a patient appears once however many orders they have. Hidden when you have entered no orders. Selecting one goes to Order details for that patient, so confirm the identity banner before continuing."
         },
         {
-          "name": "Find by name: Family name / Given names / Birth date",
-          "meaning": "Searches name prefixes, optionally restricted by birth date.",
-          "values": "Family-name prefix when used alone; complete family name plus a given-name prefix when both are entered; optional real birth date in YYYY-MM-DD format. Type it, or pick it from the calendar button in the field, which offers no day after today.",
-          "rules": "Family name is required for detailed name search; names up to 200 characters. A similar name is a candidate, not identity confirmation."
+          "name": "Matching patients: Name / Birth date / Sex / Identifiers / Last order",
+          "meaning": "What tells the patients found apart before choosing one.",
+          "values": "Name as Family, Given with an identity-hold badge when a hold is open; birth date with the month as text and the age; administrative sex as supplied or Not recorded; active identifiers with their authority and type, or None recorded; the day of the patient's latest order (by anyone) and its client, or No orders.",
+          "rules": "Read-only. Shown once something is typed, with a count such as 3 patients match “test”. At most 25 patients are listed, then the count starts with First: type more to narrow the list. Compare at least two supplied identifiers; a similar name is not a match. The whole row is the choice: it highlights on hover and ends with ›."
         },
         {
-          "name": "Name / Birth date / Administrative sex / Identifiers / Identity",
-          "meaning": "Patient facts shown for comparison before opening or selecting a record.",
-          "values": "Read-only supplied demographics, active identifiers and identity-hold indicators.",
-          "rules": "Compare at least the supplied independent identifiers for your task. Unknown data is shown explicitly; the list does not resolve a hold."
-        },
-        {
-          "name": "Patients count",
-          "meaning": "Number of records in the current result page.",
-          "values": "Up to 25 visible patients per page.",
-          "rules": "The displayed range is a page count, not a claim that all matching records are shown."
+          "name": "Exact search: Find by name, birth date or identifier / More filters",
+          "meaning": "The patient directory with its detailed searches, folded under Exact search.",
+          "values": "Find by identifier: Identifier, Assigning authority and Identifier type, compared exactly. Find by name: a family-name prefix, or the complete family name with a given-name prefix, and an optional real birth date in YYYY-MM-DD format (typed or picked from the calendar, which offers no day after today).",
+          "rules": "Closed when the page opens; the directory is read only after you open it. Its rows show Name, Birth date, Administrative sex, Identifiers and Identity, 25 patients per page with Previous and Next. Choosing a row there also goes to Order details."
         },
         {
           "name": "Selected patient / Change patient",
@@ -272,40 +271,28 @@
       ],
       "actions": [
         {
-          "name": "More filters / Find by identifier / Find by name",
-          "does": "Opens detailed criteria and runs the corresponding patient search.",
-          "availableWhen": "Order-entry authority is required. Reads and decisions are recorded in the audit trail. The application checks your current permission and record state when you submit.",
-          "result": "Shows the first page of results for the supplied criteria."
+          "name": "Choose a patient (row or recent patient)",
+          "does": "Chooses the patient of the new order.",
+          "availableWhen": "A matching row or a recent patient is shown. Click the row or the recent patient, or move to a row with the arrow keys and press Enter.",
+          "result": "Order details opens for that patient, with the identity banner above the form and Patient ticked in the trail."
         },
         {
-          "name": "Show all patients / Clear search",
-          "does": "Removes the current search criteria.",
-          "availableWhen": "A search is active.",
-          "result": "Returns to the first page of the directory."
-        },
-        {
-          "name": "Previous / Next",
-          "does": "Moves through patient directory pages.",
-          "availableWhen": "Previous after the first page; Next when another page exists; unavailable during refresh.",
-          "result": "Shows the preceding or following 25 patients."
-        },
-        {
-          "name": "Open or select a patient row",
-          "does": "Opens the patient record, or chooses the patient when this directory is in New order.",
-          "availableWhen": "A patient row is present; click or press Enter.",
-          "result": "The chosen patient is shown with an identity banner before further work."
+          "name": "Exact search",
+          "does": "Opens or closes the patient directory with its detailed searches.",
+          "availableWhen": "On the Patient step.",
+          "result": "Shows Find, More filters (Find by identifier, Find by name), Show all patients, Previous and Next as on the Patients page; choosing a row goes to Order details."
         },
         {
           "name": "Register patient",
-          "does": "Starts the two-step registration process.",
-          "availableWhen": "Order-entry authority is required. Reads and decisions are recorded in the audit trail. The application checks your current permission and record state when you submit.",
-          "result": "Enter source details and review matches before saving."
+          "does": "Starts the two-step registration process from New order.",
+          "availableWhen": "On the Patient step, under the results (Not in the list?), and in Exact search when nothing is found. Order-entry authority is required.",
+          "result": "Enter source details and review matches before saving; New order then opens with the registered patient chosen."
         },
         {
           "name": "Change patient",
           "does": "Returns to patient selection.",
           "availableWhen": "A patient is selected.",
-          "result": "Choose and verify the replacement patient before continuing; any unsaved-order warning must be addressed."
+          "result": "Returns to Who is the order for?. Choose and verify the replacement patient before continuing; any unsaved-order warning must be addressed."
         },
         {
           "name": "Add diagnosis / Add medication / Add point-of-care result / Remove …",
@@ -346,7 +333,7 @@
         "Practice templates do not independently authorize patient testing. Select only supplied standing authority and enter requested scope independently. Retired clients, locations and practitioners are excluded from new-order choices; historical orders retain them."
       ],
       "workflow": [
-        "Select or register the patient, then verify the identity banner.",
+        "Find the patient by name, birth date or identifier, or pick a recent patient; register the patient when nobody matches. Then verify the identity banner.",
         "Choose the ordering source and record the request. For a long catalog, use Find tests and Show to add only the requested tests or panels; you can type the next code immediately after choosing an item.",
         "Review Chosen tests against the source. Set each test’s explicit sequence role and reflex permission, choose any authorized reflex scope, and add source evidence where supplied.",
         "Save order or Review and receive specimens, then review the saved request before acceptance."
