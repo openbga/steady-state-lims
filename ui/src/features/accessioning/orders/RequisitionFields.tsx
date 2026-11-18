@@ -54,6 +54,7 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
           name="clientId"
           label="Client"
           options={clientOptions}
+          placeholder="Select…"
           onChange={() => setValue("clientLocationId", null)}
           isRequired
         />
@@ -62,11 +63,12 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
           name="practitionerId"
           label="Ordering practitioner"
           options={practitionerOptions}
+          placeholder="Select…"
           onChange={() => setValue("standingOrderId", null)}
           isRequired
         />
       </div>
-      <div className={styles.choiceRow}>
+      <div className={styles.sourceChoices}>
         <SegmentedInput name="sourceKind" label="Received as" options={SOURCE_KINDS} isRequired />
         <SegmentedInput
           name="billingResponsibility"

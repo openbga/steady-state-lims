@@ -9,7 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "New order begins with the Patient step: Who is the order for? Type part of the name, the birth date or an identifier in the one search box, which has the focus when the page opens; the matching patients are listed as you type. Click a row, or move to it with the arrow keys and press Enter, to go on to Order details. Patients you entered orders for recently are offered under the box for one click. If nobody matches, Register patient sits right under the results, and you come back to New order with the new patient chosen. The exact searches by identifier or by name and birth date stay available under Exact search. Once a patient is chosen, the patient box (the identity banner) stays visible above the order form, with a Change patient link at its right end.",
-        "Order details follow the paper requisition in two steps. Step 1 of 2, Requisition, holds the top of the form (Ordering source: who sent it and who pays) and the bottom (Authority to test); Next: Tests checks the step and moves on. Step 2 of 2, Tests, holds the tests and panels with their sequence role and reflex testing, then the details only some requisitions have, behind small buttons with their counts. Back: Requisition keeps everything entered. The trail at the top shows Patient › Order details › Receive specimens › Finish receipt as rounded pills: a finished step is green with a check, the current step is filled blue with white text and a dot, and later steps are outlined. The choices with a few options (Received as, Billing responsibility, Template use, As supplied, Sequence role, Reflex testing) are rows of buttons where the chosen one is filled blue; a ? beside a label explains the field. Under each section title, one line says which part of the requisition it covers, and the section you are filling in has a blue border. On a typical desktop window the whole of step 1 fits without scrolling: Client, Client location and Ordering practitioner on one row, Received as, Billing responsibility and Template use on the next, and As supplied beside Document reference. Next to Next: Tests, a tip recalls that Enter or Next checks the step. The Order summary on the right ticks off Patient, Ordering source, Authority to test and Tests. After saving, review the order record and explicitly accept the request before proceeding to specimen receipt when that action is available."
+        "Order details follow the paper requisition in two steps. Step 1 of 2, Requisition, holds the top of the form (Ordering source: who sent it and who pays) and the bottom (Authority to test); Next: Tests checks the step and moves on. Step 2 of 2, Tests, holds the tests and panels with their sequence role and reflex testing, then the details only some requisitions have, behind small buttons with their counts. Back: Requisition keeps everything entered. The trail at the top shows Patient › Order details › Receive specimens › Finish receipt as rounded pills: a finished step is green with a check, the current step is filled blue with white text and a dot, and later steps are outlined. The choices with a few options (Received as, Billing responsibility, Template use, As supplied, Sequence role, Reflex testing) are rows of buttons where the chosen one is filled blue; a ? beside a label explains the field. Under each section title, one line says which part of the requisition it covers, and the section you last clicked or focused, anywhere inside it, keeps a blue border until you click or move into another one. On a typical desktop window the whole of step 1 fits without scrolling: Client, Client location and Ordering practitioner on one row, Received as, Billing responsibility and Template use on the next, and As supplied beside Document reference. Next to Next: Tests, a tip recalls that Enter or Next checks the step. The Order summary on the right ticks off Patient, Ordering source, Authority to test and Tests. After saving, review the order record and explicitly accept the request before proceeding to specimen receipt when that action is available."
       ]
     },
     {
@@ -112,7 +112,7 @@
           "name": "Client",
           "meaning": "The configured ordering organization.",
           "values": "Configured client name or code searched in the picker.",
-          "rules": "Required; no initial selection. Changing client clears Client location. Client, Client location and Ordering practitioner sit side by side on wide windows."
+          "rules": "Required; no initial selection: the empty field reads Select…. Changing client clears Client location. Client, Client location and Ordering practitioner sit side by side on wide windows."
         },
         {
           "name": "Client location",
@@ -124,7 +124,7 @@
           "name": "Ordering practitioner",
           "meaning": "The practitioner who ordered the tests.",
           "values": "Configured practitioner identified by name/NPI.",
-          "rules": "Required; no initial selection. Missing practitioners need configuration before the order can be saved."
+          "rules": "Required; no initial selection: the empty field reads Select…. Missing practitioners need configuration before the order can be saved."
         },
         {
           "name": "Received as",

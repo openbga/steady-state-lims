@@ -1,14 +1,20 @@
+/* The same height with or without a "?", so labels side by side line up. */
 .labelRow {
   display: flex;
   align-items: center;
   gap: var(--space-1);
+  min-height: 1.25rem;
 }
 
-/* The options joined into one bordered row; they wrap on narrow windows. */
+.labelRow > button[data-variant] {
+  min-height: 0;
+  padding: 0;
+}
+
+/* The options joined into one bordered row, sharing the field's width; they wrap when narrow. */
 .segments {
-  display: inline-flex;
+  display: flex;
   flex-wrap: wrap;
-  align-self: flex-start;
   max-width: 100%;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-md);
@@ -17,7 +23,9 @@
 
 .segment {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
+  justify-content: center;
   min-height: var(--control-height);
   padding: 0 var(--space-3);
   border-inline-start: 1px solid var(--color-border-control);

@@ -392,8 +392,26 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     expect(screen.getByRole("button", { name: /Client location/ }).textContent).toContain(
       "Select…",
     );
+    for (const name of [/^Client/, /^Ordering practitioner/]) {
+      expect(screen.getByRole("combobox", { name })).toHaveProperty("placeholder", "Select…");
+    }
+    expect(screen.getByText("Choose the client first.")).toBeTruthy();
     // A short catalog is a plain checklist.
     expect(screen.queryByRole("searchbox", { name: "Find tests" })).toBeNull();
+  });
+
+  it("keeps the card last clicked or focused highlighted until another one is", async () => {
+    const { user } = renderPage();
+    const source = await screen.findByRole("region", { name: "Ordering source" });
+    const authority = screen.getByRole("region", { name: "Authority to test" });
+    // Empty space and text inside the card count, not only its controls.
+    await user.click(within(source).getByText(/From the top of the requisition/));
+    expect(source.hasAttribute("data-active")).toBe(true);
+    await chooseSegment(user, /As supplied/, "Not supplied");
+    expect(authority.hasAttribute("data-active")).toBe(true);
+    expect(source.hasAttribute("data-active")).toBe(false);
+    await user.click(within(authority).getByRole("heading", { name: "Authority to test" }));
+    expect(authority.hasAttribute("data-active")).toBe(true);
   });
 
   it("lists only the chosen client's locations, and clears the location when the client changes", async () => {

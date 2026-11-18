@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { type FormEvent, useRef, useState } from "react";
+import { type FormEvent, type SyntheticEvent, useRef, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router";
 import { Button } from "@/components/Button";
@@ -138,11 +138,25 @@ interface StepFieldsProps extends OrderFormProps {
   onAddBilling: (add: boolean) => void;
 }
 
+/**
+ * Marks the section card last clicked or focused, anywhere inside it, until another card is:
+ * its border shows where the person is working. Presentation only, kept on the element.
+ */
+function markActiveSection(event: SyntheticEvent<HTMLDivElement>) {
+  const cards = [...event.currentTarget.children].filter((child) => child.tagName === "SECTION");
+  // A popover's content (the "?" tips) is elsewhere in the page: it changes nothing.
+  const card = cards.find((each) => each.contains(event.target as Node));
+  if (!card) return;
+  for (const other of cards) other.toggleAttribute("data-active", other === card);
+}
+
+const activeSection = { onPointerDown: markActiveSection, onFocus: markActiveSection };
+
 /** Both steps stay mounted, so Back keeps every value and every field's error. */
 function StepFields({ step, subjectId, references, addBilling, onAddBilling }: StepFieldsProps) {
   return (
     <>
-      <div hidden={step !== "requisition"} className={styles.stepFields}>
+      <div hidden={step !== "requisition"} className={styles.stepFields} {...activeSection}>
         <RequisitionFields
           clients={references.clients
             .filter((c) => c.active)
@@ -151,7 +165,7 @@ function StepFields({ step, subjectId, references, addBilling, onAddBilling }: S
         />
         <AuthorityFields />
       </div>
-      <div hidden={step !== "tests"} className={styles.stepFields}>
+      <div hidden={step !== "tests"} className={styles.stepFields} {...activeSection}>
         <TestSelection orderables={references.orderables} />
         <OptionalDetails
           subjectId={subjectId}

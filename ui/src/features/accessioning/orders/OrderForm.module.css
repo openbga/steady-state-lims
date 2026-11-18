@@ -24,7 +24,7 @@
   padding: var(--space-3) var(--space-4);
 }
 
-.stepFields > section:focus-within {
+.stepFields > section[data-active] {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 1px var(--color-accent);
 }
@@ -150,6 +150,8 @@
 /* Pushes what follows to the end of the action row: the tip, or Back, stays at the start. */
 .actionsStart {
   margin: 0 auto 0 0;
+  /* Lined up with the content of the section cards above. */
+  padding-inline-start: calc(var(--space-4) + 1px);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
   align-self: center;
@@ -169,6 +171,17 @@
   flex-wrap: wrap;
   gap: var(--space-3) var(--space-5);
   align-items: flex-start;
+}
+
+/*
+ * Received as, Billing responsibility and Template use: each column as wide as its choices
+ * need, the rest of the row shared out, so the row has no empty end.
+ */
+.sourceChoices {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: var(--space-4);
+  align-items: start;
 }
 
 /* As supplied, then Document reference taking the rest of the row. */
@@ -262,6 +275,12 @@
 .references summary:focus-visible {
   outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: var(--space-1);
+}
+
+@container (max-width: 60rem) {
+  .sourceChoices {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @container (max-width: 40rem) {

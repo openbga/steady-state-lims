@@ -9,6 +9,8 @@ interface RecordPickerInputProps {
   isRequired?: boolean;
   isDisabled?: boolean;
   description?: string;
+  /** Shown in the empty field, such as "Select…". */
+  placeholder?: string;
   /** Called after the form value changes, such as to clear a choice that depends on it. */
   onChange?: (value: string | null) => void;
   /** Engine search: see `RecordPicker`. */
