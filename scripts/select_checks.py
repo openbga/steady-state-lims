@@ -14,6 +14,7 @@ TOOLING = {
     "scripts/check_repository_metadata.py", "scripts/test_repository_metadata.py",
     "scripts/release_version.py", "scripts/test_release_version.py",
     "scripts/update_feed.py", "scripts/test_update_feed.py",
+    "scripts/changelog.py", "scripts/test_changelog.py", ".github/workflows/changelog.yml",
     ".github/workflows/ci.yml", ".github/workflows/package.yml", ".gitignore",
 }
 EMBEDDED = {
@@ -128,6 +129,8 @@ def classify(path, before=None, after=None):
         return {"website", "docs"}, "standalone presentation changed"
     if path.startswith(".github/ISSUE_TEMPLATE/"):
         return {"docs"}, "issue template changed"
+    if path == "ui/src/features/whats-new/changelog.json":
+        return {"ui", "docs"}, "What's new list generated from changelog.d changed"
     if path.startswith("ui/src/generated/"):
         return {"rust", "ui", "help"}, "generated IPC contract changed"
     if path.startswith(("crates/", "src-tauri/", "fixtures/")):

@@ -16,6 +16,7 @@
       "*.json",
       "*.ts",
       "!ui/src/generated",
+      "!ui/src/features/whats-new/changelog.json",
       "!ui/dist",
       "!package-lock.json"
     ]
