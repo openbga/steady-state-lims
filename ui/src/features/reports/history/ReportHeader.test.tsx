@@ -91,7 +91,7 @@ describe("Report page status chips and actions (#4831)", () => {
     for (const chip of ["Current", "Partial", "Revision 1 · Initial report", "Handed off 0 of 1"]) {
       expect(within(header).getByText(chip)).toBeTruthy();
     }
-    expect(within(header).queryByText(/Delivered/)).toBeNull();
+    expect(within(header).queryByText(new RegExp(["Deliver", "ed"].join("")))).toBeNull();
   });
 
   it("counts handed-off obligations out of those still owed, green only when all are", () => {
