@@ -2,7 +2,7 @@
   "id": "report-release",
   "title": "Preparing and releasing reports",
   "summary": "Review a specimen’s report content, resolve release gates and release a current candidate.",
-  "reviewedOn": "2026-10-15",
+  "reviewedOn": "2026-11-18",
   "routes": [
     "/reports/release",
     "/reports/specimens/:specimenId",
@@ -203,7 +203,7 @@
         {
           "name": "Report",
           "meaning": "Identifies whether reporting has already started.",
-          "values": "Not yet issued, or report number with Current, Superseded or Withdrawn status and latest revision/completeness.",
+          "values": "Not yet issued, or report number with its availability badge, Current (green), Superseded (gray) or Withdrawn (red tint), and latest revision/completeness.",
           "rules": "Read-only; supplied by the current record."
         },
         {
