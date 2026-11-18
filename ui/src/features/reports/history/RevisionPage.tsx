@@ -57,7 +57,11 @@ export function RevisionPage() {
         }
         description="Opening this screen is recorded in the audit trail."
         status={
-          availability && <StatusBadge tone={availability.tone}>{availability.label}</StatusBadge>
+          availability && (
+            <StatusBadge tone={availability.tone} variant={availability.variant}>
+              {availability.label}
+            </StatusBadge>
+          )
         }
         breadcrumbs={[list, { label: revisionLabel, href: revisionPath(revisionId) }]}
         sequence={sequence}

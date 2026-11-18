@@ -7,7 +7,7 @@ What changed in OpenBGA Toxicology LIMS, newest release first. Changes not yet i
 release are listed under Unreleased. Within a release, changes are ordered by impact, then
 newest first. The application shows the same list under **What's new**.
 
-## Unreleased (2026-11-12 to 2026-11-17)
+## Unreleased (2026-11-12 to 2026-11-18)
 
 ### High impact
 
@@ -22,6 +22,10 @@ newest first. The application shows the same list under **What's new**.
   - The documentation now describes AGPLv3 section 13 for network use, and the notice states that the product name, OpenBGA and their logos are trademarks of BGASoft Inc. that the license does not grant (section 7(e)).
 
 ### Medium impact
+
+- **Changed:** Find a report by its accession number or any part of its number (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
+
+  **Find** on **Reports** now matches the accession number and any part of the report number, in upper or lower case, not only the start of the report number.
 
 - **Changed:** Incomplete identity intake: required supplied text and readable labels (2026-11-17, [#106](https://github.com/openbga/toxicology-lims/pull/106))
 
@@ -74,6 +78,10 @@ newest first. The application shows the same list under **What's new**.
   The reason is computed when read and never stored, so there is no migration.
 
 ### Low impact
+
+- **Changed:** Report availability has its own color (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
+
+  **Availability** shows **Current** in green, **Superseded** in gray and **Withdrawn** in red, so a withdrawn report stands out in the list and on the report and revision pages.
 
 - **Added:** Clear a chosen value in form dropdowns (2026-11-17, [#110](https://github.com/openbga/toxicology-lims/pull/110))
 

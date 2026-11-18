@@ -3,7 +3,7 @@
     {
       "release": null,
       "from": "2026-11-12",
-      "to": "2026-11-17",
+      "to": "2026-11-18",
       "impacts": [
         {
           "impact": "high",
@@ -23,6 +23,17 @@
         {
           "impact": "medium",
           "entries": [
+            {
+              "id": "2026-11-18-reports-find-accession",
+              "date": "2026-11-18",
+              "type": "changed",
+              "impact": "medium",
+              "title": "Find a report by its accession number or any part of its number",
+              "area": "Reports",
+              "link": "/reports",
+              "pr": 124,
+              "summary": "**Find** on **Reports** now matches the accession number and any part of the report number, in upper or lower case, not only the start of the report number."
+            },
             {
               "id": "2026-11-17-incomplete-intake-form-labels",
               "date": "2026-11-17",
@@ -130,6 +141,17 @@
         {
           "impact": "low",
           "entries": [
+            {
+              "id": "2026-11-18-report-availability-colors",
+              "date": "2026-11-18",
+              "type": "changed",
+              "impact": "low",
+              "title": "Report availability has its own color",
+              "area": "Reports",
+              "link": "/reports",
+              "pr": 124,
+              "summary": "**Availability** shows **Current** in green, **Superseded** in gray and **Withdrawn** in red, so a withdrawn report stands out in the list and on the report and revision pages."
+            },
             {
               "id": "2026-11-17-form-dropdown-clear",
               "date": "2026-11-17",

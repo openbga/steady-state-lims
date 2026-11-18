@@ -1,3 +1,4 @@
+import type { BadgeVariant } from "@/components/StatusBadge";
 import type { Tone } from "@/components/tones";
 import type { ToxOtherTestStatus } from "@/generated/ToxOtherTestStatus";
 import type { Choice } from "@/lib/choices";
@@ -23,10 +24,15 @@ import type {
 // Engine codes in laboratory terms: the one place the reports feature labels them. Delivery
 // status labels are never built here; they come from the engine (REQ-RPT-011).
 
-export const AVAILABILITY: Record<RevisionAvailability, { label: string; tone: Tone }> = {
-  current: { label: "Current", tone: "neutral" },
+// Current is the revision to rely on; Withdrawn must no longer be relied on, but needs no
+// action, so it is a danger tint rather than solid (#4837).
+export const AVAILABILITY: Record<
+  RevisionAvailability,
+  { label: string; tone: Tone; variant?: BadgeVariant }
+> = {
+  current: { label: "Current", tone: "success" },
   superseded: { label: "Superseded", tone: "neutral" },
-  withdrawn: { label: "Withdrawn", tone: "neutral" },
+  withdrawn: { label: "Withdrawn", tone: "danger", variant: "tint" },
 };
 
 export const COMPLETENESS: Record<ReportCompleteness, { label: string; tone: Tone }> = {
