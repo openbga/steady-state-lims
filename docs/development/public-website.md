@@ -51,7 +51,8 @@ where visitors choose their platform's installer and read its release notes. Kee
 the destination independent of versioned asset filenames; [branches and releases](releases.md)
 describes the unsigned development builds and the separate nightly channel.
 The header carries the brand lockup ([product name](packaging.md#product-name-and-compatibility)).
-The footer names OpenBGA Toxicology LIMS as an OpenBGA project and carries one small support
+The footer names OpenBGA Toxicology LIMS as an OpenBGA project, links the OpenBGA project
+list at <https://bgasoft.com/openbga/> and carries one small support
 notice: “Are you looking for support? Contact bgasoft.com.” The domain links to
 <https://bgasoft.com>.
 
