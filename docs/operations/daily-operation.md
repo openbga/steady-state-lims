@@ -46,6 +46,14 @@ for?**, which lists matching patients as you type with each patient's latest ord
 you entered orders for most recently are offered under the box for one click, **Register patient**
 sits under the results, and the detailed searches are folded under **Exact search**.
 
+The order details then follow the paper requisition in two steps. **Requisition** holds the ordering
+source and the authority to test; **Next: Tests** checks the step and moves on. **Tests** holds the
+tests with their sequence role and reflex testing, and buttons for diagnoses, medications,
+point-of-care results and standing authority when the requisition has them. **Back: Requisition**
+keeps everything entered. The **Order summary** beside the form shows what is still missing; **Save
+order** works once it is complete. Order billing is added on the saved order: an empty one is a
+warning, not a block, and **Add order billing** opens it right after saving.
+
 ## Correct identity and order evidence
 
 Open the patient record to review current demographics and identifier history. Quality managers can correct demographics after checking matching candidates and supplying source/reason; order-entry users can add an identifier and quality managers can deactivate one. These actions preserve prior evidence. They do not merge duplicate patients. For unknown or partial DOB, use **Incomplete identity intake**: retain the supplied name, birth evidence, source and reason; later resolve against an explicitly selected verified patient or record a decline. No patient or order is created by the intake record. The list opens on intake awaiting verified identity; **Show** switches to Resolved, Declined or All, each with its count, and **Find** searches the name as supplied and the source reference. Waiting shows how long open intake has waited. An intake opens in the side panel; Refresh reloads it, so a disposition recorded meanwhile shows before another is attempted. A patient chosen to resolve intake shows it under **Identity history** on the patient record: the name and birth information as supplied, and when, by whom and from what source it was resolved, with links to the intake and to its audit trail.

@@ -20,6 +20,16 @@
               "notes": "New audited query `find_order_patients` (order-entry authority; audit action `order.find_patients`, recording only whether find text was used and the counts). No database migration."
             },
             {
+              "id": "2026-11-18-new-order-two-steps",
+              "date": "2026-11-18",
+              "type": "changed",
+              "impact": "high",
+              "title": "Enter a new order in two steps that follow the requisition",
+              "area": "Front desk",
+              "link": "/orders/new",
+              "summary": "The **New order** form is split into two steps. **Requisition** holds the ordering source and the authority to test, with one **Next: Tests**; **Tests** holds the tests, with sequence role and reflex testing on one row and a link to apply the first test's choices to all, and small buttons with counts for diagnoses, medications, point-of-care results, standing authority and order billing. **Back: Requisition** keeps everything entered, an **Order summary** on the right shows what is still missing, and **Save order** works once it is complete. An empty order billing is a warning, not a block; **Add order billing** opens it on the saved order."
+            },
+            {
               "id": "2026-11-17-relicense-agpl-3",
               "date": "2026-11-17",
               "type": "changed",

@@ -46,6 +46,7 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
     : null;
   return (
     <Section title="Ordering source">
+      <p className={styles.hint}>From the top of the requisition: who sent it and who pays.</p>
       <div className={styles.fields}>
         <RecordPickerInput
           name="clientId"

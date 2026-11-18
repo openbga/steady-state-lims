@@ -17,11 +17,14 @@ import { ReviewItems } from "./ReviewItems";
 export function OrderBillingSection({
   orderId,
   subjectId,
+  initiallyOpen = false,
 }: {
   orderId: string;
   subjectId: string;
+  /** Opened at once, as when New order saved the order to add its billing next. */
+  initiallyOpen?: boolean;
 }) {
-  const [opened, setOpened] = useState(false);
+  const [opened, setOpened] = useState(initiallyOpen);
   return (
     <Section title="Order billing">
       {opened ? (

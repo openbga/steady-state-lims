@@ -615,7 +615,7 @@
           "name": "Open order billing / Refresh order billing",
           "does": "Loads or refreshes the selected order’s financial facts and follow-up.",
           "availableWhen": "Order-entry or billing authority is required for patient financial facts, order billing and follow-up. Opening a clinical patient or order record also requires its own access permission.",
-          "result": "Shows the order-specific selection and financial evidence."
+          "result": "Shows the order-specific selection and financial evidence. An order saved from New order with Order billing selected opens with this section already loaded."
         },
         {
           "name": "Confirm order billing selection / Correct order billing selection",

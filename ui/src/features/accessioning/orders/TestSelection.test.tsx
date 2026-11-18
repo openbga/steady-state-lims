@@ -78,4 +78,36 @@ describe("TestSelection (REQ-ORD-003, REQ-ORD-005)", () => {
       },
     ]);
   });
+
+  it("applies the first test's choices to the other tests, keeping each reflex scope", {
+    timeout: WALKTHROUGH_TIMEOUT_MS,
+  }, async () => {
+    mockGridLayout();
+    const onRead = vi.fn();
+    const { user } = renderWithProviders(<Draft onRead={onRead} />);
+    const picker = screen.getByRole("combobox", { name: "Find tests" });
+    await user.type(picker, "SYN-SCR");
+    await user.keyboard("{ArrowDown}{Enter}{Escape}");
+    expect(screen.queryByRole("button", { name: /Apply the first test/ })).toBeNull();
+    await chooseWithKeyboard(user, /Testing sequence role for SYN-SCR/, "Confirmation");
+    await chooseWithKeyboard(user, /Reflex testing for SYN-SCR/, "Not authorized");
+    await user.type(picker, "SYN-CNF");
+    await user.keyboard("{ArrowDown}{Enter}{Escape}");
+    await user.click(
+      screen.getByRole("button", { name: "Apply the first test's choices to all tests" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Read draft" }));
+    expect(onRead).toHaveBeenLastCalledWith([
+      expect.objectContaining({
+        sequenceRole: "confirmation",
+        reflexAuthorization: "not_authorized",
+      }),
+      {
+        orderableVersionId: CONFIRM.id,
+        sequenceRole: "confirmation",
+        reflexAuthorization: "not_authorized",
+        reflexScopeOrderableIds: [],
+      },
+    ]);
+  });
 });

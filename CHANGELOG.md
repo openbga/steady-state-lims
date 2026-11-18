@@ -19,6 +19,10 @@ newest first. The application shows the same list under **What's new**.
 
   New audited query `find_order_patients` (order-entry authority; audit action `order.find_patients`, recording only whether find text was used and the counts). No database migration.
 
+- **Changed:** Enter a new order in two steps that follow the requisition (2026-11-18)
+
+  The **New order** form is split into two steps. **Requisition** holds the ordering source and the authority to test, with one **Next: Tests**; **Tests** holds the tests, with sequence role and reflex testing on one row and a link to apply the first test's choices to all, and small buttons with counts for diagnoses, medications, point-of-care results, standing authority and order billing. **Back: Requisition** keeps everything entered, an **Order summary** on the right shows what is still missing, and **Save order** works once it is complete. An empty order billing is a warning, not a block; **Add order billing** opens it on the saved order.
+
 - **Changed:** The project is licensed under AGPL-3.0-only (2026-11-17, [#112](https://github.com/openbga/toxicology-lims/pull/112))
 
   The application is now licensed under the GNU Affero General Public License version 3 only, with the copyright and trademark notice of BGASoft Inc. and OpenBGA contributors in the README, NOTICE, website, installer metadata and release notes.

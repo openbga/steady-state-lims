@@ -49,7 +49,7 @@ export function TestSelection({ orderables }: { orderables: readonly OrderableVe
   }
 
   return (
-    <Section title="Tests and panels">
+    <Section title="Tests">
       <div ref={selection} className={styles.group}>
         <TestChecklist
           legend="Tests ordered"
@@ -80,9 +80,34 @@ export function TestSelection({ orderables }: { orderables: readonly OrderableVe
               );
             })}
           </ul>
+          {items.fields.length > 1 && <ApplyToAll count={items.fields.length} />}
         </TestChecklist>
       </div>
     </Section>
+  );
+}
+
+/**
+ * Copies the first test's sequence role and reflex testing to the other tests, for a
+ * requisition that states them once for all. Each test's reflex scope stays its own.
+ */
+function ApplyToAll({ count }: { count: number }) {
+  const { getValues, setValue } = useFormContext<OrderFormValues>();
+  function apply() {
+    const [first] = getValues("items");
+    for (let index = 1; index < count; index += 1) {
+      for (const name of ["sequenceRole", "reflexAuthorization"] as const) {
+        setValue(`items.${index}.${name}`, first?.[name] ?? null, { shouldDirty: true });
+      }
+    }
+  }
+  return (
+    <p className={formStyles.hint}>
+      With more than one test:{" "}
+      <Button variant="quiet" onPress={apply}>
+        Apply the first test's choices to all tests
+      </Button>
+    </p>
   );
 }
 

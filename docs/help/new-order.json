@@ -9,7 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "New order begins with the Patient step: Who is the order for? Type part of the name, the birth date or an identifier in the one search box, which has the focus when the page opens; the matching patients are listed as you type. Click a row, or move to it with the arrow keys and press Enter, to go on to Order details. Patients you entered orders for recently are offered under the box for one click. If nobody matches, Register patient sits right under the results, and you come back to New order with the new patient chosen. The exact searches by identifier or by name and birth date stay available under Exact search. Once a patient is chosen, the identity banner remains visible above the order form.",
-        "The form uses configured clients, practitioners and approved tests or panels. For a long catalog, search and add several choices, then complete their required decisions directly below the picker. After saving, review the order record and explicitly accept the request before proceeding to specimen receipt when that action is available."
+        "Order details follow the paper requisition in two steps. Step 1 of 2, Requisition, holds the top of the form (Ordering source: who sent it and who pays) and the bottom (Authority to test); Next: Tests checks the step and moves on. Step 2 of 2, Tests, holds the tests and panels with their sequence role and reflex testing, then the details only some requisitions have, behind small buttons with their counts. Back: Requisition keeps everything entered. The trail at the top shows Patient › Order details › Receive specimens › Finish receipt, and the Order summary on the right ticks off Patient, Ordering source, Authority to test and Tests. After saving, review the order record and explicitly accept the request before proceeding to specimen receipt when that action is available."
       ]
     },
     {
@@ -36,7 +36,11 @@
     "ui/src/features/accessioning/orders/NewOrderPage.tsx",
     "ui/src/features/accessioning/orders/OrderForm.tsx",
     "ui/src/features/accessioning/orders/RequisitionFields.tsx",
-    "ui/src/features/accessioning/orders/EvidenceFields.tsx",
+    "ui/src/features/accessioning/orders/AuthorityFields.tsx",
+    "ui/src/features/accessioning/orders/OptionalDetails.tsx",
+    "ui/src/features/accessioning/orders/OrderSummary.tsx",
+    "ui/src/features/accessioning/orders/OrderSteps.tsx",
+    "ui/src/features/accessioning/orders/orderProgress.ts",
     "ui/src/features/accessioning/orders/DiagnosisList.tsx",
     "ui/src/features/accessioning/orders/MedicationList.tsx",
     "ui/src/features/accessioning/orders/PocResultList.tsx",
@@ -194,7 +198,7 @@
           "name": "Testing sequence role for …",
           "meaning": "The test’s explicit place in the requested sequence.",
           "values": "First-line test; Confirmation.",
-          "rules": "Required for every selected test; initially blank. Shown beside that test’s reflex permission when space permits. Never inferred from a method’s certainty or a panel name."
+          "rules": "Required for every selected test; initially blank. Shown on the same row as that test’s reflex testing when space permits. Never inferred from a method’s certainty or a panel name."
         },
         {
           "name": "Reflex testing for …",
@@ -209,16 +213,40 @@
           "rules": "Shown only when reflex testing is Authorized. Choose only the supplied permitted scope. Selected scope stays visible when searched or filtered and can be removed individually. This records permission; it does not order or perform those reflex tests immediately."
         },
         {
-          "name": "Authority to test",
-          "meaning": "The evidence of the source’s authority or intent to order.",
+          "name": "Authority to test: As supplied",
+          "meaning": "The evidence of the source’s authority or intent to order, from the bottom of the requisition.",
           "values": "Handwritten signature; Electronic signature; Documented intent to order; Not supplied.",
-          "rules": "Required explicit choice. Missing authority can lead to a clarification hold at acceptance."
+          "rules": "Required explicit choice on step 1, Requisition. Missing authority can lead to a clarification hold at acceptance."
         },
         {
-          "name": "Authority document reference",
-          "meaning": "Where the authority evidence can be located.",
+          "name": "Authority to test: Document reference",
+          "meaning": "Where the authority evidence can be located, such as the signed requisition's number.",
           "values": "Source text, up to 1000 characters.",
-          "rules": "Optional in this editor. Do not claim a signature that was not supplied."
+          "rules": "Optional. Do not claim a signature that was not supplied."
+        },
+        {
+          "name": "Order details · step 1 of 2 / step 2 of 2",
+          "meaning": "Which part of the requisition is being entered: Requisition, then Tests.",
+          "values": "Read-only. The current step is highlighted in the step bar below the patient banner.",
+          "rules": "A task position, not a clinical status. Moving between steps never discards entries."
+        },
+        {
+          "name": "Order summary: Patient / Ordering source / Authority to test / Tests",
+          "meaning": "What the order still needs before Save order works.",
+          "values": "Each part shows Done with a check, or To do. Patient is done once the patient is chosen; Ordering source when Client, Ordering practitioner, Received as, Billing responsibility and Template use (with Template name and Confirmed for this patient for a clinic template) are chosen; Authority to test when As supplied is chosen; Tests when at least one test is chosen and each has its sequence role and reflex testing.",
+          "rules": "Read-only. The line below reads Save order works once the required fields are filled in, or All required fields are filled in. The engine checks every entry again when the order is saved."
+        },
+        {
+          "name": "Only if the requisition has them: Diagnoses (n) / Medications (n) / Point-of-care results (n) / Standing authority",
+          "meaning": "Supplied details that many requisitions do not carry, shown as small buttons with the number entered.",
+          "values": "Each button opens its part below: the diagnosis, medication or point-of-care rows with their Add buttons, or the Patient-specific standing order picker.",
+          "rules": "Optional and closed when step 2 opens. A part with entries, or a chosen standing order, stays open so its fields and any error on them stay visible."
+        },
+        {
+          "name": "Order billing (empty)",
+          "meaning": "The order's billing selection, which is added on the saved order.",
+          "values": "A warning, Order billing is empty, while it is not being added; a note, Order billing opens after saving, once Order billing or Add order billing is selected.",
+          "rules": "A warning, not a block: you can save without it, and billing for this order is held until it is added. Billing responsibility on step 1 records what the requisition says; it does not replace the order billing selection."
         },
         {
           "name": "Diagnoses: Code / Code system / Code system version / Source document",
@@ -307,20 +335,50 @@
           "result": "Updates the unsaved request. Other selected tests and their details remain. Searching or changing Show alone never removes a choice. Focus returns to the selection control."
         },
         {
+          "name": "Next: Tests",
+          "does": "Checks step 1, Requisition, and moves on to step 2, Tests. Enter in a field of step 1 does the same.",
+          "availableWhen": "On step 1.",
+          "result": "When a required choice is missing, step 1 stays open with each missing field marked; otherwise step 2 opens and its heading takes the focus."
+        },
+        {
+          "name": "Back: Requisition",
+          "does": "Returns to step 1.",
+          "availableWhen": "On step 2, while the order is not being saved.",
+          "result": "Step 1 shows every value entered; the tests and details of step 2 are kept too."
+        },
+        {
+          "name": "Apply the first test's choices to all tests",
+          "does": "Copies the first chosen test's sequence role and reflex testing to the other chosen tests.",
+          "availableWhen": "On step 2 with more than one test chosen.",
+          "result": "Each test keeps its own reflex scope; change any test afterwards as the requisition states it."
+        },
+        {
+          "name": "Diagnoses / Medications / Point-of-care results / Standing authority (buttons)",
+          "does": "Opens or closes that optional part of step 2.",
+          "availableWhen": "On step 2. A part with entries stays open.",
+          "result": "Shows the part's rows and Add button, or the standing order picker."
+        },
+        {
+          "name": "Order billing / Add order billing",
+          "does": "Marks the order to have its billing added right after saving.",
+          "availableWhen": "On step 2. Order billing is a toggle; Add order billing is in the empty-billing warning.",
+          "result": "After Save order or Review and receive specimens, the saved order opens with its Order billing section open, ready to confirm the billing selection. Selecting Order billing again undoes this."
+        },
+        {
           "name": "Save order",
           "does": "Records the request and supplied evidence.",
-          "availableWhen": "Order-entry authority, a patient selected and required fields valid.",
-          "result": "Opens the saved order in Received, not yet accepted state."
+          "availableWhen": "On step 2, with order-entry authority, once the Order summary shows every part done.",
+          "result": "Opens the saved order in Received, not yet accepted state. If the application refuses a field of step 1, step 1 opens with the field's error."
         },
         {
           "name": "Review and receive specimens",
           "does": "Saves the request and enters the review-to-receiving flow.",
-          "availableWhen": "Accessioning authority in addition to order-entry authority.",
+          "availableWhen": "On step 2, once the Order summary shows every part done; accessioning authority in addition to order-entry authority.",
           "result": "Opens the saved order for explicit acceptance; it does not automatically accept the request or receive material."
         },
         {
           "name": "Cancel",
-          "does": "Closes the current unsaved editor or pending action dialog.",
+          "does": "Leaves order entry. In the Order summary on the right.",
           "availableWhen": "While the form is not saving.",
           "result": "Leaves order entry; the full-page unsaved-changes guard asks before discarding a changed order."
         }
@@ -334,8 +392,9 @@
       ],
       "workflow": [
         "Find the patient by name, birth date or identifier, or pick a recent patient; register the patient when nobody matches. Then verify the identity banner.",
-        "Choose the ordering source and record the request. For a long catalog, use Find tests and Show to add only the requested tests or panels; you can type the next code immediately after choosing an item.",
-        "Review Chosen tests against the source. Set each test’s explicit sequence role and reflex permission, choose any authorized reflex scope, and add source evidence where supplied.",
+        "Step 1, Requisition: choose the ordering source from the top of the requisition and the authority to test from the bottom, then select Next: Tests.",
+        "Step 2, Tests: add only the requested tests or panels (for a long catalog, use Find tests and Show; you can type the next code immediately after choosing an item). Review Chosen tests against the source, set each test’s explicit sequence role and reflex permission, and choose any authorized reflex scope.",
+        "Open Diagnoses, Medications, Point-of-care results or Standing authority only when the requisition supplies them. Select Order billing to add the order's billing right after saving, or save without it.",
         "Save order or Review and receive specimens, then review the saved request before acceptance."
       ],
       "troubleshooting": [

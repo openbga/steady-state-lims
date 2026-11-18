@@ -108,6 +108,19 @@ describe("OrderDetailPage (REQ-ORD-001, REQ-ORD-005)", { timeout: WALKTHROUGH_TI
     await expectNoA11yViolations(container, { wholePage: true });
   });
 
+  it("opens order billing at once when New order saved the order to add it", async () => {
+    const getBilling = vi.fn(() => new Promise(() => {}));
+    renderPage(
+      ORDER,
+      { get_order_billing: getBilling },
+      ["enter_orders"],
+      `/orders/${ORDER_ID}?billing=open`,
+    );
+    expect(await screen.findByRole("button", { name: "Refresh order billing" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Open order billing" })).toBeNull();
+    expect(getBilling).toHaveBeenCalledWith({ input: { orderId: ORDER_ID } });
+  });
+
   it("says a legacy item's sequence role was not recorded instead of assuming one", async () => {
     renderPage({
       ...ORDER,
