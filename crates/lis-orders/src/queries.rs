@@ -8,6 +8,7 @@ use rusqlite::{Connection, OptionalExtension, Row};
 use serde::Serialize;
 use ts_rs::TS;
 
+use crate::acceptance::acceptance_blockers;
 use crate::error::OrderError;
 use crate::model::{OrderComponentId, OrderId, OrderItemId};
 use crate::query_detail::{
@@ -171,6 +172,7 @@ pub fn get_order(conn: &Connection, order_id: OrderId) -> Result<OrderDetail, Or
                     cancellations: Vec::new(),
                     trigger_assessments: Vec::new(),
                     allowed_actions: Vec::new(),
+                    acceptance_blockers: Vec::new(),
                 })
             },
         )
@@ -183,6 +185,8 @@ pub fn get_order(conn: &Connection, order_id: OrderId) -> Result<OrderDetail, Or
     detail.cancellations = cancellations(conn, order_id)?;
     detail.trigger_assessments = trigger_assessments(conn, order_id)?;
     detail.allowed_actions = allowed_actions(&detail);
+    detail.acceptance_blockers =
+        acceptance_blockers(conn, order_id, detail.status, detail.standing_order_id)?;
     Ok(detail)
 }
 

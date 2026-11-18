@@ -279,6 +279,7 @@ export const ORDER: OrderDetail = {
   cancellations: [],
   triggerAssessments: [],
   allowedActions: ["amend_evidence", "accept", "reject", "place_hold"],
+  acceptanceBlockers: [],
 };
 
 export function container(overrides: Partial<ContainerView> = {}): ContainerView {

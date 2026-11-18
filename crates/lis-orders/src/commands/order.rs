@@ -5,6 +5,7 @@ use lis_core::Capability;
 use lis_store::CommandContext;
 use rusqlite::{OptionalExtension, params};
 
+use crate::acceptance::{has_active_authority, has_legacy_item, standing_order_deficiency};
 use crate::error::OrderError;
 use crate::inputs::{
     AcceptOrderInput, CreateBillingReviewItemInput, PlaceClarificationHoldInput,
@@ -16,8 +17,8 @@ use crate::{BillingReviewItemId, OrderId, OrderItemId, OrderStatus};
 use super::evidence::insert_evidence;
 use super::order_support::{
     apply_authority_hold, apply_standing_hold, ensure_no_open_holds, ensure_order_revision,
-    freeze_components, has_active_authority, insert_hold, insert_registered_order,
-    load_acceptance_state, load_order_state, standing_order_deficiency,
+    freeze_components, insert_hold, insert_registered_order, load_acceptance_state,
+    load_order_state,
 };
 use super::validation::{
     active_orderable, optional, reason, validate_references, validate_registration,
@@ -90,22 +91,17 @@ pub fn accept_order(
 ) -> Result<crate::OrderDetail, OrderError> {
     ctx.require(Capability::EnterOrders)?;
     let (revision, standing_order_id) = load_acceptance_state(ctx, &input)?;
-    let legacy_item: bool = ctx.tx().query_row(
-        "SELECT EXISTS(SELECT 1 FROM ord_order_items \
-         WHERE order_id = ?1 AND state = 'requested' AND sequence_role IS NULL)",
-        [input.order_id],
-        |row| row.get(0),
-    )?;
-    if legacy_item {
+    if has_legacy_item(ctx.tx(), input.order_id)? {
         return Err(OrderError::LegacySequenceRoleMissing);
     }
-    if !has_active_authority(ctx, input.order_id)? {
+    if !has_active_authority(ctx.tx(), input.order_id)? {
         apply_authority_hold(ctx, input.order_id, revision)?;
         return get_order(ctx.tx(), input.order_id);
     }
     ensure_no_open_holds(ctx, input.order_id)?;
     if let Some(standing_order_id) = standing_order_id
-        && let Some(deficiency) = standing_order_deficiency(ctx, input.order_id, standing_order_id)?
+        && let Some(deficiency) =
+            standing_order_deficiency(ctx.tx(), input.order_id, standing_order_id)?
     {
         apply_standing_hold(ctx, input.order_id, revision, deficiency)?;
         return get_order(ctx.tx(), input.order_id);
