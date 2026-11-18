@@ -205,6 +205,9 @@ jobs:
           else
             python3 scripts/check_repository_metadata.py --full
           fi
+      # Entries are Markdown, so they select these checks; see .ai/skills/changelog-entry/SKILL.md.
+      - name: CHANGELOG.md and What's new match changelog.d
+        run: python3 scripts/changelog.py --check
       - name: Check selection and metadata regression tests
         if: needs.select.outputs.tooling == 'true'
         run: python3 -m unittest discover -s scripts -p 'test_*.py'

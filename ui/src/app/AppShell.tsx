@@ -8,6 +8,7 @@ import { ListenerSummary } from "@/features/listeners/ListenerStatus";
 import { HealthIndicator } from "@/features/operations/frame/HealthIndicator";
 import { OperationsBanners } from "@/features/operations/frame/OperationsBanners";
 import { StarterBanner } from "@/features/starter/StarterBanner";
+import { WhatsNewLink } from "@/features/whats-new/WhatsNewLink";
 import type { LaboratoryProfileView } from "@/generated/LaboratoryProfileView";
 import type { SessionInfo } from "@/generated/SessionInfo";
 import { GET_LABORATORY_PROFILE, useCommandQuery } from "@/lib/commands";
@@ -24,10 +25,10 @@ const PageHelp = lazy(() => import("./help/PageHelp").then((m) => ({ default: m.
 
 /**
  * The signed-in frame: a skip link, the top bar, notices every person must see, the side
- * navigation and the screen. The top bar shows the host's health, one analyzer summary, the
- * scan field (for people who look up containers) and the user menu. Every screen shows times
- * in the laboratory's time zone; until a profile names one, they show in UTC and the frame
- * says so. Banners (an open recovery reconciliation, an unaccepted version) sit under the top
+ * navigation and the screen. The top bar shows the scan field (for people who look up
+ * containers), What's new, page help, the host's health, one analyzer summary and the user
+ * menu. Every screen shows times in the laboratory's time zone; until a profile names one,
+ * they show in UTC and the frame says so. Banners (an open recovery reconciliation, an unaccepted version) sit under the top
  * bar. Showing or hiding a control is presentation; the engine checks every command. State
  * kept for the signed-in person only, such as Container lookup's recent lookups, lives in
  * this frame, which unmounts on sign-out and on lock.
@@ -64,6 +65,7 @@ export function AppShell({ session }: { session: SessionInfo }) {
             <BrandLockup />
             {session.capabilities.includes("accession") && <ScanField />}
             <div className={styles.topBarEnd}>
+              <WhatsNewLink userId={session.userId} />
               <PageHelpButton
                 buttonRef={helpTrigger}
                 open={helpOpen}
