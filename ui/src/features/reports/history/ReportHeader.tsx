@@ -67,7 +67,7 @@ type OpenDialog = "export" | "add" | "withdraw" | null;
  * Export PDF of the current revision is the one main button. Preparing the next revision and
  * adding a destination sit in More actions, with Withdraw report last, below a line, in
  * danger text, each only when the engine's `allowedActions` names it; the engine still
- * decides. An earlier revision is exported from its own page.
+ * decides. An earlier revision is exported from the Preview tab or its own page.
  */
 export function ReportActions({ report }: { report: ReportDetail }) {
   const navigate = useNavigate();

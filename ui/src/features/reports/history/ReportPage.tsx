@@ -24,9 +24,10 @@ import { reportPath } from "../paths";
 import { ExportsSection } from "./ExportsSection";
 import { ImpactSection } from "./ImpactSection";
 import { IncidentsSection } from "./IncidentsSection";
+import { PreviewTab } from "./PreviewTab";
 import { currentOf, ReportActions, ReportChips, shownRevision } from "./ReportHeader";
 import { ReportSummary } from "./ReportSummary";
-import { PreviewTab, ResultsTab, resultCount } from "./ResultsTab";
+import { ResultsTab, resultCount } from "./ResultsTab";
 import { RevisionsSection } from "./RevisionsSection";
 
 /** Where the breadcrumb leads when the report was not opened from a list. */
@@ -118,7 +119,7 @@ function ReportHistory({ report }: { report: ReportDetail }) {
         routerOptions={keep}
       >
         {tab === "results" && <ResultsTab revision={revision} isReleased={shown !== undefined} />}
-        {tab === "preview" && <PreviewTab revision={revision} isReleased={shown !== undefined} />}
+        {tab === "preview" && <PreviewTab report={report} shown={shown} revision={revision} />}
         {tab === "delivery" && (
           <DeliverySection obligations={report.obligations} addTo={addDestinationTo(report)} />
         )}

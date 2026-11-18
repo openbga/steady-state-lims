@@ -7,7 +7,6 @@ import type { CommandError } from "@/generated/CommandError";
 import type { ToxReportData } from "@/generated/ToxReportData";
 import type { ToxResultRow } from "@/generated/ToxResultRow";
 import styles from "@/styles/layout.module.css";
-import { ReportContent } from "../content/ReportContent";
 import type { RevisionDetail } from "../contract";
 import { OTHER_TEST_STATUS } from "../labels";
 
@@ -75,21 +74,6 @@ export function ResultsTab({ revision, isReleased }: ResultsTabProps) {
       {isReleased ? (
         <QueryContent query={revision} what="report results">
           {(loaded) => <Results content={loaded.content} />}
-        </QueryContent>
-      ) : (
-        <p className={styles.hint}>No revision released yet.</p>
-      )}
-    </Section>
-  );
-}
-
-/** The revision exactly as the PDF prints it, from the same data (REQ-RPT-001). */
-export function PreviewTab({ revision, isReleased }: ResultsTabProps) {
-  return (
-    <Section title="Preview">
-      {isReleased ? (
-        <QueryContent query={revision} what="report content">
-          {(loaded) => <ReportContent content={loaded.content} />}
         </QueryContent>
       ) : (
         <p className={styles.hint}>No revision released yet.</p>

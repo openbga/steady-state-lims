@@ -1,7 +1,8 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/lib/test/a11y";
 import { mockCommands } from "@/lib/test/ipc";
+import { chooseWithKeyboard } from "@/lib/test/keyboard";
 import { mockGridLayout } from "@/lib/test/layout";
 import { renderRoutes } from "@/lib/test/router";
 import type { ObligationView, ReportDetail } from "../contract";
@@ -10,6 +11,7 @@ import {
   OBLIGATION,
   REPORT,
   REPORT_ID,
+  REVISION,
   REVISION_DETAIL,
   REVISION_ID,
   sessionWith,
@@ -101,14 +103,6 @@ describe("Report page tabs (#4834)", () => {
   it("says when impact after release does not apply", async () => {
     renderPage({ ...REPORT, impact: null }, "impact");
     expect(await screen.findByText(/^Not applicable: only a current revision/)).toBeTruthy();
-  });
-
-  it("previews the revision with the content the PDF is rendered from", async () => {
-    renderPage(REPORT, "preview");
-    const article = await screen.findByRole("article", {
-      name: "Printed content of report A26000001-URN",
-    });
-    expect(article.textContent).toContain("Synthetic Toxicology Laboratory");
   });
 });
 
@@ -203,5 +197,95 @@ describe("Report page Delivery tab (#4835)", () => {
     renderPage({ ...report, allowedActions: [] }, "delivery");
     await screen.findByRole("grid", { name: "Delivery obligations" });
     expect(screen.queryByRole("button", { name: "Add destination" })).toBeNull();
+  });
+});
+
+const SECOND_ID = "00000000-0000-7000-8000-00000000e002";
+
+/** Revision 1, superseded by the correction, revision 2, now current. */
+const CORRECTED: ReportDetail = {
+  ...REPORT,
+  revisions: [
+    { ...REVISION, availability: "superseded" },
+    {
+      ...REVISION,
+      revisionId: SECOND_ID,
+      revisionNo: 2,
+      relationship: "correction",
+      releasedAt: "2026-10-13T09:20:00Z",
+    },
+  ],
+};
+
+/** Each revision's content names its number, so the test can tell which one is shown. */
+const readRevision = (args: unknown) => {
+  const second = JSON.stringify(args).includes(SECOND_ID);
+  return {
+    ...REVISION_DETAIL,
+    summary: second ? CORRECTED.revisions[1] : CORRECTED.revisions[0],
+    content: {
+      ...REVISION_DETAIL.content,
+      report: { ...REVISION_DETAIL.content.report, revision: second ? "2" : "1" },
+    },
+  };
+};
+
+const shownRevisionNumber = async () => {
+  const article = await screen.findByRole("article", {
+    name: "Printed content of report A26000001-URN",
+  });
+  const revision = within(article).getByText("Revision").nextElementSibling;
+  return revision?.textContent;
+};
+
+describe("Report page Preview tab (#4836)", () => {
+  beforeEach(mockGridLayout);
+
+  it("shows the current revision as printed, exported only from the header", async () => {
+    const read = vi.fn(readRevision);
+    const { container } = renderPage(CORRECTED, "preview", { get_report_revision: read });
+    expect(await shownRevisionNumber()).toBe("2");
+    expect(read).toHaveBeenCalledWith({ input: { revisionId: SECOND_ID } });
+    expect(screen.getByRole("button", { name: /Showing$/ }).textContent).toContain(
+      "Revision 2 (current)",
+    );
+    expect(screen.getByText("Export PDF at the top exports the current revision.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^Export revision/ })).toBeNull();
+    expect(screen.queryByText("Superseded")).toBeNull();
+    await expectNoA11yViolations(container, { wholePage: true });
+  });
+
+  it("shows an earlier revision with what replaced it, and exports that revision", async () => {
+    const read = vi.fn(readRevision);
+    const exportPdf = vi.fn(() => ({ fileName: "A26000001-URN-r1.pdf", folder: "downloads" }));
+    const { user, router } = renderPage(CORRECTED, "preview", {
+      get_report_revision: read,
+      export_report_pdf: exportPdf,
+    });
+    await shownRevisionNumber();
+    await chooseWithKeyboard(user, /Showing$/, "Revision 1 (superseded)");
+    expect(router.state.location.search).toBe("?revision=1");
+    await waitFor(async () => expect(await shownRevisionNumber()).toBe("1"));
+    // Reading an earlier revision is the audited revision read.
+    expect(read).toHaveBeenCalledWith({ input: { revisionId: REVISION_ID } });
+    expect(screen.getByText("Superseded").closest("[data-tone]")).toBeTruthy();
+    const notice = screen.getByRole("alert");
+    expect(notice.textContent).toMatch(
+      /^You are viewing revision 1, which was replaced by revision 2 \(Correction\) on .+\. Show current revision$/,
+    );
+    await user.click(screen.getByRole("button", { name: "Export revision 1" }));
+    const dialog = await screen.findByRole("dialog", {
+      name: "Export PDF of A26000001-URN revision 1",
+    });
+    await chooseWithKeyboard(user, /Purpose/, "For the laboratory's records");
+    await user.click(within(dialog).getByRole("button", { name: "Export PDF" }));
+    expect(exportPdf).toHaveBeenCalledWith({
+      input: { revisionId: REVISION_ID, purpose: "records" },
+    });
+    // The header still exports the current revision.
+    expect(screen.getByRole("button", { name: "Export PDF (revision 2, current)" })).toBeTruthy();
+    await user.click(within(notice).getByRole("link", { name: "Show current revision" }));
+    expect(router.state.location.search).toBe("");
+    await waitFor(async () => expect(await shownRevisionNumber()).toBe("2"));
   });
 });

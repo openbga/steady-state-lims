@@ -9,7 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "Open a report from Reports to see its results, its printed content, delivery obligations and attempts, revision history, exports, and any impact assessment or preservation incident, each on its own tab under the summary. Results is the tab shown first. Open a revision to inspect the content exactly as issued and its recorded provenance.",
-        "Status chips under the title show availability, completeness, the revision and delivery; the Summary card under the patient banner shows the client, practitioner, specimen, tests, collection, release, last export and impact after release. Export PDF (revision N, current) is the main button; Prepare next revision, Add destination and Withdraw report are in More actions when permitted. Impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, open it and use its Export PDF. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
+        "Status chips under the title show availability, completeness, the revision and delivery; the Summary card under the patient banner shows the client, practitioner, specimen, tests, collection, release, last export and impact after release. Export PDF (revision N, current) is the main button; Prepare next revision, Add destination and Withdraw report are in More actions when permitted. Impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, choose it on the Preview tab and use Export revision N. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
       ]
     },
     {
@@ -47,6 +47,7 @@
     "ui/src/features/reports/history/ReportHeader.tsx",
     "ui/src/features/reports/history/ReportSummary.tsx",
     "ui/src/features/reports/history/ResultsTab.tsx",
+    "ui/src/features/reports/history/PreviewTab.tsx",
     "ui/src/components/Tabs/Tabs.tsx",
     "ui/src/features/workqueues/itemPath.ts",
     "crates/lis-reporting/src/queries/overview.rs",
@@ -266,10 +267,22 @@
           "rules": "Read-only and taken from the revision's stored content, the same data the PDF is rendered from; values are never reformatted. Meets cutoff is a neutral grey badge; the other comparisons are plain text. Results are never colored as positive or negative: only flags from the laboratory's rules color a result. A withdrawn report shows its last revision. Opening the tab reads the revision, which is recorded in the audit trail; damaged stored content shows an error instead."
         },
         {
-          "name": "Preview",
-          "meaning": "Shows the revision's printed content as the PDF prints it: report, laboratory, patient and order, specimen, results and validity.",
-          "values": "The engine's printed text for each part.",
-          "rules": "Read-only; the same audited revision read as Results. The PDF itself is saved with Export PDF."
+          "name": "Preview: Showing",
+          "meaning": "Chooses which released revision the Preview tab shows.",
+          "values": "Every released revision, newest first, as Revision N (current), (superseded) or (withdrawn). Defaults to the current revision, or to the last revision of a withdrawn report.",
+          "rules": "The choice is kept in the address as ?revision=N, so reload and Back show the same revision; choosing the default removes it. Reading a revision is recorded in the audit trail. The revision's own page, opened from the Revisions tab, still shows its provenance and digests."
+        },
+        {
+          "name": "Preview: content",
+          "meaning": "Shows the chosen revision's printed content as the PDF prints it: report, changes in a correction, laboratory, patient and order, specimen, results, tests not reported and validity.",
+          "values": "The engine's printed text for each part, exactly as issued.",
+          "rules": "Read-only; from the revision's stored content, the same data the PDF is rendered from. The PDF itself is saved with Export PDF or Export revision N. Damaged stored content shows an error instead."
+        },
+        {
+          "name": "Preview: Superseded badge and notice",
+          "meaning": "Warns that the revision on screen is not the current one.",
+          "values": "A Superseded (or Withdrawn) badge beside the picker; for a superseded revision, a warning such as You are viewing revision 1, which was replaced by revision 2 (Correction) on 2026-11-17 10:20, with a Show current revision link.",
+          "rules": "Shown only when the chosen revision is not current. Show current revision returns the picker to the current revision; it is not offered when the report is withdrawn. Do not use an earlier revision's content as the current result."
         },
         {
           "name": "Revisions: Revision / Kind",
@@ -427,7 +440,13 @@
           "name": "Export PDF (revision N, current)",
           "does": "Opens Export PDF for the current revision N, where you choose the purpose and select Export PDF.",
           "availableWhen": "The report has a current revision (not withdrawn). The engine still requires report-delivery authority and an intact stored file; a refusal is shown in the dialog.",
-          "result": "Saves the exact issued PDF to Downloads, records the export in the audit trail and adds it to PDF exports. No attempt or delivery is recorded. To export a superseded or withdrawn revision, open that revision and use its Export PDF."
+          "result": "Saves the exact issued PDF to Downloads, records the export in the audit trail and adds it to PDF exports. No attempt or delivery is recorded. It always exports the current revision, whichever revision the Preview tab shows. To export a superseded or withdrawn revision, use Export revision N on the Preview tab or Export PDF on that revision's page."
+        },
+        {
+          "name": "Export revision N",
+          "does": "On the Preview tab, opens Export PDF of <report> revision N for the revision shown, where you choose the purpose and select Export PDF.",
+          "availableWhen": "The Preview tab shows a revision that is not current (superseded, or the last revision of a withdrawn report). Not shown for the current revision: Export PDF at the top exports it. The engine still requires report-delivery authority and an intact stored file.",
+          "result": "Saves that revision's exact issued PDF to Downloads and adds it to PDF exports as Revision N (superseded) or (withdrawn). No attempt or delivery is recorded."
         },
         {
           "name": "More actions",
