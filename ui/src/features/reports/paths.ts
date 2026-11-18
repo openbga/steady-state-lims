@@ -5,6 +5,10 @@ const segment = encodeURIComponent;
 
 export const reportPath = (reportId: string) => `/reports/${segment(reportId)}`;
 
+/** One tab of a report's page, such as its delivery or preservation incidents. */
+export const reportTabPath = (reportId: string, tab: "delivery" | "incidents") =>
+  `${reportPath(reportId)}/${tab}`;
+
 export const revisionPath = (revisionId: string) => `/reports/revisions/${segment(revisionId)}`;
 
 /** A specimen's report workspace. */

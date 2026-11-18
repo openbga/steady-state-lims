@@ -23,11 +23,11 @@ describe("itemTarget (REQ-OPS-004)", () => {
     // Under "All open", so a failed, blocked or paused obligation shows too.
     ["obligation", ID, `/delivery?filter=all&open=${ID}`, ID],
     ["delivery_destination", ID, `/configuration/destinations?open=${ID}`, ID],
-    ["preservation_incident", `${ID}:${OTHER}`, `/reports/${ID}?incidentId=${OTHER}`, ID],
+    ["preservation_incident", `${ID}:${OTHER}`, `/reports/${ID}/incidents?incidentId=${OTHER}`, ID],
     [
       "preservation_incident",
       `${ID}:revision:${OTHER}`,
-      `/reports/${ID}?preservationRevisionId=${OTHER}`,
+      `/reports/${ID}/incidents?preservationRevisionId=${OTHER}`,
       ID,
     ],
     ["deviation", ID, `/quality/deviations/${ID}`, ID],

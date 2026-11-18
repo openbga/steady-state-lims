@@ -21,11 +21,17 @@ const currentOf = (report: ReportDetail) =>
   report.revisions.find((each) => each.availability === "current");
 
 /**
+ * The revision the report page shows by default: the current one, or the last one of a
+ * withdrawn report; `undefined` before the first release.
+ */
+export const shownRevision = (report: ReportDetail) => currentOf(report) ?? report.revisions.at(-1);
+
+/**
  * Delivery in one chip: obligations handed off out of those still owed. A closed obligation
  * (redirected, or closed with a reason) is owed no longer and is left out. Green once every
  * owed obligation is handed off, warning while any is open; `null` when none is owed.
- * "Handed off" is staff attestation, never proof of receipt, so the chip never says
- * "Delivered".
+ * "Handed off" is staff attestation, never proof of receipt, so the chip never claims
+ * receipt (REQ-RPT-011).
  */
 export function deliveryChip(obligations: readonly ObligationView[]) {
   const owed = obligations.filter((each) => each.status.code !== "closed");

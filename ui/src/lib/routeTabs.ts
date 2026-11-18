@@ -4,6 +4,8 @@ import { useParams } from "react-router";
 interface RouteTab<Id extends string> {
   id: Id;
   label: string;
+  /** How many records the tab holds, shown after its label. */
+  count?: number | undefined;
 }
 
 /**
@@ -19,11 +21,14 @@ interface RouteTab<Id extends string> {
 export function useRouteTabs<const Id extends string>(
   basePath: string,
   tabs: readonly [RouteTab<Id>, ...RouteTab<Id>[]],
-): { selectedId: Id; tabs: { id: Id; label: string; href: string }[] } {
+): {
+  selectedId: Id;
+  tabs: { id: Id; label: string; href: string; count?: number | undefined }[];
+} {
   const { tab } = useParams();
   const selected = tabs.find(({ id }) => id === tab) ?? tabs[0];
   return {
     selectedId: selected.id,
-    tabs: tabs.map(({ id, label }) => ({ id, label, href: `${basePath}/${id}` })),
+    tabs: tabs.map(({ id, label, count }) => ({ id, label, count, href: `${basePath}/${id}` })),
   };
 }

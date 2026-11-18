@@ -74,7 +74,8 @@ Never stack two growing grids. They create nested scrollbars and push the second
 
 **Tabs split one subject.** Use `Tabs` only for peer views of one record or one subject, which a person uses one at a time. Examples: a method's Content and Versions, or the Targets, Runs and Restore tests of backups.
 
-- Use at most 6 tabs. The first holds the main task (ENG-160, ENG-163, ENG-168).
+- Use at most 6 tabs. The first holds the main task (ENG-160, ENG-163, ENG-168). A seventh tab is allowed only for exception records that exist on few subjects, and it is shown only while there is one, such as a report's Incidents tab for preservation incidents (ENG-163 allows 7).
+- A tab that lists records shows their count after its label, such as "Delivery 3". A tab that is no list, such as a preview, has no count.
 - Each tab has its own URL, so Back, reload and links work.
 - Never use tabs for steps done in order (use a task flow), or for content people compare side by side (show it together).
 - A grid inside a tab follows the one-scrolling-grid rule.
