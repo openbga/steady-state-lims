@@ -7,7 +7,7 @@ What changed in OpenBGA Toxicology LIMS, newest release first. Changes not yet i
 release are listed under Unreleased. Within a release, changes are ordered by impact, then
 newest first. The application shows the same list under **What's new**.
 
-## Unreleased (2026-11-12 to 2026-11-17)
+## Unreleased (2026-11-12 to 2026-11-18)
 
 ### High impact
 
@@ -22,6 +22,14 @@ newest first. The application shows the same list under **What's new**.
   - The documentation now describes AGPLv3 section 13 for network use, and the notice states that the product name, OpenBGA and their logos are trademarks of BGASoft Inc. that the license does not grant (section 7(e)).
 
 ### Medium impact
+
+- **Added:** A summary of the report on the report page (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
+
+  The report page has a **Summary** with the client, ordering practitioner, specimen, tests, collection time, release, last export and **Impact after release**, shown as **Nothing open** or the number of open items. The patient banner links to the accession and, for people who enter orders, to the order with **View order**.
+
+- **Changed:** The report page shows its status under the title and keeps one main button (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
+
+  Under a report's title, chips show its availability, **Final** or **Partial**, the revision and its type, and **Handed off X of Y** for delivery. **Export PDF** is the only main button; **Prepare next revision**, **Add destination** and **Withdraw report** are under **More actions**, with Withdraw report last.
 
 - **Changed:** Incomplete identity intake: required supplied text and readable labels (2026-11-17, [#106](https://github.com/openbga/toxicology-lims/pull/106))
 

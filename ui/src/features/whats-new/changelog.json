@@ -3,7 +3,7 @@
     {
       "release": null,
       "from": "2026-11-12",
-      "to": "2026-11-17",
+      "to": "2026-11-18",
       "impacts": [
         {
           "impact": "high",
@@ -23,6 +23,26 @@
         {
           "impact": "medium",
           "entries": [
+            {
+              "id": "2026-11-18-report-summary-card",
+              "date": "2026-11-18",
+              "type": "added",
+              "impact": "medium",
+              "title": "A summary of the report on the report page",
+              "area": "Reports",
+              "pr": 125,
+              "summary": "The report page has a **Summary** with the client, ordering practitioner, specimen, tests, collection time, release, last export and **Impact after release**, shown as **Nothing open** or the number of open items. The patient banner links to the accession and, for people who enter orders, to the order with **View order**."
+            },
+            {
+              "id": "2026-11-18-report-page-header",
+              "date": "2026-11-18",
+              "type": "changed",
+              "impact": "medium",
+              "title": "The report page shows its status under the title and keeps one main button",
+              "area": "Reports",
+              "pr": 125,
+              "summary": "Under a report's title, chips show its availability, **Final** or **Partial**, the revision and its type, and **Handed off X of Y** for delivery. **Export PDF** is the only main button; **Prepare next revision**, **Add destination** and **Withdraw report** are under **More actions**, with Withdraw report last."
+            },
             {
               "id": "2026-11-17-incomplete-intake-form-labels",
               "date": "2026-11-17",
