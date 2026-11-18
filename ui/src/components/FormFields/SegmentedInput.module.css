@@ -1,0 +1,49 @@
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* The options joined into one bordered row; they wrap on narrow windows. */
+.segments {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-self: flex-start;
+  max-width: 100%;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.segment {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  border-inline-start: 1px solid var(--color-border-control);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.segment:first-child {
+  border-inline-start: 0;
+}
+
+.segment[data-hovered] {
+  background: var(--color-surface-sunken);
+}
+
+.segment[data-selected] {
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.segment[data-focus-visible] {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+[data-invalid] > .segments {
+  border-color: var(--tone-danger-border);
+}

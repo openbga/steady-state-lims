@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useContext, useRef } from "react";
 import { FormValidationContext } from "react-aria-components";
 import {
@@ -8,7 +9,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { Button } from "@/components/Button";
-import { ChoiceInput } from "@/components/FormFields";
+import { SegmentedInput } from "@/components/FormFields";
 import { Inset } from "@/components/Inset";
 import { Section } from "@/components/Section";
 import type { OrderableVersionView } from "@/generated/OrderableVersionView";
@@ -139,22 +140,28 @@ function ReflexFields({
     <Inset as="fieldset">
       <legend className={styles.legend}>{title}</legend>
       <div className={formStyles.selectedFields}>
-        <ChoiceInput
+        <SegmentedInput
           name={`items.${index}.sequenceRole`}
-          label={`Testing sequence role for ${title}`}
+          label="Sequence role"
+          hiddenSuffix={` for ${title}`}
           options={SEQUENCE_ROLES}
-          description="As the requisition states it."
+          tip={
+            <p>
+              The test's place in the testing sequence, as the requisition states it. Never inferred
+              from the test or the panel name.
+            </p>
+          }
           isRequired
         />
-        <ChoiceInput
+        <SegmentedInput
           name={`items.${index}.reflexAuthorization`}
-          label={`Reflex testing for ${title}`}
+          label="Reflex testing"
+          hiddenSuffix={` for ${title}`}
           options={REFLEX_AUTHORIZATIONS}
-          description="As the requisition states it."
           isRequired
         />
         <Button variant="quiet" aria-label={`Remove ${title}`} onPress={onRemove}>
-          Remove
+          <X aria-hidden="true" />
         </Button>
       </div>
       {authorization === "authorized" && (

@@ -5,7 +5,14 @@ import type { ClientView } from "@/generated/ClientView";
 import { expectNoA11yViolations } from "@/lib/test/a11y";
 import { openRowWithEnter } from "@/lib/test/grid";
 import { engineError, mockCommands } from "@/lib/test/ipc";
-import { chooseWithKeyboard, tabTo, typeInto, WALKTHROUGH_TIMEOUT_MS } from "@/lib/test/keyboard";
+import {
+  chooseSegment,
+  chooseWithKeyboard,
+  expectChosen,
+  tabTo,
+  typeInto,
+  WALKTHROUGH_TIMEOUT_MS,
+} from "@/lib/test/keyboard";
 import { mockGridLayout } from "@/lib/test/layout";
 import { pickRecord } from "@/lib/test/picker";
 import { renderRoutes } from "@/lib/test/router";
@@ -67,10 +74,10 @@ async function fillRequisition(user: UserEvent) {
   await screen.findByRole("combobox", { name: /^Client/ });
   await pickRecord(user, /^Client/, "syn-clinic");
   await pickRecord(user, /^Ordering practitioner/, "0000000000");
-  await chooseWithKeyboard(user, /Received as/, "Paper requisition");
-  await chooseWithKeyboard(user, /Billing responsibility/, "Not supplied");
-  await chooseWithKeyboard(user, /Template use/, "No template");
-  await chooseWithKeyboard(user, /As supplied/, "Handwritten signature");
+  await chooseSegment(user, /Received as/, "Paper requisition");
+  await chooseSegment(user, /Billing responsibility/, "Not supplied");
+  await chooseSegment(user, /Template use/, "No template");
+  await chooseSegment(user, /As supplied/, "Handwritten signature");
   await user.click(screen.getByRole("button", { name: "Next: Tests" }));
   await screen.findByRole("heading", { name: /step 2 of 2/ });
 }
@@ -88,12 +95,12 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
 
     await pickRecord(user, /^Client/, "syn-clinic");
     await pickRecord(user, /^Ordering practitioner/, "0000000000");
-    await chooseWithKeyboard(user, /Received as/, "Paper requisition");
+    await chooseSegment(user, /Received as/, "Paper requisition");
     await user.click(screen.getByText("Clinic order number and source references"));
     await typeInto(user, /^Clinic order number$/, "PO-0001");
-    await chooseWithKeyboard(user, /Billing responsibility/, "Not supplied");
-    await chooseWithKeyboard(user, /Template use/, "No template");
-    await chooseWithKeyboard(user, /As supplied/, "Handwritten signature");
+    await chooseSegment(user, /Billing responsibility/, "Not supplied");
+    await chooseSegment(user, /Template use/, "No template");
+    await chooseSegment(user, /As supplied/, "Handwritten signature");
     // Enter in a field of the first step checks it and moves on; it never saves.
     await tabTo(user, screen.getByRole("textbox", { name: /^Clinic order number$/ }));
     await user.keyboard("{Enter}");
@@ -103,8 +110,8 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await expectNoA11yViolations(container, { wholePage: true });
     await tabTo(user, screen.getByRole("checkbox", { name: /SYN-SCR/ }));
     await user.keyboard(" ");
-    await chooseWithKeyboard(user, /Testing sequence role for SYN-SCR/, "First-line test");
-    await chooseWithKeyboard(user, /Reflex testing for SYN-SCR/, "Not stated");
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not stated");
     await tabTo(user, screen.getByRole("button", { name: "Diagnoses (0)" }));
     await user.keyboard("{Enter}");
     await tabTo(user, screen.getByRole("button", { name: "Add diagnosis" }));
@@ -161,7 +168,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     const register = vi.fn();
     const { user } = renderPage({ register_order: register });
     const summary = await screen.findByRole("complementary", { name: "Order summary" });
-    expect(within(summary).getAllByText("To do")).toHaveLength(3);
+    expect(within(summary).getAllByText(/To do/)).toHaveLength(3);
     expect(
       within(summary).getByText("Save order works once the required fields are filled in."),
     ).toBeTruthy();
@@ -181,12 +188,12 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     expect(screen.getByRole("heading", { name: /step 1 of 2: Requisition/ })).toBeTruthy();
     await fillRequisition(user);
     for (const box of screen.getAllByRole("checkbox")) expect(box).toHaveProperty("checked", false);
-    expect(within(summary).getAllByText("To do")).toHaveLength(1);
+    expect(within(summary).getAllByText(/To do/)).toHaveLength(1);
     expect(screen.getByRole("button", { name: "Save order" })).toHaveProperty("disabled", true);
     await user.click(screen.getByRole("checkbox", { name: /SYN-SCR/ }));
-    await chooseWithKeyboard(user, /Testing sequence role for SYN-SCR/, "First-line test");
-    await chooseWithKeyboard(user, /Reflex testing for SYN-SCR/, "Not stated");
-    expect(within(summary).queryByText("To do")).toBeNull();
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not stated");
+    expect(within(summary).queryByText(/To do/)).toBeNull();
     expect(screen.getByRole("button", { name: "Save order" })).toHaveProperty("disabled", false);
     expect(register).not.toHaveBeenCalled();
   });
@@ -198,16 +205,16 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await pickRecord(user, /^Client/, "Synthetic");
     await chooseWithKeyboard(user, /Client location/, "North Office");
     await pickRecord(user, /^Ordering practitioner/, "Doctor");
-    await chooseWithKeyboard(user, /Received as/, "Fax");
-    await chooseWithKeyboard(user, /Billing responsibility/, "Patient (self-pay)");
-    await chooseWithKeyboard(user, /Template use/, "Clinic template");
+    await chooseSegment(user, /Received as/, "Fax");
+    await chooseSegment(user, /Billing responsibility/, "Patient (self-pay)");
+    await chooseSegment(user, /Template use/, "Clinic template");
     await typeInto(user, /^Template name/, "Synthetic panel form");
-    await chooseWithKeyboard(user, /Confirmed for this patient/, "Yes");
-    await chooseWithKeyboard(user, /As supplied/, "Not supplied");
+    await chooseSegment(user, /Confirmed for this patient/, "Yes");
+    await chooseSegment(user, /As supplied/, "Not supplied");
     await user.click(screen.getByRole("button", { name: "Next: Tests" }));
     await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
-    await chooseWithKeyboard(user, /Testing sequence role for SYN-SCR/, "First-line test");
-    await chooseWithKeyboard(user, /Reflex testing for SYN-SCR/, "Authorized");
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Authorized");
     const scope = screen.getByRole("group", { name: /Reflex tests authorized/ });
     await user.click(within(scope).getByRole("checkbox", { name: /SYN-CNF/ }));
     await user.click(screen.getByRole("button", { name: "Medications (0)" }));
@@ -285,16 +292,16 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await screen.findByRole("combobox", { name: /^Client/ });
     await pickRecord(user, /^Client/, "Synthetic");
     await pickRecord(user, /^Ordering practitioner/, "Doctor");
-    await chooseWithKeyboard(user, /Received as/, "Fax");
+    await chooseSegment(user, /Received as/, "Fax");
     await user.click(screen.getByText("Clinic order number and source references"));
     await typeInto(user, /^Clinic order number$/, "PO-0001");
-    await chooseWithKeyboard(user, /Billing responsibility/, "Client (ordering clinic)");
-    await chooseWithKeyboard(user, /Template use/, "No template");
-    await chooseWithKeyboard(user, /As supplied/, "Electronic signature");
+    await chooseSegment(user, /Billing responsibility/, "Client (ordering clinic)");
+    await chooseSegment(user, /Template use/, "No template");
+    await chooseSegment(user, /As supplied/, "Electronic signature");
     await user.click(screen.getByRole("button", { name: "Next: Tests" }));
     await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
-    await chooseWithKeyboard(user, /Testing sequence role for SYN-SCR/, "First-line test");
-    await chooseWithKeyboard(user, /Reflex testing for SYN-SCR/, "Not authorized");
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not authorized");
     await user.click(screen.getByRole("button", { name: "Save order" }));
     // The refused field is on the first step: it opens there, with the field's error.
     expect(await screen.findByText("This placer order exists.")).toBeTruthy();
@@ -330,16 +337,16 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await screen.findByRole("combobox", { name: /^Client/ });
     await pickRecord(user, /^Client/, "Synthetic");
     await pickRecord(user, /^Ordering practitioner/, "Doctor");
-    await chooseWithKeyboard(user, /Received as/, "Fax");
-    await chooseWithKeyboard(user, /Billing responsibility/, "Not supplied");
-    await chooseWithKeyboard(user, /Template use/, "Clinic template");
+    await chooseSegment(user, /Received as/, "Fax");
+    await chooseSegment(user, /Billing responsibility/, "Not supplied");
+    await chooseSegment(user, /Template use/, "Clinic template");
     await typeInto(user, /^Template name/, "Synthetic panel form");
-    await chooseWithKeyboard(user, /Confirmed for this patient/, "Yes");
-    await chooseWithKeyboard(user, /As supplied/, "Not supplied");
+    await chooseSegment(user, /Confirmed for this patient/, "Yes");
+    await chooseSegment(user, /As supplied/, "Not supplied");
     await user.click(screen.getByRole("button", { name: "Next: Tests" }));
     await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
-    await chooseWithKeyboard(user, /Testing sequence role for SYN-SCR/, "First-line test");
-    await chooseWithKeyboard(user, /Reflex testing for SYN-SCR/, "Authorized");
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Authorized");
     const scope = screen.getByRole("group", { name: /Reflex tests authorized/ });
     await user.click(within(scope).getByRole("checkbox", { name: /SYN-CNF/ }));
     await user.click(screen.getByRole("button", { name: "Diagnoses (0)" }));
@@ -420,19 +427,13 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await user.type(find, "SYN-CNF");
     await user.keyboard("{ArrowDown}{Enter}{Escape}");
     expect(screen.getByText("2 selected")).toBeTruthy();
-    await chooseWithKeyboard(user, /Testing sequence role for SYN-CNF/, "Confirmation");
-    await chooseWithKeyboard(user, /Reflex testing for SYN-CNF/, "Not authorized");
+    await chooseSegment(user, /Sequence role for SYN-CNF/, "Confirmation");
+    await chooseSegment(user, /Reflex testing for SYN-CNF/, "Not authorized");
     await user.click(
       within(chosen).getByRole("button", { name: "Remove SYN-SCR Synthetic drug screen" }),
     );
-    expect(
-      screen.getByRole("button", { name: /Testing sequence role for SYN-CNF/, expanded: false })
-        .textContent,
-    ).toContain("Confirmation");
-    expect(
-      screen.getByRole("button", { name: /Reflex testing for SYN-CNF/, expanded: false })
-        .textContent,
-    ).toContain("Not authorized");
+    expectChosen(/Sequence role for SYN-CNF/, "Confirmation");
+    expectChosen(/Reflex testing for SYN-CNF/, "Not authorized");
     expect(screen.queryByRole("group", { name: /SYN-SCR Synthetic drug screen$/ })).toBeNull();
     await user.type(find, "zzz");
     expect(screen.getByRole("listbox").textContent).toBe("No matches");
@@ -473,7 +474,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
       expect(screen.queryByRole("checkbox", { name: /SYN-SCR/ })).toBeNull();
       await user.type(find, "SYN-SCR");
       await user.keyboard("{ArrowDown}{Enter}{Escape}");
-      await chooseWithKeyboard(user, /Reflex testing for SYN-SCR/, "Authorized");
+      await chooseSegment(user, /Reflex testing for SYN-SCR/, "Authorized");
       await user.type(
         screen.getByRole("combobox", {
           name: "Find reflex tests for SYN-SCR Synthetic drug screen",
@@ -528,8 +529,8 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     const { user } = renderPage({ register_order: register, accept_order: accept });
     await fillRequisition(user);
     await user.click(screen.getByRole("checkbox", { name: /SYN-SCR/ }));
-    await chooseWithKeyboard(user, /Testing sequence role for SYN-SCR/, "First-line test");
-    await chooseWithKeyboard(user, /Reflex testing for SYN-SCR/, "Not stated");
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not stated");
     // An empty order billing warns but never blocks; adding it opens it on the saved order.
     expect(screen.getByRole("alert").textContent).toContain("Order billing is empty.");
     await user.click(screen.getByRole("button", { name: "Add order billing" }));
@@ -555,7 +556,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await screen.findByRole("form", { name: "New order" });
     await user.click(screen.getByText("Clinic order number and source references"));
     await typeInto(user, /^Clinic order number$/, "SOURCE-42");
-    await user.click(screen.getByRole("button", { name: "Change patient" }));
+    await user.click(screen.getByRole("link", { name: "Change patient" }));
     const leave = await screen.findByRole("alertdialog", { name: "Leave without saving?" });
     await user.click(within(leave).getByRole("button", { name: "Leave without saving" }));
     expect(await screen.findByRole("region", { name: "Who is the order for?" })).toBeTruthy();

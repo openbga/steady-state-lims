@@ -127,7 +127,7 @@ describe("OrderDetailPage (REQ-ORD-001, REQ-ORD-005)", { timeout: WALKTHROUGH_TI
       items: ORDER.items.map((item) => ({ ...item, sequenceRole: null })),
     });
     expect(await screen.findByRole("gridcell", { name: "Not recorded" })).toBeTruthy();
-    expect(screen.queryByRole("gridcell", { name: "First-line test" })).toBeNull();
+    expect(screen.queryByRole("gridcell", { name: "First-line (screen)" })).toBeNull();
   });
 
   it("keeps receiving available when the current catalog cannot load", async () => {

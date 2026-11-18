@@ -45,3 +45,18 @@ export async function typeInto(user: UserEvent, label: string | RegExp, text: st
   await tabTo(user, screen.getByRole("textbox", { name: label }));
   await user.keyboard(text);
 }
+
+/** Chooses an option of a segmented choice (a radio group) by clicking it. */
+export async function chooseSegment(user: UserEvent, group: string | RegExp, option: string) {
+  await user.click(
+    within(screen.getByRole("radiogroup", { name: group })).getByRole("radio", { name: option }),
+  );
+}
+
+/** Checks which option of a segmented choice is chosen. */
+export function expectChosen(group: string | RegExp, option: string) {
+  const radio = within(screen.getByRole("radiogroup", { name: group })).getByRole("radio", {
+    name: option,
+  });
+  expect(radio).toHaveProperty("checked", true);
+}

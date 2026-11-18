@@ -1,4 +1,4 @@
-import { ChoiceInput, TextInput } from "@/components/FormFields";
+import { SegmentedInput, TextInput } from "@/components/FormFields";
 import { Section } from "@/components/Section";
 import { AUTHORITY_KINDS } from "./labels";
 import styles from "./OrderForm.module.css";
@@ -9,21 +9,27 @@ import styles from "./OrderForm.module.css";
  */
 export function AuthorityFields() {
   return (
-    <Section title="Authority to test">
-      <p className={styles.hint}>
-        From the bottom of the requisition: how the practitioner ordered the tests.
-      </p>
-      <div className={styles.fields}>
-        <ChoiceInput
+    <Section
+      title="Authority to test"
+      description="From the bottom of the requisition: how the practitioner ordered the tests."
+    >
+      <div className={styles.authority}>
+        <SegmentedInput
           name="authority.kind"
           label="As supplied"
           options={AUTHORITY_KINDS}
+          tip={
+            <p>
+              The evidence of the practitioner's authority or intent to order, exactly as the
+              requisition shows it. Choose Not supplied when it has none; never assume a signature.
+            </p>
+          }
           isRequired
         />
         <TextInput
           name="authority.documentRef"
           label="Document reference"
-          description="Such as the signed requisition's number."
+          placeholder="Such as the signed requisition's number"
         />
       </div>
     </Section>

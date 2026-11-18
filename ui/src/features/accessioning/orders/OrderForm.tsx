@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { type FormEvent, useRef, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router";
@@ -157,9 +158,6 @@ function StepFields({ step, subjectId, references, addBilling, onAddBilling }: S
           addBilling={addBilling}
           onAddBilling={onAddBilling}
         />
-        <p className={styles.hint}>
-          Saving records the request. Order acceptance and specimen receipt are separate steps.
-        </p>
       </div>
     </>
   );
@@ -179,27 +177,27 @@ interface StepActionsProps {
 function StepActions(props: StepActionsProps) {
   if (props.step === "requisition") {
     return (
-      // A submit button, so Enter in a field of this step checks it and moves on too.
-      <Button type="submit" variant="primary">
-        Next: Tests
-      </Button>
+      <>
+        <p className={styles.actionsStart}>
+          Tip: Enter or Next checks this step and moves on to Tests.
+        </p>
+        {/* A submit button, so Enter in a field of this step checks it and moves on too. */}
+        <Button type="submit" variant="primary">
+          Next: Tests
+          <ChevronRight aria-hidden="true" />
+        </Button>
+      </>
     );
   }
   const saving = { isPending: props.isPending, isDisabled: !props.canSave };
   return (
     <>
-      {props.canReceive && (
-        <Button
-          type="submit"
-          variant="primary"
-          {...saving}
-          onPress={() => {
-            props.receive.current = true;
-          }}
-        >
-          Review and receive specimens
+      <span className={styles.actionsStart}>
+        <Button isDisabled={props.isPending} onPress={props.onBack}>
+          <ChevronLeft aria-hidden="true" />
+          Back: Requisition
         </Button>
-      )}
+      </span>
       <Button
         type="submit"
         variant={props.canReceive ? "secondary" : "primary"}
@@ -210,9 +208,19 @@ function StepActions(props: StepActionsProps) {
       >
         Save order
       </Button>
-      <Button isDisabled={props.isPending} onPress={props.onBack}>
-        Back: Requisition
-      </Button>
+      {props.canReceive && (
+        <Button
+          type="submit"
+          variant="primary"
+          {...saving}
+          onPress={() => {
+            props.receive.current = true;
+          }}
+        >
+          Review and receive specimens
+          <ChevronRight aria-hidden="true" />
+        </Button>
+      )}
     </>
   );
 }

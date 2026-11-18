@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Banner } from "@/components/Banner";
 import { ErrorState } from "@/components/ErrorState";
@@ -31,7 +32,11 @@ interface SpecimenIdentity {
 type IdentityBannerProps = (
   | { subject: SubjectSummary; subjectId?: never }
   | { subjectId: string; subject?: never }
-) & { specimen?: SpecimenIdentity };
+) & {
+  specimen?: SpecimenIdentity;
+  /** A link at the right end of the strip, such as "Change patient" on order entry. */
+  action?: ReactNode;
+};
 
 /**
  * The current demographics (the last assertion), active identifiers and open hold count, from
@@ -59,21 +64,28 @@ export function subjectSummary(subject: SubjectView): SubjectSummary {
  * Given `subjectId`, it loads the patient, which is an audited read: render it only on a
  * screen the person explicitly opened.
  */
-export function IdentityBanner({ specimen, ...props }: IdentityBannerProps) {
-  if (props.subject) return <SubjectBanner subject={props.subject} specimen={specimen} />;
-  return <LoadedSubjectBanner subjectId={props.subjectId} specimen={specimen} />;
+export function IdentityBanner({ specimen, action, ...props }: IdentityBannerProps) {
+  if (props.subject) {
+    return <SubjectBanner subject={props.subject} specimen={specimen} action={action} />;
+  }
+  return <LoadedSubjectBanner subjectId={props.subjectId} specimen={specimen} action={action} />;
+}
+
+interface BannerExtras {
+  specimen: SpecimenIdentity | undefined;
+  action: ReactNode;
 }
 
 function LoadedSubjectBanner({
   subjectId,
   specimen,
-}: {
-  subjectId: string;
-  specimen: SpecimenIdentity | undefined;
-}) {
+  action,
+}: BannerExtras & { subjectId: string }) {
   const subject = useCommandQuery<SubjectView>(GET_SUBJECT, { input: { subjectId } });
   if (subject.isSuccess) {
-    return <SubjectBanner subject={subjectSummary(subject.data)} specimen={specimen} />;
+    return (
+      <SubjectBanner subject={subjectSummary(subject.data)} specimen={specimen} action={action} />
+    );
   }
   const value = subject.isError ? (
     <ErrorState
@@ -88,17 +100,12 @@ function LoadedSubjectBanner({
     <Banner
       label={bannerLabel(specimen)}
       items={[{ label: "Patient", value }, ...specimenItems(specimen)]}
+      status={action}
     />
   );
 }
 
-function SubjectBanner({
-  subject,
-  specimen,
-}: {
-  subject: SubjectSummary;
-  specimen: SpecimenIdentity | undefined;
-}) {
+function SubjectBanner({ subject, specimen, action }: BannerExtras & { subject: SubjectSummary }) {
   const formatBirthDate = useFormatBirthDate();
   const holds = subject.openIdentityHolds;
   return (
@@ -111,10 +118,15 @@ function SubjectBanner({
         ...specimenItems(specimen),
       ]}
       status={
-        holds > 0 && (
-          <StatusBadge tone="hold">
-            {holds === 1 ? "Identity hold" : `${holds} identity holds`}
-          </StatusBadge>
+        (holds > 0 || action) && (
+          <>
+            {holds > 0 && (
+              <StatusBadge tone="hold">
+                {holds === 1 ? "Identity hold" : `${holds} identity holds`}
+              </StatusBadge>
+            )}
+            {action}
+          </>
         )
       }
     />

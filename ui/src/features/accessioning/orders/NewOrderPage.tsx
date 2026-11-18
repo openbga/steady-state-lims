@@ -1,5 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router";
-import { Button } from "@/components/Button";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { EmptyState } from "@/components/EmptyState";
 import { Page, PageHeader } from "@/components/Page";
 import { IdentityBanner } from "@/lib/IdentityBanner";
@@ -27,15 +26,14 @@ export function NewOrderPage() {
           { label: "Orders", href: "/orders" },
           { label: "New order", href: "/orders/new" },
         ]}
-        description="Choose the patient, then record the request as supplied by the ordering source."
-        actions={
-          subjectId && <Button onPress={() => navigate("/orders/new")}>Change patient</Button>
-        }
       />
       <IntakeSteps current={subjectId ? "order" : "patient"} />
       {subjectId ? (
         <>
-          <IdentityBanner subjectId={subjectId} />
+          <IdentityBanner
+            subjectId={subjectId}
+            action={<Link to="/orders/new">Change patient</Link>}
+          />
           <OrderReferencesGate>
             {(references) => <OrderEntry subjectId={subjectId} references={references} />}
           </OrderReferencesGate>

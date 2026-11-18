@@ -228,7 +228,7 @@
         {
           "name": "Tests: Test / Kind / Sequence role / State / Reflex testing",
           "meaning": "Tests requested and their current status.",
-          "values": "Kind: Initial, Add-on, Reflex. Sequence role: First-line test, Confirmation, or Not recorded on older records. State: Requested, Accepted, Declined, Cancelled. Reflex: Authorized, Not authorized, Not stated, with any authorized scope.",
+          "values": "Kind: Initial, Add-on, Reflex. Sequence role: First-line (screen), Confirmation, or Not recorded on older records. State: Requested, Accepted, Declined, Cancelled. Reflex: Authorized, Not authorized, Not stated, with any authorized scope.",
           "rules": "Initial items are decided with order acceptance. A requested add-on or reflex needs a separate decision."
         },
         {
@@ -270,7 +270,7 @@
         {
           "name": "Test / Testing sequence role — follow-on",
           "meaning": "The additional test requested and its sequence role.",
-          "values": "Current approved test; First-line test or Confirmation.",
+          "values": "Current approved test; First-line (screen) or Confirmation.",
           "rules": "Both required; nothing is selected in advance."
         },
         {

@@ -1,4 +1,5 @@
 import { Circle, CircleCheck } from "lucide-react";
+import { VisuallyHidden } from "react-aria-components";
 import { Button } from "@/components/Button";
 import { Section } from "@/components/Section";
 import styles from "./OrderForm.module.css";
@@ -28,8 +29,9 @@ export function OrderSummary({ progress, onCancel, isPending }: OrderSummaryProp
           {parts.map(({ label, done }) => (
             <li key={label} data-done={done || undefined}>
               {done ? <CircleCheck aria-hidden="true" /> : <Circle aria-hidden="true" />}
+              {/* The icon alone shows it; screen readers hear it before the label. */}
+              <VisuallyHidden>{done ? "Done: " : "To do: "}</VisuallyHidden>
               {label}
-              <span className={styles.summaryState}>{done ? "Done" : "To do"}</span>
             </li>
           ))}
         </ul>
