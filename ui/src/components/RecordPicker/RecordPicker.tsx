@@ -149,20 +149,23 @@ export function RecordPicker(props: RecordPickerProps) {
           onKeyDown={props.selectionMode === "multiple" ? keepSearchEnter : undefined}
           className={`${formStyles.control} ${styles.input}`}
         />
-        {isClearable && props.selectionMode !== "multiple" && props.value !== null && (
-          <Button
-            // Out of the ComboBox's button slot, which would make it a second list opener.
-            slot={null}
-            aria-label={`Clear ${label}`}
-            className={styles.clear}
-            onPress={() => {
-              setChosen(null);
-              props.onChange(null);
-            }}
-          >
-            <X aria-hidden="true" />
-          </Button>
-        )}
+        {isClearable &&
+          !props.isDisabled &&
+          props.selectionMode !== "multiple" &&
+          props.value !== null && (
+            <Button
+              // Out of the ComboBox's button slot, which would make it a second list opener.
+              slot={null}
+              aria-label={`Clear ${label}`}
+              className={styles.clear}
+              onPress={() => {
+                setChosen(null);
+                props.onChange(null);
+              }}
+            >
+              <X aria-hidden="true" />
+            </Button>
+          )}
         <Button className={styles.opener}>
           <ChevronDown aria-hidden="true" className={selectStyles.chevron} />
         </Button>

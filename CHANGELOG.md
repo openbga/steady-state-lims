@@ -95,6 +95,10 @@ newest first. The application shows the same list under **What's new**.
 
   **Availability** shows **Current** in green, **Superseded** in gray and **Withdrawn** in red, so a withdrawn report stands out in the list and on the report and revision pages.
 
+- **Changed:** Searchable form fields can be emptied with a clear button (2026-11-18)
+
+  A searchable choice in a form, such as **Client** or **Ordering practitioner** in **New order**, shows a clear button while it holds a value, like the other dropdowns in forms.
+
 - **Added:** Clear a chosen value in form dropdowns (2026-11-17, [#110](https://github.com/openbga/toxicology-lims/pull/110))
 
   In forms, a dropdown with a value shows an X while the pointer is on it or it has keyboard focus; selecting the X, or pressing Delete or Backspace, clears the value. A required field shows its usual message on save. Filters on lists are unchanged.
