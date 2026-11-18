@@ -69,6 +69,14 @@ function renderPage(commands: Record<string, (args: unknown) => unknown> = {}, p
   );
 }
 
+/** Adds a test on step 2 through the test search, as a person types its code. */
+async function addTest(user: UserEvent, code: string) {
+  await user.click(await screen.findByRole("combobox", { name: "Find tests" }));
+  await user.keyboard(code);
+  await screen.findByRole("listbox");
+  await user.keyboard("{ArrowDown}{Enter}{Escape}");
+}
+
 /** Fills the Requisition step with the fewest required choices and moves on to Tests. */
 async function fillRequisition(user: UserEvent) {
   await screen.findByRole("combobox", { name: /^Client/ });
@@ -108,8 +116,10 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
       document.activeElement,
     );
     await expectNoA11yViolations(container, { wholePage: true });
-    await tabTo(user, screen.getByRole("checkbox", { name: /SYN-SCR/ }));
-    await user.keyboard(" ");
+    await tabTo(user, screen.getByRole("combobox", { name: "Find tests" }));
+    await user.keyboard("SYN-SCR");
+    await screen.findByRole("listbox");
+    await user.keyboard("{ArrowDown}{Enter}{Escape}");
     await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
     await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not stated");
     await tabTo(user, screen.getByRole("button", { name: "Diagnoses (0)" }));
@@ -187,10 +197,10 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     // The step is checked first: Tests opens only when it is complete.
     expect(screen.getByRole("heading", { name: /step 1 of 2: Requisition/ })).toBeTruthy();
     await fillRequisition(user);
-    for (const box of screen.getAllByRole("checkbox")) expect(box).toHaveProperty("checked", false);
+    expect(screen.getByText(/No tests chosen yet/)).toBeTruthy();
     expect(within(summary).getAllByText(/To do/)).toHaveLength(1);
     expect(screen.getByRole("button", { name: "Save order" })).toHaveProperty("disabled", true);
-    await user.click(screen.getByRole("checkbox", { name: /SYN-SCR/ }));
+    await addTest(user, "SYN-SCR");
     await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
     await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not stated");
     expect(within(summary).queryByText(/To do/)).toBeNull();
@@ -212,7 +222,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await chooseSegment(user, /Confirmed for this patient/, "Yes");
     await chooseSegment(user, /As supplied/, "Not supplied");
     await user.click(screen.getByRole("button", { name: "Next: Tests" }));
-    await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
+    await addTest(user, "SYN-SCR");
     await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
     await chooseSegment(user, /Reflex testing for SYN-SCR/, "Authorized");
     const scope = screen.getByRole("group", { name: /Reflex tests authorized/ });
@@ -299,7 +309,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await chooseSegment(user, /Template use/, "No template");
     await chooseSegment(user, /As supplied/, "Electronic signature");
     await user.click(screen.getByRole("button", { name: "Next: Tests" }));
-    await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
+    await addTest(user, "SYN-SCR");
     await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
     await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not authorized");
     await user.click(screen.getByRole("button", { name: "Save order" }));
@@ -344,7 +354,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await chooseSegment(user, /Confirmed for this patient/, "Yes");
     await chooseSegment(user, /As supplied/, "Not supplied");
     await user.click(screen.getByRole("button", { name: "Next: Tests" }));
-    await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
+    await addTest(user, "SYN-SCR");
     await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
     await chooseSegment(user, /Reflex testing for SYN-SCR/, "Authorized");
     const scope = screen.getByRole("group", { name: /Reflex tests authorized/ });
@@ -396,8 +406,8 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
       expect(screen.getByRole("combobox", { name })).toHaveProperty("placeholder", "Select…");
     }
     expect(screen.getByText("Choose the client first.")).toBeTruthy();
-    // A short catalog is a plain checklist.
-    expect(screen.queryByRole("searchbox", { name: "Find tests" })).toBeNull();
+    // The test search belongs to step 2.
+    expect(screen.queryByRole("combobox", { name: "Find tests" })).toBeNull();
   });
 
   it("keeps the card last clicked or focused highlighted until another one is", async () => {
@@ -437,14 +447,16 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await fillRequisition(user);
     const find = screen.getByRole("combobox", { name: /Find tests/ });
     const chosen = screen.getByRole("list", { name: "Chosen tests" });
-    expect(within(chosen).getByText("No tests chosen yet.")).toBeTruthy();
+    expect(within(chosen).getByText(/No tests chosen yet/)).toBeTruthy();
     await user.type(find, "SYN-SCR");
     await user.keyboard("{ArrowDown}{Enter}");
     expect(document.activeElement).toBe(find);
     expect(find).toHaveProperty("value", "");
     await user.type(find, "SYN-CNF");
     await user.keyboard("{ArrowDown}{Enter}{Escape}");
-    expect(screen.getByText("2 selected")).toBeTruthy();
+    expect(
+      within(screen.getByRole("list", { name: "Chosen tests" })).getAllByRole("group"),
+    ).toHaveLength(2);
     await chooseSegment(user, /Sequence role for SYN-CNF/, "Confirmation");
     await chooseSegment(user, /Reflex testing for SYN-CNF/, "Not authorized");
     await user.click(
@@ -452,7 +464,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     );
     expectChosen(/Sequence role for SYN-CNF/, "Confirmation");
     expectChosen(/Reflex testing for SYN-CNF/, "Not authorized");
-    expect(screen.queryByRole("group", { name: /SYN-SCR Synthetic drug screen$/ })).toBeNull();
+    expect(screen.queryByRole("group", { name: /Synthetic drug screen SYN-SCR$/ })).toBeNull();
     await user.type(find, "zzz");
     expect(screen.getByRole("listbox").textContent).toBe("No matches");
     await user.keyboard("{Enter}");
@@ -476,9 +488,11 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     expect(options.every((option) => option.textContent?.includes("Panel"))).toBe(true);
     expect(options.some((option) => option.textContent?.includes("SYN-SCR"))).toBe(false);
     await user.keyboard("{ArrowDown}{Enter}{Escape}");
-    expect(screen.getByText("2 selected")).toBeTruthy();
-    expect(screen.getByRole("group", { name: /SYN-SCR Synthetic drug screen$/ })).toBeTruthy();
-    expect(screen.getByRole("group", { name: /SYN-T10 Synthetic panel 10$/ })).toBeTruthy();
+    expect(
+      within(screen.getByRole("list", { name: "Chosen tests" })).getAllByRole("group"),
+    ).toHaveLength(2);
+    expect(screen.getByRole("group", { name: /Synthetic drug screen SYN-SCR$/ })).toBeTruthy();
+    expect(screen.getByRole("group", { name: /Synthetic panel 10 SYN-T10$/ })).toBeTruthy();
   });
 
   // jsdom re-renders the 1,000-row list on each keystroke: about 20 s on a developer computer
@@ -546,7 +560,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     const accept = vi.fn();
     const { user } = renderPage({ register_order: register, accept_order: accept });
     await fillRequisition(user);
-    await user.click(screen.getByRole("checkbox", { name: /SYN-SCR/ }));
+    await addTest(user, "SYN-SCR");
     await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
     await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not stated");
     // An empty order billing warns but never blocks; adding it opens it on the saved order.

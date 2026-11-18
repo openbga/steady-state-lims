@@ -63,14 +63,18 @@ export function TestSelection({ orderables }: { orderables: readonly OrderableVe
           errorMessage={errors.items?.root?.message}
         >
           <ul className={styles.list} aria-label="Chosen tests">
-            {items.fields.length === 0 && <li className={styles.hint}>No tests chosen yet.</li>}
+            {items.fields.length === 0 && (
+              <li className={styles.hint}>
+                No tests chosen yet. Search above for each test or panel marked on the requisition.
+              </li>
+            )}
             {items.fields.map((field, index) => {
               const orderable = orderables.find((each) => each.id === field.orderableVersionId);
               return (
                 <li key={field.id}>
                   <ReflexFields
                     index={index}
-                    title={orderable ? orderableLabel(orderable) : "Test"}
+                    orderable={orderable}
                     others={orderables.filter((each) => each.id !== field.orderableVersionId)}
                     onRemove={() => {
                       items.remove(index);
@@ -128,17 +132,29 @@ interface ReflexFieldsProps {
   others: readonly OrderableVersionView[];
 }
 
-function ReflexFields({
-  index,
-  title,
-  others,
-  onRemove,
-}: ReflexFieldsProps & { onRemove: () => void }) {
+interface TestRowProps extends Omit<ReflexFieldsProps, "title"> {
+  /** `undefined` for a version no longer in the active catalog. */
+  orderable: OrderableVersionView | undefined;
+  onRemove: () => void;
+}
+
+/** One chosen test: its name, then its sequence role, reflex testing and × on the same row. */
+function ReflexFields({ index, orderable, others, onRemove }: TestRowProps) {
   const { control } = useFormContext<OrderFormValues>();
   const authorization = useWatch({ control, name: `items.${index}.reflexAuthorization` });
+  const title = orderable ? orderableLabel(orderable) : "Test";
   return (
     <Inset as="fieldset">
-      <legend className={styles.legend}>{title}</legend>
+      <legend className={formStyles.testName}>
+        {orderable ? (
+          <>
+            <strong>{orderable.name}</strong>{" "}
+            <span className={formStyles.hint}>{orderable.code}</span>
+          </>
+        ) : (
+          title
+        )}
+      </legend>
       <div className={formStyles.selectedFields}>
         <SegmentedInput
           name={`items.${index}.sequenceRole`}

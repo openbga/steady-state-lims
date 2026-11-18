@@ -178,13 +178,13 @@
           "name": "Tests ordered",
           "meaning": "Approved configured tests and panels actually requested by the source.",
           "values": "Current approved catalog choices identified by code, name, test or panel kind and required specimen types.",
-          "rules": "Choose at least one; none is preselected. Up to 15 choices use checkboxes; longer catalogs use Find tests. Each version can appear once. Chosen tests stay below the selection control with their own sequence role, reflex permission and Remove action. Removing a test also removes its unsaved sequence and reflex choices."
+          "rules": "Choose at least one; none is preselected. Find each test or panel with the search at the top of Tests; each version can appear once. Chosen tests are listed below the search, one row each with its sequence role, reflex testing and × to remove it. Removing a test also removes its unsaved sequence and reflex choices."
         },
         {
           "name": "Find tests / Find reflex tests for …",
-          "meaning": "Finds choices in a long catalog without displaying a long checklist.",
+          "meaning": "Finds the tests and panels to order, and the reflex tests of a long catalog.",
           "values": "Part of a configured code, name or required specimen-type code; Test or Panel also matches the displayed kind.",
-          "rules": "Shown when more than 15 choices are available. Type to narrow the popup, then choose an option or use Arrow Down and Enter. The search clears after a choice so you can find another; Escape closes the popup. Free text is not an ordered test. Searching does not remove chosen tests. Scroll the popup or narrow the search to reach other choices. Ctrl+A (Command+A on macOS) selects the search text for replacement. Enter in the search does not save the form."
+          "rules": "Find tests is always the search at the top of Tests, reading Search tests and panels by name, code or specimen type while empty. Find reflex tests is shown when more than 15 choices are available; shorter reflex scopes are checkboxes. Type to narrow the popup, then choose an option or use Arrow Down and Enter. The search clears after a choice so you can find another; Escape closes the popup. Free text is not an ordered test. Searching does not remove chosen tests. Scroll the popup or narrow the search to reach other choices. Ctrl+A (Command+A on macOS) selects the search text for replacement. Enter in the search does not save the form."
         },
         {
           "name": "Show — tests or reflex scope",
@@ -193,9 +193,9 @@
           "rules": "Shown beside the search for more than 15 choices. This is a browsing preference, not a requested test. Changing it preserves all chosen tests and their entered details."
         },
         {
-          "name": "Chosen tests / selected count",
+          "name": "Chosen tests",
           "meaning": "The complete unsaved selection, including choices that are outside the current search or Show filter.",
-          "values": "Selected test code/name and count; No tests chosen yet before selection. Long reflex scopes also keep a separate Chosen reflex tests list.",
+          "values": "One row per chosen test: its name in bold and its code, then Sequence role, Reflex testing and ×. Before any choice: No tests chosen yet. Search above for each test or panel marked on the requisition. Reflex scopes show a selected count, and long ones a separate Chosen reflex tests list.",
           "rules": "Review this list against the requisition. Complete sequence role and reflex permission for each ordered item; choosing a panel does not independently select or substitute its component tests."
         },
         {
@@ -231,7 +231,7 @@
         {
           "name": "Order details · step 1 of 2 / step 2 of 2",
           "meaning": "Which part of the requisition is being entered: Requisition, then Tests.",
-          "values": "Read-only. The current step is highlighted in the step bar below the patient box; a finished step shows a check.",
+          "values": "Read-only. The current step is highlighted in the step bar below the patient box. On step 2, Requisition shows a green check and green text, and the line on to Tests turns thicker and green.",
           "rules": "A task position, not a clinical status. Moving between steps never discards entries."
         },
         {
@@ -397,7 +397,7 @@
       "workflow": [
         "Find the patient by name, birth date or identifier, or pick a recent patient; register the patient when nobody matches. Then verify the identity banner.",
         "Step 1, Requisition: choose the ordering source from the top of the requisition and the authority to test from the bottom, then select Next: Tests.",
-        "Step 2, Tests: add only the requested tests or panels (for a long catalog, use Find tests and Show; you can type the next code immediately after choosing an item). Review Chosen tests against the source, set each test’s explicit sequence role and reflex permission, and choose any authorized reflex scope.",
+        "Step 2, Tests: add only the requested tests or panels with the search at the top (for a long catalog, Show also narrows it; you can type the next code immediately after choosing an item). Review Chosen tests against the source, set each test’s explicit sequence role and reflex permission, and choose any authorized reflex scope.",
         "Open Diagnoses, Medications, Point-of-care results or Standing authority only when the requisition supplies them. Select Order billing to add the order's billing right after saving, or save without it.",
         "Save order or Review and receive specimens, then review the saved request before acceptance."
       ],

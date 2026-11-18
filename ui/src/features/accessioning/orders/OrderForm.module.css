@@ -93,6 +93,16 @@
   color: var(--color-on-selected);
 }
 
+/* A finished step: green label, and a thicker green line on to the next step. */
+.step[data-done] {
+  color: var(--tone-success-text);
+}
+
+.step[data-done]:not(:last-child)::after {
+  height: 2px;
+  background: var(--tone-success-border);
+}
+
 .step[data-done] .stepNumber {
   border-color: var(--tone-success-border);
   color: var(--tone-success-text);
@@ -237,7 +247,24 @@
 
 /* Remove sits at the end of the test's row. */
 .selectedFields > :last-child {
+  align-self: center;
   margin-inline-start: auto;
+}
+
+/*
+ * A chosen test's name, at the start of its row: floated, so the legend leaves the fieldset's
+ * border and the fields sit beside it; level with the choices, below their labels.
+ */
+.testName {
+  float: left;
+  width: min(16rem, 30%);
+  margin: 0;
+  padding: calc(1.25rem + var(--space-1) + var(--space-2)) var(--space-3) 0 0;
+}
+
+/* The reflex scope, when shown, starts below the whole row. */
+.testName ~ :not(.selectedFields) {
+  clear: both;
 }
 
 .references {
@@ -284,6 +311,12 @@
 }
 
 @container (max-width: 40rem) {
+  .testName {
+    float: none;
+    width: auto;
+    padding: 0;
+  }
+
   .fields,
   .threeColumns,
   .catalogControls {

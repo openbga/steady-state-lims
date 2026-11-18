@@ -25,11 +25,17 @@ interface TestChecklistProps {
   onChange: (chosen: string[]) => void;
   isRequired?: boolean;
   errorMessage: string | undefined;
-  /** Ordered items supply their required per-item fields in place of the simple chosen list. */
+  /**
+   * Ordered items supply their rows, with their required per-item fields, in place of the
+   * simple chosen list and its count; the search then shows for any catalog size.
+   */
   children?: ReactNode;
 }
 
-/** Long catalogs use the shared virtualized picker; filtering never removes a chosen item. */
+/**
+ * The shared virtualized picker for ordered tests and long catalogs, short reflex scopes as
+ * checkboxes; filtering never removes a chosen item.
+ */
 export function TestChecklist({
   legend,
   name,
@@ -40,7 +46,8 @@ export function TestChecklist({
 }: TestChecklistProps) {
   const [kind, setKind] = useState<string | null>("all");
   const inputRef = useRef<HTMLInputElement>(null);
-  const findable = orderables.length > CHECKLIST_LIMIT;
+  const long = orderables.length > CHECKLIST_LIMIT;
+  const findable = long || children !== undefined;
   const options = useMemo(
     () =>
       orderables
@@ -55,9 +62,11 @@ export function TestChecklist({
   return (
     <>
       {findable ? (
-        <div className={formStyles.catalogControls}>
+        <div className={long ? formStyles.catalogControls : undefined}>
           <RecordPicker
             label={`Find ${name}`}
+            isLabelHidden={children !== undefined}
+            placeholder="Search tests and panels by name, code or specimen type"
             inputRef={inputRef}
             name={name}
             selectionMode="multiple"
@@ -66,15 +75,16 @@ export function TestChecklist({
             onChange={choice.onChange}
             isRequired={choice.isRequired}
             errorMessage={choice.errorMessage}
-            description="Search by code, name or specimen type."
           />
-          <Select
-            label="Show"
-            name={`${name}-kind`}
-            options={CATALOG_KINDS}
-            value={kind}
-            onChange={setKind}
-          />
+          {long && (
+            <Select
+              label="Show"
+              name={`${name}-kind`}
+              options={CATALOG_KINDS}
+              value={kind}
+              onChange={setKind}
+            />
+          )}
         </div>
       ) : (
         <CheckboxGroup
@@ -86,34 +96,35 @@ export function TestChecklist({
           errorMessage={choice.errorMessage}
         />
       )}
-      <p className={styles.hint} role="status">
-        {choice.chosen.length} selected
-      </p>
-      {children ??
-        (findable && (
-          <ul className={styles.list} aria-label={`Chosen ${name}`}>
-            {choice.chosen.length === 0 && <li className={styles.hint}>No tests chosen yet.</li>}
-            {choice.chosen.map((id) => {
-              const orderable = orderables.find((each) => idOf(each) === id);
-              const label = orderable ? testChoiceLabel(orderable) : "Test";
-              return (
-                <li key={id} className={styles.listRow}>
-                  {label}
-                  <Button
-                    variant="quiet"
-                    aria-label={`Remove ${label}`}
-                    onPress={() => {
-                      choice.onChange(choice.chosen.filter((each) => each !== id));
-                      inputRef.current?.focus();
-                    }}
-                  >
-                    Remove
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
-        ))}
+      {children ?? (
+        <p className={styles.hint} role="status">
+          {choice.chosen.length} selected
+        </p>
+      )}
+      {!children && findable && (
+        <ul className={styles.list} aria-label={`Chosen ${name}`}>
+          {choice.chosen.length === 0 && <li className={styles.hint}>No tests chosen yet.</li>}
+          {choice.chosen.map((id) => {
+            const orderable = orderables.find((each) => idOf(each) === id);
+            const label = orderable ? testChoiceLabel(orderable) : "Test";
+            return (
+              <li key={id} className={styles.listRow}>
+                {label}
+                <Button
+                  variant="quiet"
+                  aria-label={`Remove ${label}`}
+                  onPress={() => {
+                    choice.onChange(choice.chosen.filter((each) => each !== id));
+                    inputRef.current?.focus();
+                  }}
+                >
+                  Remove
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }
