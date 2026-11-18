@@ -4,7 +4,8 @@ import { canRetry } from "./RetryImportsDialog";
 
 /**
  * The attempts checked for Retry selected: only those with something to retry can be, and
- * "Select all quarantined" checks every such attempt the current filter has loaded.
+ * "Select all quarantined" checks every such attempt the current filter has loaded; once all are
+ * checked, the same button reads "Deselect all quarantined" and clears them.
  */
 export function useRetrySelection(rows: readonly ImportAttemptSummary[]) {
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set());
@@ -19,6 +20,8 @@ export function useRetrySelection(rows: readonly ImportAttemptSummary[]) {
     isSelectable,
     /** Whether any loaded attempt can be retried. */
     hasRetryable: retryable.size > 0,
+    /** Whether every loaded attempt that can be retried is checked. */
+    allSelected: retryable.size > 0 && [...retryable].every((id) => selectedIds.has(id)),
     selectAll: () => setSelectedIds(new Set(retryable)),
     selected: rows.filter((row) => selectedIds.has(row.importAttemptId) && canRetry(row)),
     clear: () => setSelectedIds(new Set()),

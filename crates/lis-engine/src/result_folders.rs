@@ -130,29 +130,25 @@ impl ResultFolders {
         }
     }
 
-    /// The instrument's folder scanned, or why it is not watched: disabled, or
-    /// enabled without a folder, when its files are loaded by hand (§6).
+    /// The instrument's folder scanned, or manual loading only: folder pickup
+    /// off, or no folder chosen. Its files are then loaded by hand (§6), which
+    /// works either way (ticket #4812).
     fn scan_instrument(
         &self,
         state: &mut PollState,
         instrument: &Instrument,
         now: UtcTimestamp,
     ) -> StatusReport {
-        let unwatched = |state, detail_code| StatusReport {
-            state,
-            detail_code,
-            files_waiting: None,
-            files_too_large: None,
-        };
-        if !instrument.enabled {
-            return unwatched(
-                ListenerState::Disabled,
-                Some(ListenerDetailCode::ConfigurationDisabled),
-            );
-        }
         match &instrument.result_folder {
-            Some(folder) => self.scan_folder(state, instrument.id, folder, now),
-            None => unwatched(ListenerState::ManualOnly, None),
+            Some(folder) if instrument.enabled => {
+                self.scan_folder(state, instrument.id, folder, now)
+            }
+            _ => StatusReport {
+                state: ListenerState::ManualOnly,
+                detail_code: None,
+                files_waiting: None,
+                files_too_large: None,
+            },
         }
     }
 

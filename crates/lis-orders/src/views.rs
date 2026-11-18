@@ -8,11 +8,11 @@ use serde::Serialize;
 use ts_rs::TS;
 
 use crate::{
-    AuthorityEvidenceKind, BillingResponsibility, BillingReviewElement, BillingReviewItemId,
-    CancellationRequestId, ClarificationDeficiency, ClarificationHoldId, ComponentState, ItemKind,
-    ItemState, MedicationSource, OrderComponentId, OrderEvidenceId, OrderId, OrderItemId,
-    OrderStatus, ReflexAuthorization, SequenceRole, SourceKind, StandingOrderId,
-    TriggerAssessmentId, TriggerSource,
+    AcceptanceBlocker, AuthorityEvidenceKind, BillingResponsibility, BillingReviewElement,
+    BillingReviewItemId, CancellationRequestId, ClarificationDeficiency, ClarificationHoldId,
+    ComponentState, ItemKind, ItemState, MedicationSource, OrderComponentId, OrderEvidenceId,
+    OrderId, OrderItemId, OrderStatus, ReflexAuthorization, SequenceRole, SourceKind,
+    StandingOrderId, TriggerAssessmentId, TriggerSource,
 };
 
 /// Frozen component of an order item.
@@ -229,6 +229,8 @@ pub struct OrderDetail {
     pub cancellations: Vec<CancellationView>,
     pub trigger_assessments: Vec<TriggerAssessmentView>,
     pub allowed_actions: Vec<String>,
+    /// What acceptance would refuse or turn into a hold now; empty unless received.
+    pub acceptance_blockers: Vec<AcceptanceBlocker>,
 }
 
 /// One order in the worklist, with what a person needs to recognize it without opening

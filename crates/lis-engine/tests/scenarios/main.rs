@@ -40,6 +40,7 @@ mod specimens;
 // specimens: end
 // analytical: begin
 mod analytical;
+mod lot_corrections;
 // analytical: end
 // results: begin
 mod reflex;

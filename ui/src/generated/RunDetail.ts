@@ -72,7 +72,8 @@ closeReason: string | null,
  */
 revision: number, 
 /**
- * The lots used by the run.
+ * The lots used by the run, with the values in effect when it was created; a later
+ * correction does not change them (#4558).
  */
 lots: Array<LotView>, 
 /**

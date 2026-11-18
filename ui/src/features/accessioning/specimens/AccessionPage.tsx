@@ -15,7 +15,7 @@ import { IntakeSteps } from "../IntakeSteps";
 import { orNotRecorded } from "../subjects";
 import { AccessionProgress } from "./AccessionProgress";
 import { GET_ACCESSION } from "./contract";
-import { collectionTimeText } from "./labels";
+import { collectionTimeText, specimenTitle } from "./labels";
 import { SpecimenPanel } from "./SpecimenPanel";
 
 /** Accessions have no list of their own; they are found by scanning a container. */
@@ -105,7 +105,7 @@ function AccessionRecord({ accession }: { accession: AccessionDetail }) {
         <SpecimenPanel
           key={specimen.specimenId}
           specimen={specimen}
-          title={`Specimen ${index + 1} (${specimen.specimenTypeCode})`}
+          title={specimenTitle(specimen, index)}
           accessionNumber={accessionNumber}
         />
       ))}

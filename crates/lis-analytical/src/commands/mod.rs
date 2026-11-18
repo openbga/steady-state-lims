@@ -7,6 +7,7 @@ pub(crate) mod components;
 pub(crate) mod conflicts;
 pub(crate) mod deviations;
 pub(crate) mod file_sources;
+pub(crate) mod lot_corrections;
 pub(crate) mod lots;
 pub(crate) mod patient;
 pub(crate) mod performing_site;

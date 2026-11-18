@@ -53,7 +53,7 @@ export const DISCREPANCIES: readonly Choice<ReceiptDiscrepancyCode>[] = [
 
 const ACCEPTANCE: Record<SpecimenAcceptance, { label: string; tone: Tone }> = {
   received: { label: "Received, not yet decided", tone: "warning" },
-  accepted: { label: "Accepted", tone: "neutral" },
+  accepted: { label: "Accepted", tone: "success" },
   accepted_conditionally: { label: "Accepted conditionally", tone: "warning" },
   held: { label: "Held", tone: "hold" },
   rejected: { label: "Rejected", tone: "neutral" },
@@ -61,6 +61,11 @@ const ACCEPTANCE: Record<SpecimenAcceptance, { label: string; tone: Tone }> = {
 
 export function acceptanceStatus(acceptance: SpecimenAcceptance): { label: string; tone: Tone } {
   return ACCEPTANCE[acceptance];
+}
+
+/** How screens name a specimen of an accession: "Specimen 1 (urine)", by its position. */
+export function specimenTitle(specimen: { specimenTypeCode: string }, index: number): string {
+  return `Specimen ${index + 1} (${specimen.specimenTypeCode})`;
 }
 
 // REQ-SPC-001: `handed_off` is never shown as "printed"; only the printer knows that.

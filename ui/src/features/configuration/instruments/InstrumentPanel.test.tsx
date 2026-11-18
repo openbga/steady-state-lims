@@ -160,8 +160,11 @@ describe("InstrumentPanel (REQ-INT-005)", { timeout: WALKTHROUGH_TIMEOUT_MS }, (
     expect(fact(panel, "ETB block endings used")?.textContent).toBe("No");
     expect(fact(panel, "Rack number width")?.textContent).toBe("4 digits");
     expect(fact(panel, "Patient information 1–6 widths")?.textContent).toBe("4, 0, 0, 0, 0, 0");
-    expect(await within(panel).findByText("In service")).toBeTruthy();
-    expect(await within(panel).findByText("Connected")).toBeTruthy();
+    // Ticket #4792: In service and Connected are green, in Bench setup's colors too.
+    const tone = async (label: string) =>
+      (await within(panel).findByText(label)).closest("[data-tone]")?.getAttribute("data-tone");
+    expect(await tone("In service")).toBe("success");
+    expect(await tone("Connected")).toBe("success");
     expect(fact(panel, "Last error")?.textContent).toMatch(/^Connection failed, /);
     expect(fact(panel, "Registered")?.textContent).toMatch(/ by Synthetic Configurer$/);
     expect(fact(panel, "Last changed")?.textContent).toMatch(/ by Synthetic Approver$/);

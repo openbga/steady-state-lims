@@ -43,7 +43,7 @@ Per-product notes are in the [vendor export routes](../research/lcms-result-expo
    - Files already in the folder when you choose it are **not** loaded automatically. The LIS shows how many there are, and you can load any of them by hand.
    - The LIS reads the folder only while the application is open, including at its sign-in screen. Files exported while it is closed are read at the next start.
    - Files are never moved or deleted.
-3. **Folder pickup** is switched on and off with the instrument's enable setting. A result-files instrument without a folder is for manual loading only.
+3. **Folder pickup** is switched on and off with the instrument's enable setting. It only controls the watched folder: files can be loaded by hand whether it is on or off. A result-files instrument without a folder, or with folder pickup disabled, shows **Manual loading only**.
 
 ## 3. Create and approve the file template
 

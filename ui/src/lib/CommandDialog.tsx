@@ -33,6 +33,8 @@ interface CommandDialogProps<Values extends FieldValues, Input, Result> {
    * only some choices make the form long.
    */
   size?: DialogSize | ((values: Values) => DialogSize);
+  /** Whether the values may be submitted, such as only once a correction changes something. */
+  canSubmit?: (values: Values) => boolean;
   /** The fields, bound to the form by name. */
   children: ReactNode;
 }
@@ -73,6 +75,7 @@ export function CommandDialog<Values extends FieldValues, Input, Result = unknow
       errorTitle={props.errorTitle ?? "Not recorded"}
       fieldPaths={props.fieldPaths}
       size={size}
+      isSubmitDisabled={props.canSubmit ? !props.canSubmit(values) : false}
       // A request to confirm a self-approval is a question, shown below the fields.
       command={{ error: asksSelfApproval(run.error) ? null : run.error, isPending: run.isPending }}
       onSubmit={submit}

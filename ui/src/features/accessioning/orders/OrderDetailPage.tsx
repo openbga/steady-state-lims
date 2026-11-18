@@ -14,6 +14,7 @@ import { useOrderAccessionContext } from "../useOrderAccessionContext";
 import { ClarificationHolds } from "./ClarificationHolds";
 import { GET_ORDER } from "./contract";
 import { orderStatus } from "./labels";
+import { OrderAcceptance } from "./OrderAcceptance";
 import { OrderAccessions } from "./OrderAccessions";
 import { OrderActions } from "./OrderActions";
 import { OrderEvidence } from "./OrderEvidence";
@@ -97,6 +98,7 @@ function OrderRecord({
 }) {
   return (
     <>
+      <OrderAcceptance order={order} accessionContext={accessionContext} />
       <ClarificationHolds order={order} />
       <OrderAccessions order={order} context={accessionContext} />
       <OrderReferencesGate>

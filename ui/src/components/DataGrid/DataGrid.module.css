@@ -31,6 +31,9 @@
 }
 
 .headerRow {
+  /* A long title wraps onto a second line instead of being cut short; the row grows. */
+  height: auto;
+  min-height: var(--control-height);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
@@ -129,10 +132,15 @@
 }
 
 .headerText {
+  display: -webkit-box;
   min-width: 0;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  padding-block: var(--space-1);
+  line-height: var(--line-height);
+  white-space: normal;
 }
 
 .headerCell {

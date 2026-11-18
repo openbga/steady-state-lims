@@ -45,11 +45,21 @@ fn ceiling(value: &str) -> Result<i64, SpecimenError> {
             )
         })
 }
+/// How many events each paged stream holds within the snapshot, across all its pages.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct MaterialHistoryTotals {
+    pub moves: u32,
+    pub holds: u32,
+}
+
 #[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct MaterialHistoryPage {
     pub snapshot: MaterialHistorySnapshot,
+    pub totals: MaterialHistoryTotals,
     pub moves: Vec<MaterialHistoryEntry>,
     pub holds: Vec<MaterialHistoryEntry>,
     pub disposal: Option<MaterialHistoryEntry>,
@@ -102,11 +112,28 @@ pub fn get_container_history(
         offset,
         hold_ceiling,
     )?;
+    let totals = stream_totals(conn, container_id, move_ceiling, hold_ceiling)?;
     let disposal = conn.query_row("SELECT container_id, 'disposal', disposed_by, disposed_at, 'Disposed', reason, NULL FROM spc_disposals WHERE container_id=?1", [container_id], history_row).optional()?;
     let has_more = moves.len() > PAGE_SIZE || holds.len() > PAGE_SIZE;
     moves.truncate(PAGE_SIZE);
     holds.truncate(PAGE_SIZE);
-    let depletion = lis_audit::list(
+    Ok(MaterialHistoryPage {
+        snapshot,
+        totals,
+        moves,
+        holds,
+        disposal,
+        depletion: depletion(conn, container_id)?,
+        has_more,
+    })
+}
+
+/// The container's depletion, recorded only in the clinical audit stream.
+fn depletion(
+    conn: &Connection,
+    container_id: ContainerId,
+) -> Result<Option<MaterialHistoryEntry>, SpecimenError> {
+    Ok(lis_audit::list(
         conn,
         &lis_audit::EventFilter {
             action: Some(crate::actions::MARK_DEPLETED),
@@ -127,14 +154,29 @@ pub fn get_container_history(
         description: "Marked depleted".to_owned(),
         reason: event.reason,
         causal_sequence: Some(event.seq),
-    });
-    Ok(MaterialHistoryPage {
-        snapshot,
-        moves,
-        holds,
-        disposal,
-        depletion,
-        has_more,
+    }))
+}
+
+/// The rows of each paged stream up to the snapshot's ceilings, on every page alike.
+fn stream_totals(
+    conn: &Connection,
+    id: ContainerId,
+    move_ceiling: i64,
+    hold_ceiling: i64,
+) -> rusqlite::Result<MaterialHistoryTotals> {
+    let count = |sql: &str, ceiling: i64| -> rusqlite::Result<u32> {
+        conn.prepare_cached(sql)?
+            .query_row(params![id, ceiling], |row| row.get(0))
+    };
+    Ok(MaterialHistoryTotals {
+        moves: count(
+            "SELECT count(*) FROM spc_location_events WHERE container_id=?1 AND rowid<=?2",
+            move_ceiling,
+        )?,
+        holds: count(
+            "SELECT count(*) FROM spc_holds WHERE container_id=?1 AND rowid<=?2",
+            hold_ceiling,
+        )?,
     })
 }
 

@@ -1,12 +1,10 @@
 //! Persistence and gate helpers shared by order registration and decisions.
 
-use std::collections::BTreeSet;
-
 use lis_audit::{AuditDetail, AuditEvent, Outcome, Stream};
-use lis_catalog::{OrderableId, OrderableVersionId};
 use lis_store::CommandContext;
 use rusqlite::{OptionalExtension, params};
 
+use crate::acceptance::open_hold_count;
 use crate::error::{OrderError, OrderGate};
 use crate::inputs::{AcceptOrderInput, RegisterOrderInput, TemplateUseInput};
 use crate::{
@@ -98,29 +96,11 @@ pub(super) fn ensure_no_open_holds(
     ctx: &CommandContext<'_>,
     order_id: OrderId,
 ) -> Result<(), OrderError> {
-    let open_holds: i64 = ctx.tx().query_row(
-        "SELECT count(*) FROM ord_clarification_holds WHERE order_id = ?1 AND state = 'open'",
-        [order_id],
-        |row| row.get(0),
-    )?;
-    if open_holds == 0 {
+    if open_hold_count(ctx.tx(), order_id)? == 0 {
         Ok(())
     } else {
         Err(OrderError::GateBlocked(OrderGate::OpenClarificationHold))
     }
-}
-
-pub(super) fn has_active_authority(
-    ctx: &CommandContext<'_>,
-    order_id: OrderId,
-) -> Result<bool, OrderError> {
-    let supplied: i64 = ctx.tx().query_row(
-        "SELECT count(*) FROM ord_authority_evidence \
-         WHERE order_id = ?1 AND removed_in_version IS NULL AND kind <> 'not_supplied'",
-        [order_id],
-        |row| row.get(0),
-    )?;
-    Ok(supplied != 0)
 }
 
 /// Adds the missing-authority hold once and commits it as the acceptance outcome.
@@ -276,67 +256,4 @@ pub(super) fn insert_hold(
         ],
     )?;
     Ok(())
-}
-
-pub(super) fn standing_order_deficiency(
-    ctx: &CommandContext<'_>,
-    order_id: OrderId,
-    standing_id: crate::StandingOrderId,
-) -> Result<Option<ClarificationDeficiency>, OrderError> {
-    let (subject_id, practitioner_id, visit_limit): (
-        lis_identity::SubjectId,
-        lis_identity::PractitionerId,
-        Option<i64>,
-    ) = ctx
-        .tx()
-        .query_row(
-            "SELECT subject_id, practitioner_id, visit_limit \
-         FROM ord_standing_orders WHERE id = ?1",
-            [standing_id],
-            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
-        )
-        .optional()?
-        .ok_or(OrderError::NotFound("standing_order"))?;
-    let (order_subject, order_practitioner): (
-        lis_identity::SubjectId,
-        lis_identity::PractitionerId,
-    ) = ctx.tx().query_row(
-        "SELECT subject_id, practitioner_id FROM ord_orders WHERE id = ?1",
-        [order_id],
-        |r| Ok((r.get(0)?, r.get(1)?)),
-    )?;
-    if subject_id != order_subject || practitioner_id != order_practitioner {
-        return Ok(Some(ClarificationDeficiency::StandingOrderExpired));
-    }
-    if let Some(limit) = visit_limit {
-        let accepted: i64 = ctx.tx().query_row(
-            "SELECT count(*) FROM ord_orders WHERE standing_order_id = ?1 AND status = 'accepted'",
-            [standing_id],
-            |r| r.get(0),
-        )?;
-        if accepted >= limit {
-            return Ok(Some(ClarificationDeficiency::StandingOrderExhausted));
-        }
-    }
-    let scope: BTreeSet<OrderableId> = ctx
-        .tx()
-        .prepare_cached(
-            "SELECT orderable_id FROM ord_standing_order_scope WHERE standing_order_id = ?1",
-        )?
-        .query_map([standing_id], |row| row.get(0))?
-        .collect::<Result<_, _>>()?;
-    let versions: Vec<OrderableVersionId> = ctx
-        .tx()
-        .prepare_cached("SELECT orderable_version_id FROM ord_order_items WHERE order_id = ?1")?
-        .query_map([order_id], |row| row.get(0))?
-        .collect::<Result<_, _>>()?;
-    let mut outside_scope = false;
-    for version_id in versions {
-        let version = lis_catalog::get_orderable_version(ctx.tx(), version_id)?;
-        outside_scope |= !scope.contains(&version.orderable_id);
-    }
-    if outside_scope {
-        return Ok(Some(ClarificationDeficiency::StandingOrderOutOfScope));
-    }
-    Ok(None)
 }

@@ -25,8 +25,9 @@
   white-space: nowrap;
 }
 
+/* As wide as the field, so the hint naming the control ID fits. */
 .search {
-  flex-basis: 16rem;
+  flex-basis: 20rem;
 }
 
 .actions {

@@ -99,17 +99,20 @@ describe("OrdersPage (REQ-ORD-001)", { timeout: WALKTHROUGH_TIMEOUT_MS }, () => 
     const headers = within(grid)
       .getAllByRole("columnheader")
       .map((header) => header.textContent);
-    expect(headers.slice(0, 9)).toEqual([
+    // In the order of a laboratory's work, the status last (#4790); the receipt is the
+    // order's, not a specimen's (#4748).
+    expect(headers).toEqual([
+      "Order received",
+      "Order number",
       "Patient",
       "Birth date",
       "Patient identifiers",
-      "Order number",
-      "Sample barcode",
-      "Accession",
       "Client",
       "Tests",
-      // The order's receipt, not a specimen's (#4748).
-      "Order received",
+      "Sample barcode",
+      "Open holds",
+      "Accession",
+      "Status",
     ]);
     const row = within(grid).getByRole("gridcell", { name: "PO-SYN-1000" }).closest("[role=row]");
     if (!(row instanceof HTMLElement)) throw new Error("no row");

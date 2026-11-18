@@ -6,13 +6,13 @@
 use lis_core::CommandError;
 use lis_engine::{
     AddPatientPositionInput, AddQcPositionInput, ApproveSourceInput, AssessQcInput,
-    CloseDeviationInput, CloseRunInput, CompletePrepBatchInput, CreatePrepBatchInput,
-    CreateRunInput, DeviationView, Engine, FailExecutionInput, GetRunInput, GetRunQcInput,
-    InstrumentReadinessView, ListLotsInput, ListRunsInput, ListSourceRegistrationsInput,
-    ListWorklistInput, LotView, OpenDeviationInput, PrepBatchView, QcAssessmentView,
-    QcConflictView, RecordPrepStepInput, RegisterLotInput, RegisterSourceInput,
-    ResolveQcConflictInput, RunDetail, RunQcView, RunSummary, SetInstrumentStatusInput,
-    SourceRegistrationView, WithdrawLotInput, WorklistEntry,
+    CloseDeviationInput, CloseRunInput, CompletePrepBatchInput, CorrectLotInput,
+    CreatePrepBatchInput, CreateRunInput, DeviationView, Engine, FailExecutionInput, GetRunInput,
+    GetRunQcInput, InstrumentReadinessView, ListLotsInput, ListRunsInput,
+    ListSourceRegistrationsInput, ListWorklistInput, LotHistoryEntry, LotHistoryInput, LotView,
+    OpenDeviationInput, PrepBatchView, QcAssessmentView, QcConflictView, RecordPrepStepInput,
+    RegisterLotInput, RegisterSourceInput, ResolveQcConflictInput, RunDetail, RunQcView,
+    RunSummary, SetInstrumentStatusInput, SourceRegistrationView, WithdrawLotInput, WorklistEntry,
 };
 use tauri::State;
 
@@ -69,6 +69,22 @@ pub(crate) async fn withdraw_lot(
     input: WithdrawLotInput,
 ) -> Result<LotView, CommandError> {
     engine.withdraw_lot(input).await
+}
+
+#[tauri::command]
+pub(crate) async fn correct_lot(
+    engine: State<'_, Engine>,
+    input: CorrectLotInput,
+) -> Result<LotView, CommandError> {
+    engine.correct_lot(input).await
+}
+
+#[tauri::command]
+pub(crate) async fn lot_history(
+    engine: State<'_, Engine>,
+    input: LotHistoryInput,
+) -> Result<Vec<LotHistoryEntry>, CommandError> {
+    engine.lot_history(input).await
 }
 
 #[tauri::command]

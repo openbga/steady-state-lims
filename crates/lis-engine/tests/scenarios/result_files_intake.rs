@@ -373,10 +373,12 @@ async fn loading_a_file_needs_perform_analysis() {
     assert_eq!(w.receipts()[1].2, "aborted");
 }
 
-// L5 of the wave-10 review: a file chosen for an instrument that cannot receive files now
-// is refused before any byte is stored.
+// Ticket #4812: folder pickup off stops the watched folder only; a file loaded by hand is
+// still received, and the instrument shows manual loading only. L5 of the wave-10 review:
+// a file chosen for an instrument that cannot receive files is refused before any byte is
+// stored.
 #[tokio::test]
-async fn a_file_for_a_disabled_instrument_is_not_stored() {
+async fn with_folder_pickup_off_files_are_still_loaded_by_hand() {
     let w = Watched::new().await;
     w.t.engine
         .set_instrument_enabled(SetInstrumentEnabled {
@@ -386,19 +388,41 @@ async fn a_file_for_a_disabled_instrument_is_not_stored() {
         })
         .await
         .unwrap();
+    w.put("batch-009.csv", EXPORT);
+    w.pick_up().await;
+    assert!(w.receipts().is_empty(), "the folder is not picked up");
+    let states = w.t.engine.list_listener_status().await.unwrap();
+    assert_eq!(states[0].state, ListenerState::ManualOnly);
+
     w.analyst_session().await;
     let source = tempfile::tempdir().unwrap();
-    let export = source.path().join("batch-009.csv");
-    fs::write(&export, EXPORT).unwrap();
+    let export = source.path().join("batch-010.csv");
+    fs::write(&export, REEXPORT).unwrap();
+    let loaded = w.load(&export).await.unwrap().unwrap();
+    assert_eq!(loaded.outcome, LoadOutcome::Received);
+    assert_eq!(
+        w.receipts(),
+        vec![("upload".to_owned(), false, "complete".to_owned())]
+    );
+
     let artifacts = || {
         fs::read_dir(w.t.data_dir().join(lis_store::ARTIFACTS_DIR))
             .unwrap()
             .count()
     };
     let before = artifacts();
-    assert_eq!(code_of(w.load(&export).await), ErrorCode::Conflict);
+    let unknown =
+        w.t.engine
+            .load_result_file(
+                LoadResultFileInput {
+                    instrument_id: InstrumentId::generate(),
+                },
+                Some(export),
+            )
+            .await;
+    assert_eq!(code_of(unknown), ErrorCode::NotFound);
     assert_eq!(artifacts(), before, "nothing stored");
-    assert!(w.receipts().is_empty());
+    assert_eq!(w.receipts().len(), 1);
 }
 
 // F13: a watched folder exists, can be read and belongs to one instrument; clearing it

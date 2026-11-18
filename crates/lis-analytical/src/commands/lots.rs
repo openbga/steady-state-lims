@@ -12,6 +12,7 @@ use crate::actions;
 use crate::error::{AnalyticalError, ensure_clear, ensure_revision, gate, invalid};
 use crate::model::{CivilDate, LotId, LotState, MaterialKind, PrepBatchId, PrepBatchState};
 use crate::queries;
+use crate::repo::lot_history::{self, LotFacts, NewRevision};
 use crate::repo::lots::{self as repo, NewLot, NewStep};
 use crate::views::{LotView, PrepBatchView};
 
@@ -55,18 +56,32 @@ pub fn register_lot(
     }
     let id = LotId::generate();
     let by = actor(ctx);
+    let facts = LotFacts {
+        product_name: &product_name,
+        lot_number: &lot_number,
+        level_text: level_text.as_deref(),
+        sample_label: sample_label.as_deref(),
+        expires_on,
+    };
     repo::insert_lot(
         ctx.tx(),
         &NewLot {
             id,
             material_kind: input.material_kind,
-            product_name: &product_name,
-            lot_number: &lot_number,
-            level_text: level_text.as_deref(),
-            sample_label: sample_label.as_deref(),
-            expires_on,
+            facts,
             by: &by,
             at: ctx.now(),
+        },
+    )?;
+    lot_history::insert_revision(
+        ctx.tx(),
+        &NewRevision {
+            lot_id: id,
+            revision: 1,
+            facts,
+            by: &by,
+            at: ctx.now(),
+            reason: None,
         },
     )?;
     ctx.audit(
@@ -82,7 +97,7 @@ pub fn register_lot(
 }
 
 /// Controls and calibrators carry the label the analyzer reports; other kinds do not.
-fn sample_label(
+pub(super) fn sample_label(
     kind: MaterialKind,
     value: Option<&str>,
 ) -> Result<Option<String>, AnalyticalError> {

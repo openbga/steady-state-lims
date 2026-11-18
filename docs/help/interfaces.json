@@ -2,7 +2,7 @@
   "id": "interfaces",
   "title": "Interfaces",
   "summary": "Receive HL7 orders from a clinic's EMR and send HL7 results, report PDFs and billing handoff files to outside systems, through a folder or the partner's SFTP server, or HL7 over MLLP with a partner on the lab network; map codes between the LIS and each partner, follow every message in Logs, and decide on messages no connection matched.",
-  "reviewedOn": "2026-11-12",
+  "reviewedOn": "2026-11-17",
   "routes": [
     "/interfaces/connections",
     "/interfaces/connections/:connectionId/:tab?",
@@ -473,7 +473,7 @@
         },
         {
           "name": "Send test message",
-          "does": "Writes a synthetic file with no patient data to the folder or SFTP server now: toxicology-lims-test-<date>-<time>.hl7, an ORU^R01 with processing ID T, a synthetic patient and its own control ID (MSH-10: TEST- and a new ID each time), for HL7 Results; a one-page PDF for Report PDF; a .json file for Billing JSON. Over MLLP, the synthetic ORU^R01 is sent to the partner and its acknowledgement read.",
+          "does": "Writes a synthetic file with no patient data to the folder or SFTP server now: toxicology-lims-test-<date>-<time>.hl7, an ORU^R01 with processing ID T, a synthetic patient and its own control ID (MSH-10: TEST- and the ID of its row in Logs, new each time, so Search finds it), for HL7 Results; a one-page PDF for Report PDF; a .json file for Billing JSON. Over MLLP, the synthetic ORU^R01 is sent to the partner and its acknowledgement read.",
           "availableWhen": "A saved connection that sends, stopped or not verified too; an HL7 Orders connection has none, as the LIS sends it nothing.",
           "result": "The file name, or the problem, shows; over MLLP the partner's answer, such as ✓ Synthetic test message sent; the partner accepted it (AA), or ✗ … the partner found an error (AE): <its reason>. The test appears in Logs with a Test badge once Show test messages is on, and on the connection's Logs tab. A failed test is not retried."
         },
@@ -613,10 +613,10 @@
           "rules": "Kept in the address. A connection's own Logs tab always lists its test messages."
         },
         {
-          "name": "Search (Search report, handoff, file…)",
+          "name": "Search (Search report, handoff, file or control ID…)",
           "meaning": "Narrow the rows.",
-          "values": "Part of a report or accession number, such as A26000009, a handoff number (digits only, exact), a whole control ID (MSH-10) of an outgoing message, such as the one a partner quotes, in any letter case, or part of a file name or folder. Several values separated by commas, such as A26000009, A26000022, show the rows of any of them.",
-          "rules": "Optional; kept in the address."
+          "values": "Part of a report or accession number, such as A26000009, a handoff number (digits only, exact), the control ID (MSH-10) of an outgoing message, such as the one a partner quotes, whole or any part of at least 6 characters, such as its last characters fb18fc49e4aa, in any letter case (its first characters are the time it was made, so they also find other messages made around then); a test message's control ID starts with TEST-, and one sent by an earlier version is not found by it, or part of a file name or folder. Spaces copied around a value are ignored. Several values separated by commas, such as A26000009, A26000022, show the rows of any of them.",
+          "rules": "Optional; kept in the address. Changing it closes the message panel, if one is open."
         },
         {
           "name": "All / Failed / Rejected / Awaiting ACK / Outcome unknown / Duplicates",
@@ -664,7 +664,7 @@
           "name": "Message as sent",
           "meaning": "The HL7 Results message exactly as the partner received it, one segment per line (MSH, PID, ORC, OBR, OBX, SPM…).",
           "values": "Matches what was sent: the copy the LIS kept when it made the message, checked against the digest recorded then; every attempt sent these bytes, so a retry is the same message with the same control ID. Not made yet: the message is made at its first attempt, once every test and analyte has an approved code mapping. A report PDF or billing file is not an HL7 message: open it from its report or billing handoff. When the kept copy is missing or no longer matches its digest, a red notice says so and nothing is shown: the LIS never shows a message made again in its place, as it could differ from the one sent. A test message shows its synthetic content, with no patient data.",
-          "rules": "Read-only; lines are not wrapped, so scroll sideways for long segments. The panel widens while a message is shown."
+          "rules": "Read-only. Each segment starts on a new line; a segment longer than the panel wraps onto the next lines, indented so they cannot be mistaken for a new segment. The wrapping is only how it is shown: copying the message gives exactly the text as sent, with no added spaces or line breaks. The copy icon in the box's bottom-right corner (Copy message) copies the whole message, one segment per line, and Message copied shows; Message not copied shows if the clipboard cannot be used. Selecting the text and copying it gives the same. The panel widens while a message is shown."
         },
         {
           "name": "Attempts",
@@ -736,7 +736,7 @@
         },
         {
           "problem": "A partner quotes a control ID and searching finds nothing",
-          "recovery": "Type the whole control ID, as the partner's MSH-10 or MSA-2 shows it, and choose All time in Period: the search does not match part of a control ID. A control ID the LIS did not send, such as the ID of an order the partner sent, is not found."
+          "recovery": "Type the control ID as the partner's MSH-10 or MSA-2 shows it, or at least 6 of its characters, and choose All time in Period: the search covers only the chosen period. A shorter part is read as a report, handoff or file search, as it would match many control IDs. A control ID the LIS did not send, such as the ID of an order the partner sent, is not found."
         },
         {
           "problem": "Message as sent says the kept copy is missing or no longer matches its digest",

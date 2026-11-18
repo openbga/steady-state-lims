@@ -296,22 +296,38 @@ fn manual_load_needs_perform_analysis_and_records_the_user() {
     );
 }
 
-// F1: only an enabled result-file instrument receives files; a pickup also
-// needs a watched folder, so clearing it stops pickups at once.
+// F1: only a result-file instrument receives files. A pickup also needs folder
+// pickup enabled and a watched folder, so clearing it stops pickups at once; a
+// file loaded by hand does not, as folder pickup only controls the folder
+// (ticket #4812).
 #[test]
-fn files_need_an_enabled_result_file_instrument() {
+fn files_need_a_result_file_instrument_and_pickups_an_enabled_one() {
     let t = TestDatabase::open(&[SCHEMA]).unwrap();
     let disabled = register(&t.db, "LCMS-OFF", ConnectionSettings::ResultFile {}, false);
     let astm = register(&t.db, "ASTM-1", tcp_settings(4001), true);
     let input = stored(
         &t.db,
-        facts(disabled.id, FileSource::Upload, "a.csv", 0),
+        facts(
+            disabled.id,
+            FileSource::Folder(synthetic("LCMS-OFF")),
+            "a.csv",
+            0,
+        ),
         EXPORT,
     );
     assert!(matches!(
-        receive(&t.db, analyst(), input),
+        receive(&t.db, Principal::instrument(disabled.id), input),
         Err(InterfaceError::InstrumentDisabled)
     ));
+    assert_eq!(count(&t.db, "SELECT COUNT(*) FROM ifc_receipts"), 0);
+    let input = stored(
+        &t.db,
+        facts(disabled.id, FileSource::Upload, "a.csv", 0),
+        EXPORT,
+    );
+    let loaded = receive(&t.db, analyst(), input).unwrap();
+    assert_eq!(loaded.state, ReceiptState::Complete);
+    assert_eq!(count(&t.db, "SELECT COUNT(*) FROM ifc_receipts"), 1);
     let input = stored(
         &t.db,
         facts(astm.id, FileSource::Upload, "a.csv", 0),
@@ -336,7 +352,7 @@ fn files_need_an_enabled_result_file_instrument() {
         receive(&t.db, Principal::instrument(manual.id), input),
         Err(InterfaceError::ResultFolderNotSet)
     ));
-    assert_eq!(count(&t.db, "SELECT COUNT(*) FROM ifc_receipts"), 0);
+    assert_eq!(count(&t.db, "SELECT COUNT(*) FROM ifc_receipts"), 1);
 }
 
 // F12: identical bytes from the same instrument give a duplicate receipt, whatever
@@ -774,9 +790,10 @@ fn a_pickup_from_a_folder_no_longer_watched_is_refused() {
 }
 
 // L5 of the wave-10 review: intake reads whether the instrument can receive a file
-// before it stores any bytes.
+// before it stores any bytes. Folder pickup needs the instrument enabled; a file
+// loaded by hand does not (ticket #4812).
 #[test]
-fn only_an_enabled_result_file_instrument_can_receive_files() {
+fn a_pickup_needs_an_enabled_result_file_instrument_and_a_load_any_result_file_one() {
     let t = TestDatabase::open(&[SCHEMA]).unwrap();
     let files = register(&t.db, "LCMS-1", ConnectionSettings::ResultFile {}, true);
     let disabled = register(&t.db, "LCMS-OFF", ConnectionSettings::ResultFile {}, false);
@@ -784,17 +801,30 @@ fn only_an_enabled_result_file_instrument_can_receive_files() {
     let receivable = |id: InstrumentId| {
         t.db.read_blocking(move |conn| lis_interfaces::receivable_instrument(conn, id))
     };
+    let loadable = |id: InstrumentId| {
+        t.db.read_blocking(move |conn| lis_interfaces::loadable_instrument(conn, id))
+    };
     assert_eq!(receivable(files.id).unwrap().id, files.id);
+    assert_eq!(loadable(files.id).unwrap().id, files.id);
     assert!(matches!(
         receivable(disabled.id),
         Err(InterfaceError::InstrumentDisabled)
     ));
+    assert_eq!(loadable(disabled.id).unwrap().id, disabled.id);
     assert!(matches!(
         receivable(astm.id),
         Err(InterfaceError::TransportMismatch)
     ));
     assert!(matches!(
+        loadable(astm.id),
+        Err(InterfaceError::TransportMismatch)
+    ));
+    assert!(matches!(
         receivable(InstrumentId::generate()),
+        Err(InterfaceError::InstrumentNotFound)
+    ));
+    assert!(matches!(
+        loadable(InstrumentId::generate()),
         Err(InterfaceError::InstrumentNotFound)
     ));
 }

@@ -37,6 +37,8 @@ interface TextInputProps {
   description?: string;
   format?: TextFormat;
   autoFocus?: boolean;
+  /** What to enter, shown in the empty field, such as "Scan or type a container barcode". */
+  placeholder?: string;
   /** Additional lexical or range validation; blank handling is owned by isRequired. */
   validate?: (value: string) => true | string;
   /**
@@ -58,6 +60,7 @@ export function TextInput({
   description,
   format,
   autoFocus,
+  placeholder,
   validate,
   picker,
   isPastOnly,
@@ -96,6 +99,7 @@ export function TextInput({
           isRequired={isRequired}
           isDisabled={isDisabled}
           autoFocus={autoFocus}
+          placeholder={placeholder}
           autoComplete="off"
           adornment={
             isDisabled

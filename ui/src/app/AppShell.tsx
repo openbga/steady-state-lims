@@ -2,6 +2,7 @@ import { lazy, Suspense, useId, useRef, useState } from "react";
 import { Outlet } from "react-router";
 import { BrandLockup } from "@/components/BrandLockup";
 import { LoadingState } from "@/components/LoadingState";
+import { RecentLookupsProvider } from "@/features/accessioning/specimens/recentLookups";
 import { UserMenu } from "@/features/auth/UserMenu";
 import { ListenerSummary } from "@/features/listeners/ListenerStatus";
 import { HealthIndicator } from "@/features/operations/frame/HealthIndicator";
@@ -12,6 +13,7 @@ import type { LaboratoryProfileView } from "@/generated/LaboratoryProfileView";
 import type { SessionInfo } from "@/generated/SessionInfo";
 import { GET_LABORATORY_PROFILE, useCommandQuery } from "@/lib/commands";
 import { LabTimeZoneContext } from "@/lib/format";
+import { useRememberLabTimeZone } from "@/lib/lastLabTimeZone";
 import styles from "./AppShell.module.css";
 import { helpGridStyle, PageHelpButton } from "./help/HelpResize";
 import { useHelpLayout } from "./help/useHelpLayout";
@@ -25,13 +27,15 @@ const PageHelp = lazy(() => import("./help/PageHelp").then((m) => ({ default: m.
  * The signed-in frame: a skip link, the top bar, notices every person must see, the side
  * navigation and the screen. The top bar shows the scan field (for people who look up
  * containers), What's new, page help, the host's health, one analyzer summary and the user
- * menu. Every screen shows times
- * in the laboratory's time zone; until a profile names one, they show in UTC and the frame
- * says so. Banners (an open recovery reconciliation, an unaccepted version) sit under the top
- * bar. Showing or hiding a control is presentation; the engine checks every command.
+ * menu. Every screen shows times in the laboratory's time zone; until a profile names one,
+ * they show in UTC and the frame says so. Banners (an open recovery reconciliation, an unaccepted version) sit under the top
+ * bar. Showing or hiding a control is presentation; the engine checks every command. State
+ * kept for the signed-in person only, such as Container lookup's recent lookups, lives in
+ * this frame, which unmounts on sign-out and on lock.
  */
 export function AppShell({ session }: { session: SessionInfo }) {
   const profile = useCommandQuery<LaboratoryProfileView | null>(GET_LABORATORY_PROFILE);
+  useRememberLabTimeZone(profile.data?.timeZone);
   const main = useRef<HTMLElement>(null);
   const helpPane = useRef<HTMLDivElement>(null);
   const helpTrigger = useRef<HTMLButtonElement>(null);
@@ -46,54 +50,56 @@ export function AppShell({ session }: { session: SessionInfo }) {
   usePageHeading(main);
   return (
     <LabTimeZoneContext.Provider value={profile.data?.timeZone ?? null}>
-      <div
-        className={styles.shell}
-        data-help-open={helpOpen}
-        // Runtime panel geometry from the resize control.
-        style={helpGridStyle(helpLayout, helpOpen)}
-      >
-        {/* A button, not a `#main` link: the hash router owns the URL fragment. */}
-        <button type="button" className={styles.skipLink} onClick={() => main.current?.focus()}>
-          Skip to main content
-        </button>
-        <header className={styles.topBar}>
-          <BrandLockup />
-          {session.capabilities.includes("accession") && <ScanField />}
-          <div className={styles.topBarEnd}>
-            <WhatsNewLink userId={session.userId} />
-            <PageHelpButton
-              buttonRef={helpTrigger}
-              open={helpOpen}
-              controls={helpId}
-              onPress={() => (helpOpen ? closeHelp() : setHelpState("open"))}
-            />
-            <HealthIndicator />
-            <ListenerSummary />
-            <UserMenu session={session} />
-          </div>
-        </header>
-        <section aria-label="Notices" className={styles.notices}>
-          <TimeZoneNote profile={profile.data} isError={profile.isError} />
-          <OperationsBanners />
-          <StarterBanner />
-        </section>
-        <Sidebar capabilities={session.capabilities} />
-        <main id="main" ref={main} tabIndex={-1} className={styles.main}>
-          <Outlet />
-        </main>
-        <div ref={helpPane} id={helpId} className={styles.help} hidden={!helpOpen}>
-          {helpState !== "unopened" && (
-            <Suspense fallback={<LoadingState />}>
-              <PageHelp
-                isOpen={helpOpen}
-                onClose={closeHelp}
-                layout={helpLayout}
+      <RecentLookupsProvider>
+        <div
+          className={styles.shell}
+          data-help-open={helpOpen}
+          // Runtime panel geometry from the resize control.
+          style={helpGridStyle(helpLayout, helpOpen)}
+        >
+          {/* A button, not a `#main` link: the hash router owns the URL fragment. */}
+          <button type="button" className={styles.skipLink} onClick={() => main.current?.focus()}>
+            Skip to main content
+          </button>
+          <header className={styles.topBar}>
+            <BrandLockup />
+            {session.capabilities.includes("accession") && <ScanField />}
+            <div className={styles.topBarEnd}>
+              <WhatsNewLink userId={session.userId} />
+              <PageHelpButton
+                buttonRef={helpTrigger}
+                open={helpOpen}
                 controls={helpId}
+                onPress={() => (helpOpen ? closeHelp() : setHelpState("open"))}
               />
-            </Suspense>
-          )}
+              <HealthIndicator />
+              <ListenerSummary />
+              <UserMenu session={session} />
+            </div>
+          </header>
+          <section aria-label="Notices" className={styles.notices}>
+            <TimeZoneNote profile={profile.data} isError={profile.isError} />
+            <OperationsBanners />
+            <StarterBanner />
+          </section>
+          <Sidebar capabilities={session.capabilities} />
+          <main id="main" ref={main} tabIndex={-1} className={styles.main}>
+            <Outlet />
+          </main>
+          <div ref={helpPane} id={helpId} className={styles.help} hidden={!helpOpen}>
+            {helpState !== "unopened" && (
+              <Suspense fallback={<LoadingState />}>
+                <PageHelp
+                  isOpen={helpOpen}
+                  onClose={closeHelp}
+                  layout={helpLayout}
+                  controls={helpId}
+                />
+              </Suspense>
+            )}
+          </div>
         </div>
-      </div>
+      </RecentLookupsProvider>
     </LabTimeZoneContext.Provider>
   );
 }

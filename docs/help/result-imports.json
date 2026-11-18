@@ -2,7 +2,7 @@
   "id": "result-imports",
   "title": "Result imports",
   "summary": "Account for received results and investigate rows that were not applied.",
-  "reviewedOn": "2026-11-10",
+  "reviewedOn": "2026-11-17",
   "routes": ["/review/imports", "/review/imports/:importAttemptId/:tab?"],
   "sections": [
     {
@@ -85,16 +85,16 @@
           "rules": "Optional. Kept in the address (?outcome=)."
         },
         {
-          "name": "Hide duplicates",
-          "meaning": "Leaves out the attempts of messages or files identical to one received earlier from the same instrument.",
-          "values": "Checked or not; not checked by default, so duplicates are listed.",
-          "rules": "Optional. Applied by the engine before the list is paged, so every page stays full. Combines with the other filters; Clear filters unchecks it. Kept in the address (?duplicates=hidden)."
-        },
-        {
           "name": "More filters: Received from / Received to",
           "meaning": "Show the attempts of messages or files received on these days.",
           "values": "Days as YYYY-MM-DD, typed or picked from the calendar, in the laboratory's time zone. Both days are included; either may be left empty. Days after today can't be picked.",
           "rules": "Optional. A day applies once it is a real day; until then the field says what is wrong. The end day can't be before the start day. Filters on when the message or file was received, not when it was processed: a retry keeps its receipt's received time. Kept in the address (?from=, ?to=); the applied days show under the toolbar while More filters is closed."
+        },
+        {
+          "name": "Hide duplicates",
+          "meaning": "Leaves out the attempts of messages or files identical to one received earlier from the same instrument.",
+          "values": "Checked or not; not checked by default, so duplicates are listed.",
+          "rules": "Optional. Applied by the engine before the list is paged, so every page stays full. Combines with the other filters; Clear filters unchecks it. Kept in the address (?duplicates=hidden)."
         },
         {
           "name": "Check column",
@@ -153,7 +153,7 @@
         {
           "name": "Load results file: Instrument",
           "meaning": "Chooses the approved source template used to read the file.",
-          "values": "Instruments with an approved result-file template.",
+          "values": "Instruments with an approved result-file template, whether or not folder pickup is enabled for them.",
           "rules": "Required; no default. The dialog displays the selected software name/version before choosing the file."
         },
         {
@@ -174,7 +174,7 @@
           "name": "Load results file / Choose file",
           "does": "Selects an instrument and opens the operating-system file picker.",
           "availableWhen": "Analysis authority and an approved file template are available.",
-          "result": "Stores a receipt of original bytes and schedules processing; does not change or move the original file."
+          "result": "Stores a receipt of original bytes and schedules processing; does not change or move the original file. Works while the instrument's folder pickup is disabled: folder pickup only controls the watched folder."
         },
         {
           "name": "Open import attempt / Open the earlier import attempt",
@@ -195,10 +195,10 @@
           "result": "Shows every attempt, newest first, and removes the filters from the address."
         },
         {
-          "name": "Select all quarantined",
-          "does": "Checks every loaded attempt with something to retry in the current filter, such as one instrument's.",
+          "name": "Select all quarantined / Deselect all quarantined",
+          "does": "Select all quarantined checks every loaded attempt with something to retry in the current filter, such as one instrument's. Once they are all checked, the button reads Deselect all quarantined and unchecks them all.",
           "availableWhen": "At least one loaded attempt is Quarantined or Processed, some rows quarantined.",
-          "result": "The selection bar shows how many are checked, with Retry selected and Clear. Attempts on pages not yet loaded are not checked; use Load older imports first."
+          "result": "The selection bar shows how many are checked, with Retry selected and Clear; Deselect all quarantined, like Clear, empties it. Attempts on pages not yet loaded are not checked; use Load older imports first."
         },
         {
           "name": "Retry selected",

@@ -2,7 +2,7 @@
   "id": "orders",
   "title": "Orders and decisions",
   "summary": "Review the supplied request, its tests, evidence, holds and specimen progress.",
-  "reviewedOn": "2026-11-12",
+  "reviewedOn": "2026-11-17",
   "routes": ["/orders", "/orders/:orderId"],
   "sections": [
     {
@@ -31,6 +31,7 @@
     "ui/src/features/accessioning/orders/orderColumns.tsx",
     "ui/src/features/accessioning/orders/OrderedTests.tsx",
     "ui/src/features/accessioning/orders/OrderDetailPage.tsx",
+    "ui/src/features/accessioning/orders/OrderAcceptance.tsx",
     "ui/src/features/accessioning/orders/OrderFacts.tsx",
     "ui/src/features/accessioning/orders/OrderItems.tsx",
     "ui/src/features/accessioning/orders/OrderEvidence.tsx",
@@ -42,6 +43,7 @@
     "ui/src/features/accessioning/orders/labels.ts",
     "crates/lis-orders/src/commands/validation.rs",
     "crates/lis-orders/src/commands/order_support.rs",
+    "crates/lis-orders/src/acceptance.rs",
     "crates/lis-orders/src/commands/follow_on.rs",
     "ui/src/features/accessioning/billing/BillingOrderPage.tsx",
     "ui/src/features/accessioning/billing/OrderBillingSection.tsx",
@@ -107,10 +109,10 @@
           "rules": "Use Show orders for all patients to remove it; New order retains the filtered patient."
         },
         {
-          "name": "Patient / Order number / Client / Order received / Status / Open holds",
-          "meaning": "Columns used to identify a request and its progress.",
-          "values": "Patient name; clinic number or Not supplied; client; the date and time the laboratory received the order (request), shown in local time with its offset; Received, not yet accepted (warning badge), Accepted (green badge) or Rejected (neutral badge); number of open holds.",
-          "rules": "Read-only. Order received is when the laboratory recorded the request, not when a specimen was collected or received: Sample barcode and Accession show whether specimens have arrived. Select Order received to sort by it."
+          "name": "Patient / Order number / Status / Open holds / Client / Order received",
+          "meaning": "Columns used to identify a request and its progress, in the order of the laboratory's work. From left to right the list shows Order received, Order number, Patient, Birth date, Patient identifiers, Client, Tests, Sample barcode, Open holds, Accession and Status.",
+          "values": "Patient name; clinic number or Not supplied; Received, not yet accepted (warning badge), Accepted (green badge) or Rejected (neutral badge); number of open holds, 0 or a hold badge such as 1 open; client; the date and time the laboratory received the order (request), shown in local time with its offset.",
+          "rules": "Read-only. Open holds sits before Accession and Status comes last. All columns fit a 1920-pixel-wide window with the navigation open; a long column title wraps onto a second line, and each patient identifier sits on its own line. Other text too long for its column ends in an ellipsis and shows in full when you point to it. Order received is when the laboratory recorded the request, not when a specimen was collected or received: Sample barcode and Accession show whether specimens have arrived. Select Order received to sort by it."
         },
         {
           "name": "Tests",
@@ -210,6 +212,12 @@
           "meaning": "Identity, source order identifier and current request state.",
           "values": "Received, not yet accepted; Accepted; Rejected. Evidence version is a read-only revision counter.",
           "rules": "An order without a clinic number is displayed as Order. Check identity before any decision."
+        },
+        {
+          "name": "Ready to accept / Not ready to accept / Next step: receive specimens",
+          "meaning": "A notice at the top of the order that answers whether it can be accepted now and, once accepted, what comes next.",
+          "values": "Ready to accept (green): the order is received and passes every check acceptance makes: recorded authority, no open clarification hold and, for a standing order, the patient, practitioner, visits left and test scope. Not ready to accept (hold): one line per problem found: no signature or intent to order recorded; an open clarification hold; the standing order no longer matches the patient and practitioner, has no visits left, or does not cover a test; or a test recorded before testing sequence roles were required. Next step: receive specimens (green): the order is accepted, no specimen has been received for it yet and you may receive specimens, with a Start receiving specimens button.",
+          "rules": "Read-only; the checks are the ones Accept order applies when you confirm, read again each time the order is shown. Missing authority and the standing-order problems do not stop the Accept order button, but accepting then places a clarification hold and leaves the order unaccepted; an open hold makes acceptance fail with its reason; an order with a test that has no sequence role can only be rejected. Add missing authority with Amend supplied evidence under Order changes, and resolve open holds under Clarification holds. Nothing is shown for a rejected order, or for an accepted one that already has specimens or that you cannot receive. Start receiving specimens opens the same page as Receive specimens. Order billing is not part of these checks."
         },
         {
           "name": "Requisition: Received / Client / Client location / Ordering practitioner / Clinic order number / Received as / Billing responsibility / Facility setting / Template use",
@@ -552,7 +560,7 @@
         {
           "name": "Accept order",
           "does": "Confirms the saved request for accessioning.",
-          "availableWhen": "Received order, order-entry authority and no unresolved clarification hold; source authority and any standing-order gates are checked.",
+          "availableWhen": "Received order and order-entry authority. The notice at the top of the order shows beforehand whether an open hold, missing authority or the standing order will stop acceptance.",
           "result": "Accepting freezes the ordered work. Missing authority or failed standing-order checks can instead place a hold and leave the order unaccepted."
         },
         {
@@ -560,6 +568,12 @@
           "does": "Opens material registration for eligible tests.",
           "availableWhen": "Accessioning authority and eligible accepted, unaccessioned tests; the application supplies the eligibility.",
           "result": "Opens Receive specimens with existing accession context."
+        },
+        {
+          "name": "Start receiving specimens",
+          "does": "The next step offered in the green notice after the order is accepted.",
+          "availableWhen": "Accepted order with no specimen received yet, when Receive specimens is also offered.",
+          "result": "Opens Receive specimens for this order, as Receive specimens does."
         },
         {
           "name": "Place clarification hold / Place hold",

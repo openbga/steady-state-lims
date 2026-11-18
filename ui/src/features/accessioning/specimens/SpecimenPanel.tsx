@@ -19,6 +19,7 @@ import { acceptanceStatus, discrepancyText, RECEIPT_DECISIONS } from "./labels";
 import { PrintLabelsDialog } from "./PrintLabelsDialog";
 import { ReceiptChronologyDialog } from "./ReceiptChronologyDialog";
 import { ReceiptDecisionDialog } from "./ReceiptDecisionDialog";
+import { ReceiptStep } from "./ReceiptStep";
 
 type OpenDialog =
   | { kind: "receipt" | "chronology" }
@@ -39,9 +40,9 @@ const canAliquot = (container: ContainerView) =>
   container.allowedActions.includes("create_aliquot");
 
 /**
- * One specimen: its receipt decisions and its containers, with their label jobs. Actions come
- * from the engine's `allowedActions`, per specimen and per container; labels for several
- * containers print together from the selection.
+ * One specimen: its receipt step, its receipt decisions and its containers, with their label
+ * jobs. Actions come from the engine's `allowedActions`, per specimen and per container;
+ * labels for several containers print together from the selection.
  */
 export function SpecimenPanel({ specimen, title, accessionNumber }: SpecimenPanelProps) {
   const accession = useHasCapability("accession");
@@ -74,9 +75,6 @@ export function SpecimenPanel({ specimen, title, accessionNumber }: SpecimenPane
               Print labels
             </Button>
           )}
-          {accession && specimen.allowedActions.includes("record_receipt_decision") && (
-            <Button onPress={() => setDialog({ kind: "receipt" })}>Record receipt decision</Button>
-          )}
         </>
       }
     >
@@ -90,6 +88,7 @@ export function SpecimenPanel({ specimen, title, accessionNumber }: SpecimenPane
           )}
         </Alert>
       )}
+      <ReceiptStep specimen={specimen} onDecide={() => setDialog({ kind: "receipt" })} />
       <ReceiptDecisions specimen={specimen} title={title} />
       <DataGrid
         label={`Containers of ${title}`}

@@ -1,0 +1,59 @@
+/* Container lookup: the scan bar, the container card title and History's notes. */
+
+/* The field and Find container on one line, wrapping on narrow windows. The button
+   lines up with the input, so a field error below it does not move the button. */
+.scanBar > form {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.scanField {
+  flex: 0 1 32rem;
+  min-width: min(16rem, 100%);
+}
+
+.lastScan {
+  align-self: flex-end;
+  line-height: var(--control-height);
+  color: var(--color-text-muted);
+}
+
+/* The container's label and its acceptance badge, in the heading's own font. */
+.title {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.tipIcon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.tip {
+  max-width: min(28rem, 90vw);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-overlay);
+}
+
+.tipBody {
+  padding: var(--space-3);
+  outline: none;
+}
+
+.tipBody p {
+  margin: 0;
+}

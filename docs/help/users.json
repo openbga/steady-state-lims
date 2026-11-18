@@ -2,7 +2,7 @@
   "id": "users",
   "title": "Users and access",
   "summary": "Manage individual accounts and roles, and maintain your own security keys, optional unlock PIN and appearance from the signed-in menu.",
-  "reviewedOn": "2026-11-10",
+  "reviewedOn": "2026-11-17",
   "routes": ["/users"],
   "sections": [
     {
@@ -191,7 +191,7 @@
           "name": "Appearance",
           "meaning": "Whether the app shows in a light or a dark theme for you.",
           "values": "Light, Dark or System; System by default. System follows the computer’s light or dark setting.",
-          "rules": "Personal and remembered on this computer for your account; on another computer, choose it again. It applies when you sign in and stays after you sign out or lock until the next person signs in. Before anyone signs in, the app follows the computer’s setting. Report PDFs and printed labels stay light."
+          "rules": "Personal and remembered on this computer for your account; on another computer, choose it again. It applies when you sign in and stays after you sign out or lock until the next person signs in. The sign-in screen shows the appearance last used on this computer, both when the app starts and after a sign-out, so it looks the same each time; on a computer where nobody has signed in yet, it follows the computer’s setting. Report PDFs and printed labels stay light."
         },
         {
           "name": "New unlock PIN",
@@ -420,7 +420,7 @@
         },
         {
           "problem": "The app opens light or dark when you did not expect it",
-          "recovery": "Appearance is remembered for each account on each computer, and after a sign-out the sign-in screen keeps the last person’s choice. After you sign in, your own choice applies; choose it again under Signed in as … on a computer you have not used before."
+          "recovery": "Appearance is remembered for each account on each computer, and the sign-in screen, at start and after a sign-out, shows the appearance last used on this computer, which may be another person’s. After you sign in, your own choice applies; choose it again under Signed in as … on a computer you have not used before."
         }
       ]
     }
@@ -428,6 +428,7 @@
   "reviewSources": [
     "ui/src/features/users/UsersPage.tsx",
     "ui/src/lib/appearance.ts",
+    "ui/src/main.tsx",
     "ui/src/features/users/UserAdministration.tsx",
     "ui/src/features/users/UserPanel.tsx",
     "ui/src/features/users/userColumns.tsx",

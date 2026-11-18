@@ -91,6 +91,9 @@ async fn material_history_names_who_recorded_each_event() {
         .await
         .unwrap();
     let hold = history.holds.first().expect("the placed hold");
+    // The engine's read carries each stream's total with the page, for the History tabs.
+    assert_eq!(history.totals.holds as usize, history.holds.len());
+    assert_eq!(history.totals.moves as usize, history.moves.len());
     let name: String = lab
         .t()
         .conn()
