@@ -81,10 +81,12 @@ The operator's prompt supplies these values:
      new version once more, and the `nightly-<date>.<run>` release carries the matching
      `latest-<owner>-<name>.json` copy, so the asset count there is higher by that many.
    - After a fresh fetch, the tag's commit equals the dispatched SHA.
-8. **Release summary (versioned releases only).** Summarize the changes since the
-   previous `v*` tag from
-   `git -C "$CLONE" log --no-merges --format='%h %s' <previous-tag>..v<version>`.
-   Group the changes by area and keep it factual. Insert it as a `## Summary`
+8. **Release summary (versioned releases only).** Take the changes from the
+   `## <version>` section of `git -C "$CLONE" show v<version>:CHANGELOG.md`, which
+   lists them by impact for users. Keep its titles and order; do not rewrite them. Only when
+   the version has no section, summarize
+   `git -C "$CLONE" log --no-merges --format='%h %s' <previous-tag>..v<version>` by area,
+   factually, and report the missing section. Insert it as a `## Summary`
    section above the generated `## What's Changed` list, or at the end if that list
    is absent. Apply it with `gh release edit v<version> -R "$REPO" --notes-file <file>`.
    Keep the workflow's warning, table and generated notes. Do not claim validation,

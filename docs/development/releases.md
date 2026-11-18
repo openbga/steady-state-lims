@@ -42,14 +42,32 @@ python3 scripts/release_version.py release      # print main's releasable versio
 A unique version for every nightly keeps builds distinguishable in the
 application's version history and update records.
 
+## Changelog
+
+Each change that users, deployers or integrators can observe has one entry file in
+`changelog.d/` ([changelog-entry skill](../../.ai/skills/changelog-entry/SKILL.md)).
+[`scripts/changelog.py`](../../scripts/changelog.py) generates
+[CHANGELOG.md](../../CHANGELOG.md) and the list the application bundles at build time and
+shows under **What's new**; CI fails when either is out of date.
+
+An entry learns its release when the release is cut: `python3 scripts/changelog.py --release
+X.Y.Z` adds `release: X.Y.Z` to every entry that has no release yet, then regenerates both
+outputs. Entries without a release are listed under Unreleased, which is what nightly builds
+show. A pull request into `main` fails the `changelog` workflow while any entry lacks a
+release. Because the list ships inside each build, the application shows the changes of the
+version that is installed, including right after an in-app update.
+
 ## Cut a release
 
-1. On `develop`, run `python3 scripts/release_version.py set X.Y.Z`, then commit and
-   push. The manifest change selects the full CI gate.
+1. On `develop`, run `python3 scripts/release_version.py set X.Y.Z` and
+   `python3 scripts/changelog.py --release X.Y.Z`, then commit and push. The manifest
+   change selects the full CI gate. If more changes reach `develop` before the merge
+   below, stamp them the same way.
 2. Merge `develop` into `main` through a pull request.
 3. The scheduled release agent publishes it that night. To publish immediately, run
    `gh workflow run package.yml --ref main -f channel=release`.
-4. If `main` received a hotfix that `develop` lacks, merge `main` back into `develop`.
+4. If `main` received a hotfix that `develop` lacks, merge `main` back into `develop`. A
+   hotfix that changes the application also sets a new version and stamps its entry.
 
 If `main` changes without a new version, nothing is published. The release agent
 reports the unreleased commits until a version is set.

@@ -1,10 +1,14 @@
 import { screen, waitFor, within } from "@testing-library/react";
-import { createMemoryRouter, RouterProvider } from "react-router";
+import { createMemoryRouter, matchRoutes, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
+import { TEST_SESSION } from "@/features/auth/testSession";
+import { changeGroups, entryKey, groupEntries, readSeen } from "@/features/whats-new/changelog";
 import { expectNoA11yViolations } from "@/lib/test/a11y";
 import { mockCommands } from "@/lib/test/ipc";
 import { renderWithProviders } from "@/lib/test/render";
+import { detailScreens } from "./detailScreens";
 import { LAB_PROFILE, LISTENER, renderApp } from "./frameTestData";
+import { navigation } from "./navigation";
 import { routes } from "./routes";
 
 describe("App frame", () => {
@@ -137,5 +141,41 @@ describe("App frame", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Sign in" })).toBeTruthy();
     expect(await screen.findByText("Synthetic Analyzer 1")).toBeTruthy();
     expect(screen.queryByRole("navigation", { name: "Main" })).toBeNull();
+  });
+
+  // What's new: reachable from the top bar for everyone, and opening it clears the count.
+  it("shows no What's new count to someone signing in here for the first time", async () => {
+    localStorage.clear();
+    renderApp("/", []);
+    await screen.findByRole("heading", { level: 1, name: "Work queues" });
+    expect(screen.getByRole("link", { name: "What's new" })).toBeTruthy();
+    await waitFor(() => expect(readSeen(TEST_SESSION.userId)).not.toBeNull());
+    localStorage.clear();
+  });
+
+  it("opens What's new from the top bar and clears its unread count", async () => {
+    localStorage.clear();
+    const entries = groupEntries(changeGroups);
+    const byAge = [...entries].sort((a, b) => entryKey(a).localeCompare(entryKey(b)));
+    // Seen earlier, before the two newest changes arrived.
+    const mark = byAge.map(entryKey).at(-3) ?? "";
+    localStorage.setItem(`vibe-tox.whats-new-seen-v1.${TEST_SESSION.userId}`, mark);
+    const { user } = renderApp("/", []);
+    await screen.findByRole("heading", { level: 1, name: "Work queues" });
+    const unread = screen.getByRole("link", { name: "What's new: 2 new changes" });
+    await user.click(unread);
+    expect(await screen.findByRole("heading", { level: 1, name: "What's new" })).toBeTruthy();
+    const newest = changeGroups[0]?.impacts[0]?.entries[0];
+    expect(screen.getByRole("heading", { level: 4, name: newest?.title })).toBeTruthy();
+    expect(await screen.findByRole("link", { name: "What's new" })).toBeTruthy();
+    localStorage.clear();
+  });
+
+  it("links each What's new entry only to a screen that exists", () => {
+    const screens = [...navigation.flatMap((section) => section.screens), ...detailScreens].map(
+      ({ path, tabbed }) => ({ path: tabbed ? `${path}/:tab?` : path }),
+    );
+    const links = groupEntries(changeGroups).flatMap((entry) => (entry.link ? [entry.link] : []));
+    for (const link of links) expect(matchRoutes(screens, link), link).not.toBeNull();
   });
 });

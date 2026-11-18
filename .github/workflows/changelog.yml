@@ -1,0 +1,68 @@
+# A pull request that changes the application adds an entry in changelog.d/, or carries the
+# `no-changelog` label when nothing is observable (.ai/skills/changelog-entry/SKILL.md). Its own
+# small workflow, so adding or removing the label re-runs only this check. Pull requests into
+# main also need every entry stamped with its release (docs/development/releases.md).
+name: changelog
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changelog-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  entry:
+    name: changelog entry
+    runs-on: ubuntu-24.04
+    # Release pull requests (develop or a release branch into main) carry entries that were
+    # already reviewed on develop; Dependabot updates are reviewed through their own notes.
+    if: >-
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      !(github.base_ref == 'main' && (github.head_ref == 'develop' || startsWith(github.head_ref, 'release/'))) &&
+      !contains(github.event.pull_request.labels.*.name, 'no-changelog')
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require an entry when application source changed
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Shipped code and its build inputs; tests alone are not observable.
+          app="$(git diff --name-only "$BASE...$HEAD" -- crates src-tauri ui docs/help \
+            Cargo.toml Cargo.lock package.json package-lock.json |
+            grep -vE '(\.test\.tsx?$|/tests/|^ui/src/lib/test/|^ui/src/features/whats-new/changelog\.json$)' || true)"
+          if [[ -z "$app" ]]; then
+            echo "No application source changed; no entry needed."
+            exit 0
+          fi
+          added="$(git diff --name-only --diff-filter=A "$BASE...$HEAD" -- 'changelog.d/*.md')"
+          if [[ -n "$added" ]]; then
+            echo "Entries added:"
+            echo "$added"
+            exit 0
+          fi
+          echo "::error::Application source changed but no file was added under changelog.d/. Add an entry and run python3 scripts/changelog.py (see .ai/skills/changelog-entry/SKILL.md), or, when nobody outside the code can observe the change, say so in the pull request and add the no-changelog label."
+          echo "Changed application files:"
+          echo "$app"
+          exit 1
+
+  released:
+    name: entries carry their release
+    runs-on: ubuntu-24.04
+    if: github.base_ref == 'main'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - run: python3 scripts/changelog.py --check --require-release

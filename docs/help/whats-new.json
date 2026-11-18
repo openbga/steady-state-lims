@@ -1,0 +1,145 @@
+{
+  "id": "whats-new",
+  "title": "What's new",
+  "summary": "See what was added or changed in this app, by release, with the changes that affect your work most listed first.",
+  "reviewedOn": "2026-11-17",
+  "routes": ["/whats-new"],
+  "sections": [
+    {
+      "title": "How to use this page",
+      "paragraphs": [
+        "Choose What's new in the top bar, next to Page help. It lists every recorded change to this app: changes not yet in a release under Unreleased at the top, then each release, newest first. Each group shows the first and last day its changes were made.",
+        "Inside a group, High impact changes come first: new capabilities and workflows, changes to how people work, removals, security fixes and anything you or the person who installs the app must act on. Medium impact changes noticeably improve something that already existed; Low impact changes are small fixes and polish. Within each level, the newest change comes first.",
+        "The list ships with the app. Opening it sends nothing over the network, and the list matches the version you are running: after an update it includes that version's changes."
+      ]
+    },
+    {
+      "title": "The unread count",
+      "paragraphs": [
+        "While the list has changes newer than the newest one you have seen, What's new in the top bar shows how many, and pointing at it or moving to it with the keyboard shows, for example, What's new: 3 new changes. Screen readers read the same words. Above 99 the top bar shows 99+, and the full number is still read out.",
+        "Opening the page clears the count. Until you leave the page, the changes that were new when you opened it carry a New badge.",
+        "The first time you sign in on a computer, there is no count: the app records the changes listed at that moment as seen, and only changes added after that count as new. The page still lists every change. The app remembers what you have seen for your account on this computer only. Another person, or you on another computer, has a separate count. Installing an earlier version never makes changes you have seen count as new again."
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "title": "What's new",
+      "routes": ["/whats-new"],
+      "purpose": "Find out what changed in this app and where to find it, especially after an update.",
+      "access": "Available to every signed-in user from What's new in the top bar.",
+      "fields": [
+        {
+          "name": "Group heading",
+          "meaning": "The release the changes belong to, or Unreleased for changes in development builds that are not yet part of a release.",
+          "values": "Unreleased, or Version followed by the release number such as Version 0.1.2, then the date range of its changes as YYYY-MM-DD to YYYY-MM-DD, or a single date.",
+          "rules": "Read-only. Unreleased is shown first, then releases from newest to oldest."
+        },
+        {
+          "name": "Impact heading",
+          "meaning": "How much the changes below it are likely to affect your work.",
+          "values": "High impact, Medium impact or Low impact.",
+          "rules": "Read-only. A level without changes in that group is not shown."
+        },
+        {
+          "name": "Change title",
+          "meaning": "A short description of the change.",
+          "values": "Text written for the people who use the app.",
+          "rules": "Read-only."
+        },
+        {
+          "name": "Type",
+          "meaning": "What kind of change it is.",
+          "values": "Added, Changed, Fixed, Removed, Deprecated (still works but will be removed) or Security.",
+          "rules": "Read-only."
+        },
+        {
+          "name": "Date",
+          "meaning": "The day the change was made in the app's source.",
+          "values": "YYYY-MM-DD.",
+          "rules": "Read-only. It is not the day your laboratory installed it; Versions and updates records installations."
+        },
+        {
+          "name": "Area",
+          "meaning": "The part of the navigation the change belongs to, such as Front desk or Interfaces.",
+          "values": "A navigation area name, or nothing for changes that apply throughout the app.",
+          "rules": "Read-only."
+        },
+        {
+          "name": "Pull request",
+          "meaning": "The number of the source change in the project's public repository, for reference when reporting a problem.",
+          "values": "Pull request followed by a number, or nothing.",
+          "rules": "Read-only text; the app does not open the repository."
+        },
+        {
+          "name": "New badge",
+          "meaning": "The change is newer than the newest one you had seen before opening the page.",
+          "values": "New, or nothing.",
+          "rules": "Shown only during this visit. Changes listed when you first signed in on this computer never carry it."
+        },
+        {
+          "name": "Description",
+          "meaning": "What you can do now or what behaves differently, and where to find it.",
+          "values": "One or more short paragraphs.",
+          "rules": "Read-only."
+        },
+        {
+          "name": "Technical notes",
+          "meaning": "Details for the person who installs, configures or connects the app, such as a setting, a file-name format or an upgrade step.",
+          "values": "Folded text, present only when a change has such details.",
+          "rules": "Read-only. Choose Technical notes to show or hide them."
+        }
+      ],
+      "actions": [
+        {
+          "name": "What's new (top bar)",
+          "does": "Opens this page.",
+          "availableWhen": "Always, for every signed-in user. It shows the unread count while there are changes added since you last looked; the first time you sign in on a computer it shows none.",
+          "result": "The page opens and the count clears for your account on this computer."
+        },
+        {
+          "name": "Go to the page",
+          "does": "Opens the screen where the change can be found.",
+          "availableWhen": "The change names one screen.",
+          "result": "The screen opens. If your roles do not allow its work, the screen shows that you do not have permission, as it would from any other link."
+        },
+        {
+          "name": "Technical notes",
+          "does": "Shows or hides the technical details of a change.",
+          "availableWhen": "The change has technical notes.",
+          "result": "The notes unfold below the description, or fold away again."
+        }
+      ],
+      "restrictions": [
+        "The list describes the version you are running. Changes in a newer version show here only after it is installed; Versions and updates lists what an available update contains.",
+        "What you have seen is remembered per account on this computer, not shared between computers.",
+        "The page changes nothing in the laboratory's records."
+      ],
+      "workflow": [
+        "After an update, or when What's new shows a count, choose What's new in the top bar.",
+        "Read the High impact changes in the newest group first; these are the ones most likely to change how you work.",
+        "Choose Go to the page to try a change where it applies, and open Technical notes if you install or configure the app."
+      ],
+      "troubleshooting": [
+        {
+          "problem": "The count does not clear after opening What's new",
+          "recovery": "This computer may not be able to store the setting; the count clears for this session only and may return after the app restarts. It does not affect your work."
+        },
+        {
+          "problem": "Go to the page says you are not allowed to use the screen",
+          "recovery": "The change applies to a role you do not hold. Ask the person who manages users if your work needs that screen."
+        },
+        {
+          "problem": "A change you expected is not listed",
+          "recovery": "Check the app version under About this app. The list covers the running version only; Versions and updates shows whether a newer version is available."
+        }
+      ]
+    }
+  ],
+  "reviewSources": [
+    "ui/src/features/whats-new/WhatsNewPage.tsx",
+    "ui/src/features/whats-new/WhatsNewLink.tsx",
+    "ui/src/features/whats-new/changelog.ts",
+    "ui/src/app/AppShell.tsx"
+  ]
+}
