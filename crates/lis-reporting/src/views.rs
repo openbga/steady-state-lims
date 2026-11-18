@@ -4,9 +4,9 @@
 
 use lis_core::{GateReason, UserId, UtcTimestamp};
 use lis_identity::{ClientId, ClientLocationId, SubjectSummary};
-use lis_orders::OrderComponentId;
+use lis_orders::{OrderComponentId, OrderId};
 use lis_report::tox_v2::ToxReportData;
-use lis_specimens::SpecimenId;
+use lis_specimens::{AccessionId, SpecimenId};
 use serde::Serialize;
 use ts_rs::TS;
 
@@ -275,7 +275,11 @@ pub struct ReportDetail {
     /// The order's client, whose destinations the report may use.
     pub client_id: ClientId,
     pub subject: SubjectSummary,
+    /// The accession the report's specimen belongs to.
+    pub accession_id: AccessionId,
     pub accession_number: String,
+    /// The order the accession fulfils.
+    pub order_id: OrderId,
     pub availability: Option<RevisionAvailability>,
     pub revisions: Vec<RevisionSummary>,
     pub obligations: Vec<ObligationView>,

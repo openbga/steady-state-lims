@@ -15,7 +15,15 @@ export type ReportDetail = { reportId: string, reportNumber: string, specimenId:
 /**
  * The order's client, whose destinations the report may use.
  */
-clientId: string, subject: SubjectSummary, accessionNumber: string, availability: RevisionAvailability | null, revisions: Array<RevisionSummary>, obligations: Array<ObligationView>, exports: Array<ExportView>, 
+clientId: string, subject: SubjectSummary, 
+/**
+ * The accession the report's specimen belongs to.
+ */
+accessionId: string, accessionNumber: string, 
+/**
+ * The order the accession fulfils.
+ */
+orderId: string, availability: RevisionAvailability | null, revisions: Array<RevisionSummary>, obligations: Array<ObligationView>, exports: Array<ExportView>, 
 /**
  * `None` when not current, or while its stored content is damaged.
  */

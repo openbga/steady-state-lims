@@ -65,7 +65,11 @@ export function ReportPage() {
       {data && (
         <IdentityBanner
           subject={data.subject}
-          specimen={{ accessionNumber: data.accessionNumber }}
+          specimen={{
+            accessionNumber: data.accessionNumber,
+            accessionId: data.accessionId,
+            orderId: data.orderId,
+          }}
         />
       )}
       <RefreshControl query={report} />

@@ -16,6 +16,8 @@ export const SPECIMEN_ID = "00000000-0000-7000-8000-000000006001";
 export const CANDIDATE_ID = "00000000-0000-7000-8000-00000000c001";
 export const REPORT_ID = "00000000-0000-7000-8000-00000000r001";
 export const REVISION_ID = "00000000-0000-7000-8000-00000000e001";
+export const ACCESSION_ID = "00000000-0000-7000-8000-00000000a001";
+export const ORDER_ID = "00000000-0000-7000-8000-00000000o001";
 
 export function sessionWith(capabilities: string[]): SessionInfo {
   return {
@@ -230,7 +232,9 @@ export const REPORT: ReportDetail = {
   specimenId: SPECIMEN_ID,
   clientId: CLIENT_ID,
   subject: SUBJECT,
+  accessionId: ACCESSION_ID,
   accessionNumber: "A26000001",
+  orderId: ORDER_ID,
   availability: "current",
   revisions: [REVISION],
   obligations: [OBLIGATION],

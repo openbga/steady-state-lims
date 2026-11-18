@@ -52,8 +52,8 @@ pub fn get_report(
     caller: &Principal,
 ) -> Result<ReportDetail, ReportingError> {
     let report = reports::report(conn, report_id)?.ok_or(ReportingError::NotFound("report"))?;
-    let accession = lis_specimens::specimen_accession(conn, report.specimen_id)?;
-    let accession = lis_specimens::get_accession(conn, accession)?;
+    let accession_id = lis_specimens::specimen_accession(conn, report.specimen_id)?;
+    let accession = lis_specimens::get_accession(conn, accession_id)?;
     let revisions = reports::revisions(conn, report_id)?;
     let latest = revisions.last();
     let withdrawal = reports::withdrawal(conn, report_id)?;
@@ -80,7 +80,9 @@ pub fn get_report(
         specimen_id: report.specimen_id,
         client_id: lis_orders::get_order(conn, accession.order_id)?.client_id,
         subject: lis_identity::subject_summary(conn, accession.subject_id)?,
+        accession_id,
         accession_number: accession.accession_number,
+        order_id: accession.order_id,
         availability: latest.map(|r| r.availability),
         impact,
         withdrawal: withdrawal
