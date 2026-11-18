@@ -23,8 +23,8 @@ interface ImportFiltersProps {
 
 /**
  * The search, as a find after a pause in typing, the instrument and outcome, applied when
- * chosen, and Hide duplicates, which leaves out messages identical to an earlier one; the
- * received days under More filters. Every filter combines with the others and
+ * chosen, the received days under More filters, and after it Hide duplicates, which leaves
+ * out messages identical to an earlier one. Every filter combines with the others and
  * Clear filters removes them all. The engine applies them before the list is paged.
  */
 export function ImportFilters({
@@ -49,6 +49,15 @@ export function ImportFilters({
           )}
           {actions}
         </>
+      }
+      afterFilters={
+        <Checkbox
+          name="duplicates"
+          isSelected={filter.duplicates === "hidden"}
+          onChange={(hidden) => onApply({ ...filter, duplicates: hidden ? "hidden" : undefined })}
+        >
+          Hide duplicates
+        </Checkbox>
       }
       moreFilters={{
         content: (
@@ -103,13 +112,6 @@ export function ImportFilters({
           onApply({ ...filter, outcome: choiceOf(OUTCOME_FILTERS, next) ?? undefined })
         }
       />
-      <Checkbox
-        name="duplicates"
-        isSelected={filter.duplicates === "hidden"}
-        onChange={(hidden) => onApply({ ...filter, duplicates: hidden ? "hidden" : undefined })}
-      >
-        Hide duplicates
-      </Checkbox>
     </Toolbar>
   );
 }

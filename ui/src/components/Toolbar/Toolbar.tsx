@@ -14,6 +14,8 @@ interface ToolbarProps {
   actions?: ReactNode;
   /** Less-used filters; applied values remain visible while the panel is closed. */
   moreFilters?: { content: ReactNode; applied?: string | undefined };
+  /** Controls after More filters, such as a checkbox that is not a filter field. */
+  afterFilters?: ReactNode;
   /** Align labeled fields with adjacent buttons at their control edge. */
   align?: "center" | "end";
   /**
@@ -32,6 +34,7 @@ export function Toolbar({
   count,
   actions,
   moreFilters,
+  afterFilters,
 }: ToolbarProps) {
   const [expanded, setExpanded] = useState(false);
   const panelId = useId();
@@ -54,6 +57,7 @@ export function Toolbar({
             More filters
           </Button>
         )}
+        {afterFilters}
         {actions}
         {hint && <span className={styles.hint}>{hint}</span>}
         {count != null && count !== false && (

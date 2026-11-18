@@ -77,8 +77,11 @@ describe("InstrumentsPage (REQ-INT-005)", { timeout: WALKTHROUGH_TIMEOUT_MS }, (
     const { container } = renderPage();
     expect(await screen.findByText("TCP 10.0.0.5:5000, from 10.0.0.21")).toBeTruthy();
     expect(screen.getByText("Serial /dev/ttyUSB0, 9600 baud, 8N1")).toBeTruthy();
-    expect(screen.getByText("Enabled")).toBeTruthy();
-    expect(screen.getByText("Disabled")).toBeTruthy();
+    // Ticket #4792: on is green and off is grey, with the word on the badge.
+    const tone = (label: string) =>
+      screen.getByText(label).closest("[data-tone]")?.getAttribute("data-tone");
+    expect(tone("Enabled")).toBe("success");
+    expect(tone("Disabled")).toBe("neutral");
     await expectNoA11yViolations(container);
   });
 

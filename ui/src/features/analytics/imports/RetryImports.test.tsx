@@ -83,6 +83,11 @@ describe("Retry selected imports (REQ-ANA-003)", { timeout: WALKTHROUGH_TIMEOUT_
     expect(screen.getByText("None selected.")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Select all quarantined" }));
     expect(screen.getByText("2 selected.")).toBeTruthy();
+    // Once all are checked, the same button unchecks them.
+    await user.click(screen.getByRole("button", { name: "Deselect all quarantined" }));
+    expect(screen.getByText("None selected.")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Select all quarantined" }));
+    expect(screen.getByText("2 selected.")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Retry selected" }));
     const dialog = await screen.findByRole("dialog", { name: "Retry 2 imports" });
     await expectNoA11yViolations(container, { wholePage: true });

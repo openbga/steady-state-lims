@@ -5,16 +5,37 @@ import type { ListenerDetailCode } from "@/generated/ListenerDetailCode";
 import type { ListenerState } from "@/generated/ListenerState";
 import type { ListenerStatusView } from "@/generated/ListenerStatusView";
 
-/** Each listener state in words, with its badge tone: every working state is "info". */
+/**
+ * The badge tones of an analyzer's states, the same in the listener window, the sign-in screen,
+ * Bench setup and Instruments (ticket #4792): green while it works or is ready, blue while it
+ * waits for the analyzer, grey when it is off and red when it failed. The label always says
+ * the state, so it never relies on color alone.
+ */
+export const ANALYZER_TONES = {
+  working: "success",
+  waiting: "info",
+  off: "neutral",
+  failed: "danger",
+} as const satisfies Record<string, Tone>;
+
+/** Each listener state in words, with its badge tone. */
 export const LISTENER_STATES: Record<ListenerState, { tone: Tone; label: string }> = {
-  disabled: { tone: "neutral", label: "Disabled" },
-  listening: { tone: "info", label: "Listening" },
-  connected: { tone: "info", label: "Connected" },
-  receiving: { tone: "info", label: "Receiving" },
-  error: { tone: "danger", label: "Error" },
-  // An enabled result-file instrument without a watched folder: files are loaded by hand.
-  manual_only: { tone: "neutral", label: "Manual loading only" },
+  disabled: { tone: ANALYZER_TONES.off, label: "Disabled" },
+  listening: { tone: ANALYZER_TONES.waiting, label: "Listening" },
+  connected: { tone: ANALYZER_TONES.working, label: "Connected" },
+  receiving: { tone: ANALYZER_TONES.working, label: "Receiving" },
+  error: { tone: ANALYZER_TONES.failed, label: "Error" },
+  // A result-file instrument without a watched folder or with folder pickup off: files are
+  // loaded by hand.
+  manual_only: { tone: ANALYZER_TONES.off, label: "Manual loading only" },
 };
+
+/** Whether listening, or folder pickup, is on for an analyzer, as its badge. */
+export function enabledState(enabled: boolean): { tone: Tone; label: string } {
+  return enabled
+    ? { tone: ANALYZER_TONES.working, label: "Enabled" }
+    : { tone: ANALYZER_TONES.off, label: "Disabled" };
+}
 
 /** Plain-language reasons; the engine sends only these codes, never payload text. */
 const DETAILS: Record<ListenerDetailCode, string> = {

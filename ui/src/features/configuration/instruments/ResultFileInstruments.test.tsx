@@ -190,7 +190,8 @@ describe("Result-file instruments (result files brief §6, §7)", {
     }));
     const { user } = renderPage([WATCHED], { set_instrument_enabled: setEnabled });
     const panel = await openInstrument(user);
-    expect(await within(panel).findByText("Watching")).toBeTruthy();
+    const watching = await within(panel).findByText("Watching");
+    expect(watching.closest("[data-tone]")?.getAttribute("data-tone")).toBe("info");
     // Beyond the first three actions, it is under More.
     await user.click(within(panel).getByRole("button", { name: "More" }));
     await user.click(await screen.findByRole("menuitem", { name: "Disable folder pickup" }));

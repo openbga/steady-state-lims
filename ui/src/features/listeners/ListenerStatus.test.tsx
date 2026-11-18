@@ -154,20 +154,38 @@ describe("ListenerSummary (REQ-OPS-013)", () => {
     expect(within(dialog).getAllByText("2026-10-12 14:03 UTC")).toHaveLength(2);
   });
 
-  it("shows Connected in the same badge style as Listening (ticket #4484)", async () => {
+  it("colors each state: Connected green, Listening blue, Disabled grey, Error red (#4792)", async () => {
     mockCommands({
       list_listener_status: () => [
         { ...ANALYZER, state: "listening" },
         { ...ANALYZER, instrumentId: "00000000-0000-7000-8000-0000000000a2", state: "connected" },
         { ...ANALYZER, instrumentId: "00000000-0000-7000-8000-0000000000a3", state: "disabled" },
+        { ...ANALYZER, instrumentId: "00000000-0000-7000-8000-0000000000a4", state: "error" },
+        { ...ANALYZER, instrumentId: "00000000-0000-7000-8000-0000000000a5", state: "manual_only" },
       ],
     });
     renderWithProviders(<ListenerStatus />);
     const tone = async (label: string) =>
       (await screen.findByText(label)).closest("[data-tone]")?.getAttribute("data-tone");
     expect(await tone("Listening")).toBe("info");
-    expect(await tone("Connected")).toBe("info");
+    expect(await tone("Connected")).toBe("success");
     expect(await tone("Disabled")).toBe("neutral");
+    expect(await tone("Error")).toBe("danger");
+    expect(await tone("Manual loading only")).toBe("neutral");
+  });
+
+  it("gives the summary the tone of the state it counts first (#4792)", async () => {
+    mockCommands({
+      list_listener_status: () => [
+        { ...ANALYZER, state: "listening" },
+        { ...ANALYZER, instrumentId: "00000000-0000-7000-8000-0000000000a2", state: "connected" },
+      ],
+    });
+    renderWithProviders(<ListenerSummary />);
+    const summary = await screen.findByRole("button", {
+      name: "2 analyzers: 1 connected, 1 listening",
+    });
+    expect(summary.querySelector("[data-tone]")?.getAttribute("data-tone")).toBe("success");
   });
 
   it("names one analyzer in the singular", async () => {

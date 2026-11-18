@@ -238,7 +238,7 @@ function InterruptConfirm({
       <p>
         {change.enabling
           ? ""
-          : "A disabled analyzer's results are not received until it is enabled again. "}
+          : "A disabled analyzer's results are not received automatically until it is enabled again; result files can still be loaded by hand. "}
         All analyzer listeners restart after each change; an analyzer that is sending at that moment
         may need to send again.
       </p>

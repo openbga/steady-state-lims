@@ -29,7 +29,7 @@ import { type RetrySelection, useRetrySelection } from "./retrySelection";
  * and a search by sample label, accession, container label or file name stay in the address
  * and are applied by the engine, before the list is paged; the instrument panel under
  * Laboratory setup links one instrument's imports with `?instrument=`. Attempts with something
- * to retry can be checked, or all of them at once with "Select all quarantined", and retried
+ * to retry can be checked, or all of them at once with "Select all quarantined" (then "Deselect all quarantined"), and retried
  * together with one reason. New messages arrive while the screen is open, so the list says
  * when it was read.
  */
@@ -77,7 +77,9 @@ export function ImportAttemptsPage() {
         actions={
           <>
             {selection.hasRetryable && (
-              <Button onPress={selection.selectAll}>Select all quarantined</Button>
+              <Button onPress={selection.allSelected ? selection.clear : selection.selectAll}>
+                {selection.allSelected ? "Deselect all quarantined" : "Select all quarantined"}
+              </Button>
             )}
             <RefreshControl query={attempts} />
           </>

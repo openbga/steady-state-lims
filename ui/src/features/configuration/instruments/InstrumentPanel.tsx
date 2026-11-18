@@ -14,6 +14,7 @@ import { labelOf } from "@/lib/choices";
 import { useCommandQuery, useHasCapability } from "@/lib/commands";
 import { benchInstrumentPath, benchStepState } from "@/lib/instrumentPages";
 import { instrumentStatus } from "@/lib/instrumentStatus";
+import { enabledState } from "@/lib/listenerDetail";
 import type { OpenRecord } from "@/lib/openRecord";
 import { usePersonText } from "@/lib/person";
 import styles from "@/styles/layout.module.css";
@@ -22,9 +23,10 @@ import { Activity, LiveStatus, ResultSource } from "./LiveGroups";
 import { PanelGroup } from "./PanelGroup";
 import { auFacts, connectionFacts } from "./settingsFacts";
 
-/** Whether the app listens for the analyzer: a routine state either way. */
+/** Whether the app listens for the analyzer, or picks up its files: green when on, grey off. */
 export function Listening({ instrument }: { instrument: InstrumentConfiguration }) {
-  return <StatusBadge tone="neutral">{instrument.enabled ? "Enabled" : "Disabled"}</StatusBadge>;
+  const { tone, label } = enabledState(instrument.enabled);
+  return <StatusBadge tone={tone}>{label}</StatusBadge>;
 }
 
 interface InstrumentPanelProps {

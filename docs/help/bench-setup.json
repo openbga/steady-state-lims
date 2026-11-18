@@ -74,7 +74,7 @@
           "name": "Instruments: Instrument / Service status / Status since",
           "meaning": "Identifies the instrument and latest readiness decision.",
           "values": "Configured name; In service, Out of service or Status not recorded; decision time when known.",
-          "rules": "Read-only; no recorded status is not ready for a run."
+          "rules": "Read-only; no recorded status is not ready for a run. In service is green, Out of service gray and Status not recorded amber, the same colors as under Laboratory setup › Instruments."
         },
         {
           "name": "Approved result source",

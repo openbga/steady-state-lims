@@ -68,9 +68,8 @@ function summarize(listeners: ListenersQuery): { tone: Tone; text: string } {
   };
 }
 
-/** The tone of the state needing the most attention: an error, then any working listener. */
+/** The tone of the state counted first: an error, then a working, then a waiting listener. */
 function summaryTone(states: Set<ListenerState>): Tone {
-  if (states.has("error")) return "danger";
-  if (states.has("listening") || states.has("connected") || states.has("receiving")) return "info";
-  return "neutral";
+  const first = SUMMARY_ORDER.find((state) => states.has(state));
+  return first === undefined ? "neutral" : LISTENER_STATES[first].tone;
 }

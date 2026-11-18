@@ -127,19 +127,32 @@ pub fn present_at_selection(
     )
 }
 
-/// The instrument, when it can receive a result file now: it exists, is
-/// enabled and its connection type is result files. Intake reads this before
-/// it stores a file's bytes, and the receipt rechecks it in its transaction.
-/// The caller authorizes.
+/// The instrument, when its watched folder may be picked up now: it can
+/// receive files loaded by hand ([`loadable_instrument`]) and folder pickup is
+/// enabled. The folder poller reads this before it stores a file's bytes, and
+/// the receipt rechecks it in its transaction. The caller authorizes.
 pub fn receivable_instrument(
+    conn: &Connection,
+    instrument_id: InstrumentId,
+) -> Result<Instrument, InterfaceError> {
+    let instrument = loadable_instrument(conn, instrument_id)?;
+    if !instrument.enabled {
+        return Err(InterfaceError::InstrumentDisabled);
+    }
+    Ok(instrument)
+}
+
+/// The instrument, when a file loaded by hand can be received for it: it
+/// exists and its connection type is result files. Folder pickup only
+/// controls the watched folder, so a manual load works while it is off
+/// (ticket #4812). A manual load reads this before it stores a file's bytes,
+/// and the receipt rechecks it in its transaction. The caller authorizes.
+pub fn loadable_instrument(
     conn: &Connection,
     instrument_id: InstrumentId,
 ) -> Result<Instrument, InterfaceError> {
     let instrument =
         repo::instrument_by_id(conn, instrument_id)?.ok_or(InterfaceError::InstrumentNotFound)?;
-    if !instrument.enabled {
-        return Err(InterfaceError::InstrumentDisabled);
-    }
     if instrument.connection.transport() != InstrumentTransport::ResultFile {
         return Err(InterfaceError::TransportMismatch);
     }
@@ -183,8 +196,8 @@ impl Admitted {
 }
 
 /// The gates both file receipts share, read inside the transaction: who acts
-/// (F16), the file name, the instrument (enabled, `result_file`), and the
-/// ledger of files already received; for a pickup also the folder it was
+/// (F16), the file name, the instrument (`result_file`, and for a pickup
+/// enabled), and the ledger of files already received; for a pickup also the folder it was
 /// listed in, which must still be the instrument's, and the files present
 /// when that folder was chosen (§6).
 fn admit(ctx: &mut CommandContext<'_>, file: &FileFacts) -> Result<Admitted, InterfaceError> {
@@ -193,7 +206,10 @@ fn admit(ctx: &mut CommandContext<'_>, file: &FileFacts) -> Result<Admitted, Int
     if name.is_empty() || name.len() > MAX_FILE_NAME_BYTES {
         return Err(InterfaceError::InvalidFileName);
     }
-    let instrument = receivable_instrument(ctx.tx(), file.instrument_id)?;
+    let instrument = match file.source {
+        FileSource::Folder(_) => receivable_instrument(ctx.tx(), file.instrument_id)?,
+        FileSource::Upload => loadable_instrument(ctx.tx(), file.instrument_id)?,
+    };
     let seen = repo::seen_receipt(
         ctx.tx(),
         file.instrument_id,

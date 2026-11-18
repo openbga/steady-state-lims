@@ -38,9 +38,9 @@
   --color-backdrop: rgb(26 31 38 / 45%);
 
   /* Semantic tones: background, border, text */
-  --tone-info-bg: #edf1f6;
-  --tone-info-border: #7d8ca1;
-  --tone-info-text: #3a4b61;
+  --tone-info-bg: #e3eefb;
+  --tone-info-border: #2f6fb7;
+  --tone-info-text: #154a85;
   --tone-success-bg: #e5f3e9;
   --tone-success-border: #2f7d4a;
   --tone-success-text: #165c31;
@@ -128,9 +128,9 @@
     --color-accent-subtle: #1c3250;
     --color-backdrop: rgb(0 0 0 / 60%);
 
-    --tone-info-bg: #232c38;
-    --tone-info-border: #8496ad;
-    --tone-info-text: #c0cbdb;
+    --tone-info-bg: #172b42;
+    --tone-info-border: #5f9ae0;
+    --tone-info-text: #b9d6f7;
     --tone-success-bg: #143021;
     --tone-success-border: #4fa56c;
     --tone-success-text: #a3dbb4;
