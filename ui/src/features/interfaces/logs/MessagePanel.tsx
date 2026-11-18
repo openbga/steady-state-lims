@@ -1,11 +1,14 @@
-import { useId } from "react";
+import { Copy } from "lucide-react";
+import { Fragment, useId } from "react";
 import { Link } from "react-router";
 import { Alert } from "@/components/Alert";
+import { Button } from "@/components/Button";
 import { DetailPanel, useWidePanel } from "@/components/DetailPanel";
 import { Facts } from "@/components/Facts";
 import { QueryContent } from "@/components/QueryContent";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Timestamp } from "@/components/Timestamp";
+import { useToast } from "@/components/Toast";
 import type { MessageContent } from "@/generated/MessageContent";
 import type { PartnerAttempt } from "@/generated/PartnerAttempt";
 import type { PartnerMessageDetail } from "@/generated/PartnerMessageDetail";
@@ -111,6 +114,36 @@ function Answer({ row }: { row: PartnerMessageRow }) {
   return <>None yet.</>;
 }
 
+/** The message's text exactly as sent: one inline span per segment, joined by the original
+ * line breaks, so copying gives the bytes as sent while CSS wraps and indents continuations.
+ * The copy icon in the corner copies the whole message, one segment per line. */
+function SegmentLines({ segments }: { segments: readonly string[] }) {
+  const toast = useToast();
+  const copy = () =>
+    void navigator.clipboard.writeText(segments.join("\n")).then(
+      () => toast.show({ tone: "success", title: "Message copied" }),
+      () => toast.show({ tone: "danger", title: "Message not copied" }),
+    );
+  return (
+    <div className={styles.messageBox}>
+      <pre className={styles.message}>
+        {segments.map((segment, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: segments repeat and never reorder
+          <Fragment key={index}>
+            {index > 0 && "\n"}
+            <span className={styles.segment}>{segment}</span>
+          </Fragment>
+        ))}
+      </pre>
+      <div className={styles.copy}>
+        <Button variant="quiet" aria-label="Copy message" onPress={copy}>
+          <Copy aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function SentMessage({ detail, test }: { detail: PartnerMessageDetail; test: boolean }) {
   const id = useId();
   return (
@@ -124,7 +157,7 @@ function SentMessage({ detail, test }: { detail: PartnerMessageDetail; test: boo
       {detail.content === "sent" ? (
         <>
           {test && <p className={styles.note}>Synthetic test message: no patient data.</p>}
-          <pre className={styles.message}>{detail.segments.join("\n")}</pre>
+          <SegmentLines segments={detail.segments} />
         </>
       ) : detail.content === "unavailable" ? (
         <Alert tone="danger" compact>

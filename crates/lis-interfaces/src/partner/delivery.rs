@@ -314,10 +314,12 @@ fn retry_delay(failures: i64) -> Duration {
 
 /// Records a synthetic test message the engine wrote, or failed to write, to
 /// a connection's folder. It carries no patient data, so it needs neither a
-/// started connection nor a destination check, and is never retried.
+/// started connection nor a destination check, and is never retried. `message_id` is the one
+/// the test message's control ID was made from.
 pub fn record_partner_test_message(
     ctx: &mut CommandContext<'_>,
     connection_id: PartnerConnectionId,
+    message_id: PartnerMessageId,
     artifact_sha256: &str,
     outcome: &AttemptOutcome,
 ) -> Result<PartnerMessageId, PartnerError> {
@@ -325,7 +327,7 @@ pub fn record_partner_test_message(
     let connection =
         load_connection(ctx.tx(), connection_id)?.ok_or(PartnerError::NotFound("connection"))?;
     let message = MessageRow {
-        id: PartnerMessageId::generate(),
+        id: message_id,
         message_type: connection.settings.message_type,
         source: MessageSource::Test,
         source_id: None,

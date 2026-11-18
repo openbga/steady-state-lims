@@ -60,13 +60,12 @@ describe("useOpenRecord", () => {
     expect(router.state.historyAction).toBe("POP");
   });
 
-  it("keeps find text changed while the panel was open, removing only the parameter", async () => {
+  it("closes the panel when the find text changes, keeping the new find text", async () => {
     const { user, router } = renderHarness("/list?q=syn");
     await user.click(press("Open second"));
     await user.click(press("Find oxy"));
-    expect(router.state.location.search).toBe("?q=oxy&open=SYN-2");
-    await user.click(press("Close"));
     expect(router.state.location.search).toBe("?q=oxy");
+    expect(screen.getByText("Open: none")).toBeTruthy();
     expect(router.state.historyAction).toBe("REPLACE");
     expect(router.state.location.state).toBeNull();
   });
@@ -83,10 +82,9 @@ describe("useOpenRecord", () => {
     await waitFor(() => expect(router.state.location.search).toBe("?tab=positions"));
     expect(router.state.location.state).toEqual(pageState);
 
-    // Closed in place (the parameters changed meanwhile), the page's state stays too.
+    // Closed by a new find, the page's state stays too.
     await user.click(press("Open second"));
     await user.click(press("Find oxy"));
-    await user.click(press("Close"));
     expect(router.state.location.search).toBe("?tab=positions&q=oxy");
     expect(router.state.location.state).toEqual(pageState);
   });

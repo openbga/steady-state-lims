@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 /** The URL parameter holding the record open in a side panel. */
-const OPEN_PARAM = "open";
+export const OPEN_PARAM = "open";
 
 /**
  * Navigation state key set on the entry that opening a record pushed. Its value is the
@@ -24,7 +24,7 @@ function pushedFrom(state: unknown): string | null {
 }
 
 /** The state without the pushed marker; null when nothing else is left. */
-function withoutPushed(state: unknown): object | null {
+export function withoutPushed(state: unknown): object | null {
   const rest = Object.entries(stateObject(state)).filter(([key]) => key !== PUSHED_FROM);
   return rest.length === 0 ? null : Object.fromEntries(rest);
 }

@@ -224,8 +224,8 @@ export function LogsPage() {
         </Checkbox>
         <div className={styles.search}>
           <FindField
-            label="Search by report number, handoff number or file name; separate several with commas"
-            placeholder="Search report, handoff, file…"
+            label="Search by report number, handoff number, file name or control ID; separate several with commas"
+            placeholder="Search report, handoff, file or control ID…"
             value={search}
             onChange={setSearch}
           />

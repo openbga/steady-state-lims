@@ -17,7 +17,8 @@
       "title": "Good practice",
       "paragraphs": [
         "Use the laboratory’s approved connection details. Confirm instrument identity and the intended source before enabling intake. Keep one instrument’s exports in its dedicated folder and preserve the files as produced.",
-        "Connection setup is separate from service readiness and result-source approval in Bench setup. The application must remain open for listeners and folder intake to operate, including when nobody is signed in."
+        "Connection setup is separate from service readiness and result-source approval in Bench setup. The application must remain open for listeners and folder intake to operate, including when nobody is signed in.",
+        "The sign-in and lock screens list every analyzer's listener state under the card, wrapping onto more lines in a narrow window. Their times are in the laboratory's time zone as last read on this computer, or in UTC, labelled so, until someone has signed in on it."
       ]
     },
     {
