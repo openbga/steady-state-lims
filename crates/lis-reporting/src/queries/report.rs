@@ -15,6 +15,7 @@ use crate::model::{ReportId, ReportRevisionId, RevisionAvailability};
 use crate::queries::candidate::{provenance, user_view};
 use crate::queries::delivery::DeliveryContext;
 use crate::queries::incidents::report_incidents;
+use crate::queries::overview::overview;
 use crate::repo::candidates;
 use crate::repo::delivery;
 use crate::repo::exports;
@@ -84,6 +85,7 @@ pub fn get_report(
         accession_number: accession.accession_number,
         order_id: accession.order_id,
         availability: latest.map(|r| r.availability),
+        overview: latest.map(|r| overview(conn, r)).transpose()?.flatten(),
         impact,
         withdrawal: withdrawal
             .map(|w| -> Result<_, ReportingError> {

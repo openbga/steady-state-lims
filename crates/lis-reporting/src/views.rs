@@ -18,6 +18,7 @@ use crate::model::{
     RevisionAvailability,
 };
 use crate::queries::destinations::DestinationState;
+use crate::queries::overview::ReportOverview;
 
 mod layouts;
 mod preservation;
@@ -281,6 +282,9 @@ pub struct ReportDetail {
     /// The order the accession fulfils.
     pub order_id: OrderId,
     pub availability: Option<RevisionAvailability>,
+    /// What the latest revision printed about the order and specimen;
+    /// `None` while its stored content is damaged.
+    pub overview: Option<ReportOverview>,
     pub revisions: Vec<RevisionSummary>,
     pub obligations: Vec<ObligationView>,
     pub exports: Vec<ExportView>,

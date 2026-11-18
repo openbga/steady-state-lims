@@ -129,3 +129,79 @@ describe("Report page status chips and actions (#4831)", () => {
     expect(items[0]?.className).not.toMatch(/separated/);
   });
 });
+
+const summary = () => screen.findByRole("region", { name: "Summary" });
+
+/** The summary card's facts as label → text. */
+async function summaryFacts() {
+  const facts = within(await summary()).getAllByRole("term");
+  return Object.fromEntries(
+    facts.map((term) => [term.textContent, term.nextElementSibling?.textContent ?? ""]),
+  );
+}
+
+describe("Report page summary card (#4832)", () => {
+  beforeEach(mockGridLayout);
+
+  it("shows the order and specimen as printed, the release, the last export and no open impact", async () => {
+    renderPage(["release_reports"], {
+      ...REPORT,
+      impact: { revisionId: REVISION.revisionId, open: [], correctionDue: false, assessments: [] },
+      exports: [
+        {
+          exportId: "00000000-0000-7000-8000-00000000x001",
+          revisionNo: 1,
+          withdrawalNotice: false,
+          purpose: "records",
+          fileName: "A26000001-URN-r1.pdf",
+          exportedBy: { userId: "00000000-0000-7000-8000-000000000e02", displayName: "Test" },
+          exportedAt: "2026-10-12T15:00:00Z",
+          label: "Exported by Test",
+        },
+      ],
+    });
+    const facts = await summaryFacts();
+    expect(facts.Client).toBe("Synthetic Clinic – Main Office");
+    expect(facts["Ordering practitioner"]).toBe("TESTDOC, Ordering · NPI 1999999992");
+    expect(facts.Specimen).toBe("Urine · C00000001");
+    expect(facts.Tests).toBe("Synthetic confirmation panel");
+    expect(facts.Collected).toBe("2026-10-12 07:00 CDT");
+    expect(facts.Released).toContain("by Test Releaser");
+    expect(facts["Last export"]).toContain("For the laboratory's records");
+    expect(facts["Impact after release"]).toBe("Nothing open");
+    // With nothing open, due or assessed, impact needs no section of its own.
+    expect(screen.queryByRole("region", { name: "Impact after release" })).toBeNull();
+  });
+
+  it("counts open impact in warning tone and keeps the impact section", async () => {
+    renderPage(["release_reports"], {
+      ...REPORT,
+      impact: {
+        revisionId: REVISION.revisionId,
+        correctionDue: false,
+        assessments: [],
+        open: [
+          { key: "a", code: "review_stale", message: "QC was rejected after release." },
+          { key: "b", code: "medications_changed", message: "Medications changed." },
+        ],
+      },
+    });
+    const facts = await summaryFacts();
+    expect(facts["Impact after release"]).toBe("2 open items");
+    expect(
+      within(await summary())
+        .getByText("2 open items")
+        .closest("[data-tone]")
+        ?.getAttribute("data-tone"),
+    ).toBe("warning");
+    expect(screen.getByRole("region", { name: "Impact after release" })).toBeTruthy();
+  });
+
+  it("says when the printed content cannot be read and nothing was exported", async () => {
+    renderPage(["release_reports"], { ...REPORT, overview: null, impact: null });
+    const facts = await summaryFacts();
+    expect(facts.Client).toMatch(/^Not available/);
+    expect(facts["Last export"]).toBe("Not exported");
+    expect(facts["Impact after release"]).toBe("Not applicable");
+  });
+});

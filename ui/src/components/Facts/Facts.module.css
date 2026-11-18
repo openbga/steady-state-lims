@@ -30,3 +30,15 @@
   min-width: 0;
   max-width: 100%;
 }
+
+.facts[data-layout="columns"] {
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+
+.facts[data-layout="columns"] > .fact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}

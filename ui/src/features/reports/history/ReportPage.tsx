@@ -15,6 +15,7 @@ import { ExportsSection } from "./ExportsSection";
 import { ImpactSection } from "./ImpactSection";
 import { IncidentsSection } from "./IncidentsSection";
 import { ReportActions, ReportChips } from "./ReportHeader";
+import { ReportSummary } from "./ReportSummary";
 import { RevisionsSection } from "./RevisionsSection";
 
 /** Where the breadcrumb leads when the report was not opened from a list. */
@@ -61,10 +62,16 @@ export function ReportPage() {
   );
 }
 
+/** Impact needs its own section only when something is open, due or assessed; the summary's
+ * badge says "Nothing open" otherwise. */
+const hasImpactDetail = (impact: NonNullable<ReportDetail["impact"]>) =>
+  impact.open.length > 0 || impact.correctionDue || impact.assessments.length > 0;
+
 function ReportHistory({ report }: { report: ReportDetail }) {
   const allows = (action: string) => report.allowedActions.includes(action);
   return (
     <div className={styles.stack}>
+      <ReportSummary report={report} />
       {report.withdrawal && (
         <Alert tone="info" title="This report is withdrawn">
           Withdrawn <Timestamp value={report.withdrawal.withdrawnAt} /> by{" "}
@@ -72,7 +79,7 @@ function ReportHistory({ report }: { report: ReportDetail }) {
           Reason: {report.withdrawal.reason}
         </Alert>
       )}
-      {report.impact && (
+      {report.impact && hasImpactDetail(report.impact) && (
         <ImpactSection impact={report.impact} canAssess={allows(RECORD_IMPACT_ASSESSMENT)} />
       )}
       <RevisionsSection

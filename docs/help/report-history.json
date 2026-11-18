@@ -9,7 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "Open a report from Reports to see its revision history, delivery obligations and attempts, exports, and any impact assessment or preservation incident. Open a revision to inspect the content exactly as issued and its recorded provenance.",
-        "Status chips under the title show availability, completeness, the revision and delivery. Export PDF (revision N, current) is the main button; Prepare next revision, Add destination and Withdraw report are in More actions when permitted. Impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, open it and use its Export PDF. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
+        "Status chips under the title show availability, completeness, the revision and delivery; the Summary card under the patient banner shows the client, practitioner, specimen, tests, collection, release, last export and impact after release. Export PDF (revision N, current) is the main button; Prepare next revision, Add destination and Withdraw report are in More actions when permitted. Impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, open it and use its Export PDF. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
       ]
     },
     {
@@ -45,6 +45,8 @@
     "ui/src/features/reports/history/columns.tsx",
     "ui/src/features/reports/history/ReportPage.tsx",
     "ui/src/features/reports/history/ReportHeader.tsx",
+    "ui/src/features/reports/history/ReportSummary.tsx",
+    "crates/lis-reporting/src/queries/overview.rs",
     "ui/src/features/reports/history/RevisionPage.tsx",
     "ui/src/features/reports/history/RevisionsSection.tsx",
     "ui/src/features/reports/history/ImpactSection.tsx",
@@ -223,6 +225,30 @@
           "rules": "View order is shown only to people who can enter orders, the same rule as the Order link on the Accession page. The pages still check access when opened."
         },
         {
+          "name": "Summary: Client / Ordering practitioner",
+          "meaning": "Names who ordered the tests, as the latest revision printed them.",
+          "values": "Client name with its location after a dash when one was recorded; practitioner name with · NPI and the National Provider Identifier.",
+          "rules": "Read-only; taken from the latest released revision, not from the order as it is now. A later change to the order shows here only after a new revision. Not available: the stored report content is damaged when the revision’s stored content fails its check; see Preservation incidents."
+        },
+        {
+          "name": "Summary: Specimen / Tests / Collected",
+          "meaning": "Describes the material and the testing the report covers, as printed.",
+          "values": "Specimen type · container labels; the ordered tests the revision names, reported or not, each once; collection time as printed, or Not provided.",
+          "rules": "Read-only; taken from the latest released revision, with the same Not available message when its content is damaged."
+        },
+        {
+          "name": "Summary: Released / Last export",
+          "meaning": "Dates the latest release and the latest PDF export.",
+          "values": "Release date/time by the releasing person; export date/time · its purpose (For delivery to this destination, For the laboratory’s records or Internal use), or Not exported.",
+          "rules": "Read-only. An export is not a delivery; see PDF exports for every export."
+        },
+        {
+          "name": "Summary: Impact after release",
+          "meaning": "Shows at a glance whether changes after release wait for quality assessment.",
+          "values": "Nothing open (green); N open items or Correction due (warning); Not applicable when the report has no current revision or its stored content is damaged.",
+          "rules": "Read-only. The Impact after release section below is shown only when something is open, a correction is due or an assessment was recorded."
+        },
+        {
           "name": "Revisions: Revision / Kind",
           "meaning": "Lists each issued version in sequence.",
           "values": "Sequential revision and Initial report, Supplement or Correction.",
@@ -244,7 +270,7 @@
           "name": "Impact after release: Open impact / Correction due",
           "meaning": "Shows changes needing quality assessment after issuance.",
           "values": "Explanatory change messages; Correction due when a quality decision requires a new revision.",
-          "rules": "Read-only. Open impact pauses delivery of the current report revision."
+          "rules": "Read-only. Open impact pauses delivery of the current report revision. The section is shown only when something is open, a correction is due or an assessment was recorded; otherwise the summary shows Nothing open."
         },
         {
           "name": "Impact history: Assessment / Reason / Assessed",
