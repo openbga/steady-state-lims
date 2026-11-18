@@ -116,7 +116,7 @@
         {
           "name": "Availability",
           "meaning": "Distinguishes current from historical or withdrawn content.",
-          "values": "Current, Superseded or Withdrawn.",
+          "values": "Current (green badge): the revision to rely on. Superseded (gray badge): a later revision replaced it. Withdrawn (red-tinted badge): the report must no longer be relied on.",
           "rules": "Read-only; an earlier readable revision may be superseded."
         },
         {
@@ -211,7 +211,7 @@
         {
           "name": "Revisions: Availability / Completeness / Released / Reason for correction",
           "meaning": "Preserves status, signatory and change rationale.",
-          "values": "Current, Superseded or Withdrawn; Final or Partial; releaser/date/time; recorded amendment reason or none.",
+          "values": "Current (green), Superseded (gray) or Withdrawn (red tint); Final or Partial; releaser/date/time; recorded amendment reason or none.",
           "rules": "Read-only; supplied by the current record."
         },
         {
@@ -484,7 +484,7 @@
         {
           "name": "Availability",
           "meaning": "Indicates whether this revision is current, superseded or withdrawn.",
-          "values": "Current, Superseded or Withdrawn.",
+          "values": "Current (green badge): the revision to rely on. Superseded (gray badge): a later revision replaced it. Withdrawn (red-tinted badge): the report must no longer be relied on.",
           "rules": "Read-only; inspect before using or exporting a copy."
         },
         {

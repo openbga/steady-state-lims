@@ -25,9 +25,9 @@
   color: var(--color-text-muted);
 }
 
-/* Solid: white text on the tone's fill. */
-.badge[data-tone="hold"],
-.badge[data-tone="danger"] {
+/* Solid: white text on the tone's fill, unless the tint variant asks for the tint. */
+.badge[data-tone="hold"]:not([data-variant="tint"]),
+.badge[data-tone="danger"]:not([data-variant="tint"]) {
   border-color: var(--tone-solid);
   background: var(--tone-solid);
   color: var(--color-text-inverse);

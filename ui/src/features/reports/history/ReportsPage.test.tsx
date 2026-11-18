@@ -46,6 +46,24 @@ describe("ReportsPage (REQ-RPT-002)", () => {
     expect(await screen.findByText(`Navigated to /reports/${REPORT_ID}`)).toBeTruthy();
   });
 
+  it("colors availability: Current green, Superseded gray, Withdrawn a red tint (#4837)", async () => {
+    const rows: ReportSummary[] = (["current", "superseded", "withdrawn"] as const).map(
+      (availability, index) => ({
+        ...ENTRY,
+        reportId: `${REPORT_ID.slice(0, -1)}${index}`,
+        reportNumber: `A2600000${index}-URN`,
+        availability,
+      }),
+    );
+    renderPage("/reports", () => rows);
+    const badge = async (label: string) => (await screen.findByText(label)).closest("[data-tone]");
+    expect((await badge("Current"))?.getAttribute("data-tone")).toBe("success");
+    expect((await badge("Superseded"))?.getAttribute("data-tone")).toBe("neutral");
+    const withdrawn = await badge("Withdrawn");
+    expect(withdrawn?.getAttribute("data-tone")).toBe("danger");
+    expect(withdrawn?.getAttribute("data-variant")).toBe("tint");
+  });
+
   it("opens a report with a single click, passing the list for its breadcrumb", async () => {
     const { user, router } = renderPage("/reports?filter=partial", () => [ENTRY]);
     await openRow(user, "A26000001-URN");
