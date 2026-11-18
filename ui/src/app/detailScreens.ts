@@ -166,6 +166,10 @@ export const detailScreens: readonly { path: string; page: PageLoader; tabbed?: 
     page: () => import("@/features/system/AboutPage").then((m) => m.AboutPage),
   },
   {
+    path: "/whats-new",
+    page: () => import("@/features/whats-new/WhatsNewPage").then((m) => m.WhatsNewPage),
+  },
+  {
     path: "/configuration/starter-data/load",
     page: () => import("@/features/starter/LoadCatalogPage").then((m) => m.LoadCatalogPage),
   },
