@@ -80,8 +80,6 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
           }
           isRequired
         />
-      </div>
-      <div className={styles.choiceRow}>
         <SegmentedInput
           name="templateKind"
           label="Template use"
@@ -94,19 +92,19 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
           }
           isRequired
         />
-        {templateKind === "clinic_template" && (
-          <>
-            <TextInput name="templateName" label="Template name" isRequired />
-            <SegmentedInput
-              name="templateConfirmed"
-              label="Confirmed for this patient"
-              options={YES_NO}
-              description="The practitioner confirmed the template's tests for this patient."
-              isRequired
-            />
-          </>
-        )}
       </div>
+      {templateKind === "clinic_template" && (
+        <div className={styles.choiceRow}>
+          <TextInput name="templateName" label="Template name" isRequired />
+          <SegmentedInput
+            name="templateConfirmed"
+            label="Confirmed for this patient"
+            options={YES_NO}
+            description="The practitioner confirmed the template's tests for this patient."
+            isRequired
+          />
+        </div>
+      )}
       <details className={styles.references} open={referencesInvalid || undefined}>
         <summary>
           Clinic order number and source references{" "}

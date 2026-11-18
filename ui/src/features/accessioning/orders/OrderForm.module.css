@@ -1,7 +1,8 @@
+/* The step bar on its own line, then the form and the summary side by side. */
 .entry {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
+  gap: var(--space-3) var(--space-4);
   align-items: flex-start;
 }
 
@@ -14,7 +15,18 @@
 .stepFields {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
+}
+
+/* Tighter cards, so step 1 fits on one screen; the card being filled in gets the accent border. */
+.stepFields > section {
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.stepFields > section:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
 }
 
 .stepFields[hidden] {
@@ -23,6 +35,7 @@
 
 .steps {
   display: grid;
+  flex-basis: 100%;
   gap: var(--space-2);
 }
 
@@ -32,7 +45,7 @@
   align-items: center;
   gap: var(--space-3);
   margin: 0;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -75,9 +88,9 @@
 }
 
 .step[aria-current="step"] .stepNumber {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-  color: var(--color-text-inverse);
+  border-color: var(--color-selected);
+  background: var(--color-selected);
+  color: var(--color-on-selected);
 }
 
 .step[data-done] .stepNumber {
@@ -154,16 +167,20 @@
 .choiceRow {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4) var(--space-6);
+  gap: var(--space-3) var(--space-5);
   align-items: flex-start;
 }
 
 /* As supplied, then Document reference taking the rest of the row. */
 .authority {
-  display: grid;
-  grid-template-columns: auto minmax(12rem, 1fr);
-  gap: var(--space-4);
-  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  align-items: flex-start;
+}
+
+.authority > :last-child {
+  flex: 1 1 16rem;
 }
 
 .optional {
@@ -220,10 +237,26 @@
   padding-block-end: var(--space-3);
 }
 
+/* Our own arrow, so it keeps a space before the text in every engine. */
 .references summary {
   cursor: pointer;
   font-weight: var(--font-weight-semibold);
   padding-block: var(--space-2);
+  list-style: none;
+}
+
+.references summary::-webkit-details-marker {
+  display: none;
+}
+
+.references summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-inline-end: var(--space-2);
+}
+
+.references[open] summary::before {
+  content: "▾";
 }
 
 .references summary:focus-visible {
@@ -234,7 +267,6 @@
 @container (max-width: 40rem) {
   .fields,
   .threeColumns,
-  .authority,
   .catalogControls {
     grid-template-columns: minmax(0, 1fr);
   }

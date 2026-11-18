@@ -34,8 +34,8 @@
 }
 
 .segment[data-selected] {
-  background: var(--color-accent-subtle);
-  color: var(--color-accent);
+  background: var(--color-selected);
+  color: var(--color-on-selected);
   font-weight: var(--font-weight-semibold);
 }
 
