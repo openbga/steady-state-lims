@@ -240,7 +240,12 @@ export const OBLIGATION: ObligationView = {
     label: "Synthetic Clinic fax",
     verified: true,
   },
-  status: { code: "awaiting", label: "Fax by staff: awaiting delivery" },
+  status: {
+    code: "awaiting",
+    label: "Fax by staff: awaiting delivery",
+    shortLabel: "Awaiting",
+    method: "Fax by staff",
+  },
   attempts: [],
   origin: "release",
   originReason: null,

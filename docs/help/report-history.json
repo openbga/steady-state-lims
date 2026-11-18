@@ -61,6 +61,8 @@
     "ui/src/features/reports/content/ReportContent.tsx",
     "ui/src/features/reports/content/ResultGroups.tsx",
     "ui/src/features/reports/delivery/DeliverySection.tsx",
+    "ui/src/features/reports/delivery/deliveryCount.ts",
+    "crates/lis-reporting/src/delivery/labels.rs",
     "ui/src/features/reports/delivery/ObligationDialog.tsx",
     "ui/src/features/reports/delivery/ObligationGrid.tsx",
     "ui/src/features/reports/delivery/RecordAttemptDialog.tsx",
@@ -348,38 +350,32 @@
           "rules": "Required; no default. Selecting this records a resolution; it does not itself restore bytes or issue a new revision."
         },
         {
-          "name": "Delivery status",
-          "meaning": "Names the channel and the strongest evidence recorded so far.",
-          "values": "Fax by staff, Email by staff, Mailed by staff, Handed to courier or Collected at the laboratory, followed by awaiting, failed, outcome unknown, blocked, paused, handed off with attestation, or closed with reason.",
-          "rules": "Read-only. Handed off is staff attestation; it does not prove recipient receipt."
+          "name": "Delivery: X of Y handed off",
+          "meaning": "Counts the destinations staff have attested as handed off, out of those still owed.",
+          "values": "Such as 1 of 3 handed off; green when every owed destination is handed off, warning while any is not.",
+          "rules": "Read-only; the same count as the Handed off X of Y chip under the title. Closed obligations are no longer owed and are left out; the badge is not shown when nothing is owed. The tab's own count is every obligation, closed ones included."
         },
         {
-          "name": "Report / Sends",
-          "meaning": "Identifies the exact artifact owed to a destination.",
-          "values": "Report number and revision, or Withdrawal notice and revision.",
-          "rules": "Read-only; verify revision before using any exported file."
+          "name": "Delivery: Destination / Method",
+          "meaning": "Names where the report goes and how, one row per obligation.",
+          "values": "The ordering client’s configured destination label; Fax by staff, Email by staff, Mailed by staff, Handed to courier or Collected at the laboratory.",
+          "rules": "Read-only. Redirecting creates a new obligation, a new row, rather than editing this one."
         },
         {
-          "name": "Destination",
-          "meaning": "Identifies the configured recipient endpoint.",
-          "values": "The ordering client’s configured destination label.",
-          "rules": "Read-only on an obligation; redirecting creates a new obligation rather than editing this history."
+          "name": "Delivery: Status",
+          "meaning": "Shows in a few words where delivery to the destination stands, in the engine's wording.",
+          "values": "Handed off (green); Closed: redirected, Closed: newer revision released or Closed: report withdrawn (green); Awaiting (blue); Failed: busy or no answer, wrong destination, returned, refused or other reason, and Outcome unknown (warning); Paused: impact review open (grey); Blocked: destination not verified, destination retired or destination reported wrong (red).",
+          "rules": "Read-only. Handed off is staff attestation; it does not prove the recipient received the report, so the badge never says Delivered. Blocked names its reason; replace or verify the destination, then redirect. Paused lasts until quality staff assess the open impact."
         },
         {
-          "name": "Why",
-          "meaning": "Explains how the obligation arose.",
-          "values": "Release, Follow-up of an earlier revision, Withdrawal notice, Added by staff or Redirected, with reason when recorded.",
-          "rules": "Read-only; supplied by the current record."
-        },
-        {
-          "name": "Last attempt / Created",
-          "meaning": "Dates the obligation and its most recent attempt.",
-          "values": "Date/time or None for no attempt.",
-          "rules": "Read-only; supplied by the current record."
+          "name": "Delivery: When / By",
+          "meaning": "Dates the last recorded attempt and names who attested it.",
+          "values": "Date/time and the person's name, or — when no attempt has been recorded.",
+          "rules": "Read-only. For Handed off, these are when and by whom the hand-off was attested; for Failed or Outcome unknown, the failed or uncertain attempt."
         },
         {
           "name": "Attempts",
-          "meaning": "Preserves every attempt in order.",
+          "meaning": "Preserves every attempt in order; the obligation's panel in Delivery shows them.",
           "values": "Handed off, Failed or Outcome unknown; failure cause, observed time, recorder and note.",
           "rules": "Read-only; a retry is another recorded attempt, not an edit to an earlier one."
         },
@@ -465,13 +461,13 @@
         },
         {
           "name": "Add destination",
-          "does": "From More actions, opens Add a destination, which creates an additional obligation for the current revision.",
+          "does": "From More actions or the Add destination button on the Delivery tab, opens Add a destination, which creates an additional obligation for the current revision.",
           "availableWhen": "Report-delivery authority; current usable revision and a verified destination belonging to the ordering client.",
           "result": "Records the reason and adds delivery work; one obligation per revision, destination and kind is allowed."
         },
         {
-          "name": "Open delivery row",
-          "does": "Opens the matching obligation in Delivery.",
+          "name": "Open delivery row / Open in Delivery",
+          "does": "Opens the matching obligation in Delivery. Open in Delivery, beside the count on the Delivery tab, opens the first obligation not yet closed.",
           "availableWhen": "The obligation is not closed.",
           "result": "Shows loaded open-obligation details; closed obligations currently have only their history row here."
         },

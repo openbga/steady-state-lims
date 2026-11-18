@@ -4,9 +4,10 @@ import { expectNoA11yViolations } from "@/lib/test/a11y";
 import { mockCommands } from "@/lib/test/ipc";
 import { mockGridLayout } from "@/lib/test/layout";
 import { renderRoutes } from "@/lib/test/router";
-import type { ReportDetail } from "../contract";
+import type { ObligationView, ReportDetail } from "../contract";
 import {
   DESTINATION,
+  OBLIGATION,
   REPORT,
   REPORT_ID,
   REVISION_DETAIL,
@@ -108,5 +109,99 @@ describe("Report page tabs (#4834)", () => {
       name: "Printed content of report A26000001-URN",
     });
     expect(article.textContent).toContain("Synthetic Toxicology Laboratory");
+  });
+});
+
+/** The fax obligation with another destination, status and attempts. */
+const obligation = (
+  id: string,
+  destination: string,
+  status: Pick<ObligationView["status"], "code" | "shortLabel">,
+  attempts: ObligationView["attempts"] = [],
+): ObligationView => ({
+  ...OBLIGATION,
+  obligationId: id,
+  destination: { ...OBLIGATION.destination, label: destination },
+  status: { ...OBLIGATION.status, ...status, label: `Fax by staff: ${status.code}` },
+  attempts,
+});
+
+const HANDED_OFF = obligation(
+  "o-1",
+  "Synthetic pickup",
+  { code: "handed_off", shortLabel: "Handed off" },
+  [
+    {
+      attemptId: "a-1",
+      evidence: "handed_off",
+      observedAt: "2026-10-12T15:01:00Z",
+      recordedBy: { userId: "00000000-0000-7000-8000-000000000e02", displayName: "Test Releaser" },
+      failureCode: null,
+      note: null,
+    },
+  ],
+);
+const BLOCKED = obligation("o-3", "Synthetic fax line", {
+  code: "blocked",
+  shortLabel: "Blocked: destination not verified",
+});
+
+describe("Report page Delivery tab (#4835)", () => {
+  beforeEach(mockGridLayout);
+
+  const report = { ...REPORT, obligations: [HANDED_OFF, OBLIGATION, BLOCKED] };
+
+  /** Each row's cells as text, in column order. */
+  const rows = async () => {
+    const grid = await screen.findByRole("grid", { name: "Delivery obligations" });
+    return within(grid)
+      .getAllByRole("row")
+      .slice(1)
+      .map((row) =>
+        within(row)
+          .getAllByRole("gridcell")
+          .slice(0, 5)
+          .map((cell) => cell.textContent),
+      );
+  };
+
+  it("shows one row per destination with its method, short status, when and by", async () => {
+    const { container } = renderPage(report, "delivery");
+    const [handedOff, awaiting, blocked] = await rows();
+    expect(handedOff?.[0]).toBe("Synthetic pickup");
+    expect(handedOff?.slice(1, 3)).toEqual(["Fax by staff", "Handed off"]);
+    expect(handedOff?.[3]).not.toBe("—");
+    expect(handedOff?.[4]).toBe("Test Releaser");
+    expect(awaiting).toEqual(["Synthetic Clinic fax", "Fax by staff", "Awaiting", "—", "—"]);
+    expect(blocked?.[2]).toBe("Blocked: destination not verified");
+    const tone = (name: string) =>
+      screen.getByText(name).closest("[data-tone]")?.getAttribute("data-tone");
+    expect(tone("Handed off")).toBe("success");
+    expect(tone("Awaiting")).toBe("info");
+    expect(tone("Blocked: destination not verified")).toBe("danger");
+    expect(screen.getByRole("tab", { name: "Delivery 3" })).toBeTruthy();
+    await expectNoA11yViolations(container, { wholePage: true });
+  });
+
+  it("counts handed-off destinations as the header chip does, and leads to Delivery", async () => {
+    renderPage(report, "delivery");
+    const count = await screen.findByText("1 of 3 handed off");
+    expect(count.closest("[data-tone]")?.getAttribute("data-tone")).toBe("warning");
+    expect(screen.getByText("Handed off 1 of 3")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Open in Delivery" }).getAttribute("href")).toBe(
+      "/delivery?filter=all&open=o-1",
+    );
+  });
+
+  it("adds a destination from the tab when the engine allows it", async () => {
+    const { user } = renderPage(report, "delivery");
+    await user.click(await screen.findByRole("button", { name: "Add destination" }));
+    expect(await screen.findByRole("dialog", { name: "Add a destination" })).toBeTruthy();
+  });
+
+  it("offers no Add destination without the engine's permission", async () => {
+    renderPage({ ...report, allowedActions: [] }, "delivery");
+    await screen.findByRole("grid", { name: "Delivery obligations" });
+    expect(screen.queryByRole("button", { name: "Add destination" })).toBeNull();
   });
 });

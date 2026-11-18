@@ -12,6 +12,7 @@ import { useRecordSequence } from "@/lib/recordSequence";
 import { useRouteTabs } from "@/lib/routeTabs";
 import styles from "@/styles/layout.module.css";
 import {
+  ADD_DELIVERY_OBLIGATION,
   GET_REPORT,
   GET_REPORT_REVISION,
   RECORD_IMPACT_ASSESSMENT,
@@ -23,7 +24,7 @@ import { reportPath } from "../paths";
 import { ExportsSection } from "./ExportsSection";
 import { ImpactSection } from "./ImpactSection";
 import { IncidentsSection } from "./IncidentsSection";
-import { ReportActions, ReportChips, shownRevision } from "./ReportHeader";
+import { currentOf, ReportActions, ReportChips, shownRevision } from "./ReportHeader";
 import { ReportSummary } from "./ReportSummary";
 import { PreviewTab, ResultsTab, resultCount } from "./ResultsTab";
 import { RevisionsSection } from "./RevisionsSection";
@@ -118,7 +119,9 @@ function ReportHistory({ report }: { report: ReportDetail }) {
       >
         {tab === "results" && <ResultsTab revision={revision} isReleased={shown !== undefined} />}
         {tab === "preview" && <PreviewTab revision={revision} isReleased={shown !== undefined} />}
-        {tab === "delivery" && <DeliverySection obligations={report.obligations} />}
+        {tab === "delivery" && (
+          <DeliverySection obligations={report.obligations} addTo={addDestinationTo(report)} />
+        )}
         {tab === "revisions" && (
           <RevisionsSection
             revisions={report.revisions}
@@ -135,6 +138,14 @@ function ReportHistory({ report }: { report: ReportDetail }) {
       </Tabs>
     </div>
   );
+}
+
+/** Add destination adds to the current revision, when the engine allows it for this report. */
+function addDestinationTo(report: ReportDetail) {
+  const current = currentOf(report);
+  return current && report.allowedActions.includes(ADD_DELIVERY_OBLIGATION)
+    ? { revisionId: current.revisionId, clientId: report.clientId }
+    : null;
 }
 
 /** Impact after release exists only for a current revision whose content can be read. */

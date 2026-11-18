@@ -78,7 +78,7 @@ const withStatus = (...codes: ObligationStatus[]) =>
   codes.map((code, index) => ({
     ...OBLIGATION,
     obligationId: `${OBLIGATION.obligationId}-${index}`,
-    status: { code, label: code },
+    status: { ...OBLIGATION.status, code, label: code },
   }));
 
 describe("Report page status chips and actions (#4831)", () => {

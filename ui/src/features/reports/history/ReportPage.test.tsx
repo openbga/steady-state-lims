@@ -129,7 +129,7 @@ describe("ReportPage (REQ-RPT-002, REQ-RPT-003, REQ-RPT-013)", () => {
 
   it("opens an obligation in the delivery workspace under every open status", async () => {
     const { user } = renderPage({}, "delivery");
-    await openRow(user, "Fax by staff: awaiting delivery");
+    await openRow(user, "Synthetic Clinic fax");
     expect(
       await screen.findByText(`Navigated to /delivery?filter=all&open=${OBLIGATION.obligationId}`),
     ).toBeTruthy();
@@ -140,14 +140,16 @@ describe("ReportPage (REQ-RPT-002, REQ-RPT-003, REQ-RPT-013)", () => {
       ...OBLIGATION,
       status: {
         code: "closed",
-        label: "Fax by staff: delivered, attested by Test Releaser",
+        label: "Fax by staff: closed (redirected)",
+        shortLabel: "Closed: redirected",
+        method: "Fax by staff",
       },
     };
     const { user, router } = renderPage(
       { get_report: () => ({ ...REPORT, obligations: [closed] }) },
       "delivery",
     );
-    await openRow(user, closed.status.label);
+    await openRow(user, "Synthetic Clinic fax");
     expect(router.state.location.pathname).toBe(`/reports/${REPORT_ID}/delivery`);
   });
 

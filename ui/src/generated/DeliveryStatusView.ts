@@ -4,4 +4,13 @@ import type { ObligationStatus } from "./ObligationStatus";
 /**
  * A status code with its one label; the label names channel and evidence.
  */
-export type DeliveryStatusView = { code: ObligationStatus, label: string, };
+export type DeliveryStatusView = { code: ObligationStatus, label: string, 
+/**
+ * The status in a few words for a badge, such as "Handed off" or
+ * "Blocked: destination not verified"; never "delivered".
+ */
+shortLabel: string, 
+/**
+ * How the channel delivers, such as "Fax by staff".
+ */
+method: string, };
