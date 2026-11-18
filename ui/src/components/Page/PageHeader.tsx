@@ -20,6 +20,8 @@ interface PageHeaderProps {
   breadcrumbs?: readonly Crumb[];
   /** A record's status, such as a `StatusBadge`, beside the `h1`. */
   status?: ReactNode;
+  /** A record's several status chips, in a row under the `h1`. */
+  chips?: ReactNode;
   /** Record pages opened from a list: Previous and Next in its order (`useRecordSequence`). */
   sequence?: SequenceLinks | null;
 }
@@ -31,6 +33,7 @@ export function PageHeader({
   actions,
   breadcrumbs,
   status,
+  chips,
   sequence,
 }: PageHeaderProps) {
   const hasEnd = Boolean(actions) || Boolean(sequence);
@@ -60,6 +63,7 @@ export function PageHeader({
             <h1 className={styles.title}>{title}</h1>
             {status}
           </div>
+          {chips && <div className={styles.chips}>{chips}</div>}
           {description && <p className={styles.description}>{description}</p>}
         </div>
         {hasEnd && (

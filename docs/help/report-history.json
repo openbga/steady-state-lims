@@ -9,7 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "Open a report from Reports to see its revision history, delivery obligations and attempts, exports, and any impact assessment or preservation incident. Open a revision to inspect the content exactly as issued and its recorded provenance.",
-        "Prepare next revision returns to the specimen’s report workspace when permitted. Withdrawal and impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, open it and use its Export PDF. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
+        "Status chips under the title show availability, completeness, the revision and delivery. Export PDF (revision N, current) is the main button; Prepare next revision, Add destination and Withdraw report are in More actions when permitted. Impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, open it and use its Export PDF. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
       ]
     },
     {
@@ -44,6 +44,7 @@
     "ui/src/features/reports/history/ReportsPage.tsx",
     "ui/src/features/reports/history/columns.tsx",
     "ui/src/features/reports/history/ReportPage.tsx",
+    "ui/src/features/reports/history/ReportHeader.tsx",
     "ui/src/features/reports/history/RevisionPage.tsx",
     "ui/src/features/reports/history/RevisionsSection.tsx",
     "ui/src/features/reports/history/ImpactSection.tsx",
@@ -198,9 +199,15 @@
       "access": "Reading requires report-delivery or quality-management authority. Next revision and withdrawal require report-release authority. Impact/incident decisions require quality-management authority. Delivery actions require report-delivery authority. Opening the report is audited.",
       "fields": [
         {
-          "name": "Identity banner / Report availability",
-          "meaning": "Identifies the patient, accession and current report state.",
-          "values": "Linked identity; Current, Superseded, Withdrawn or Not released.",
+          "name": "Status chips under the title",
+          "meaning": "Summarizes the report’s state: availability, completeness of the latest revision, its number and kind, and delivery.",
+          "values": "Current, Superseded, Withdrawn or Not released; Final or Partial (Partial in warning tone); Revision N · Initial report, Supplement or Correction; Handed off X of Y.",
+          "rules": "Read-only. Handed off X of Y counts the delivery obligations still owed (every obligation except closed ones, such as a redirected one) and how many of them staff have attested as handed off. It is green when every owed obligation is handed off and in warning tone while any is awaiting, needs attention, is paused or blocked. It is not shown when no obligation is owed. Handed off is staff attestation, not proof of receipt, so the chip never says Delivered."
+        },
+        {
+          "name": "Identity banner",
+          "meaning": "Identifies the patient and the accession the report is about.",
+          "values": "Linked patient name, date of birth and age, active identifiers and accession.",
           "rules": "Read-only; supplied by the current record."
         },
         {
@@ -380,14 +387,20 @@
           "result": "Saves the exact issued PDF to Downloads, records the export in the audit trail and adds it to PDF exports. No attempt or delivery is recorded. To export a superseded or withdrawn revision, open that revision and use its Export PDF."
         },
         {
+          "name": "More actions",
+          "does": "Opens the menu of the report’s other actions: Prepare next revision, Add destination and, last and below a line in red text, Withdraw report.",
+          "availableWhen": "At least one of those actions is allowed to you for this report; otherwise the button is not shown.",
+          "result": "Choosing an item starts that action as described below. Each item is shown only when the engine allows it."
+        },
+        {
           "name": "Prepare next revision",
-          "does": "Opens the specimen’s current report workspace.",
+          "does": "From More actions, opens the specimen’s current report workspace.",
           "availableWhen": "Report-release authority, nonwithdrawn report and action offered.",
           "result": "Allows a reviewed supplement/correction candidate; the old report is preserved."
         },
         {
           "name": "Withdraw report",
-          "does": "Permanently withdraws every revision after fresh account confirmation and a reason.",
+          "does": "From More actions (the last item, in red text below a line), opens a confirmation that permanently withdraws every revision after fresh account confirmation and a reason.",
           "availableWhen": "Report-release authority, current report revision and required notice preparation succeed.",
           "result": "Prevents all future revisions of this report and creates withdrawal-notice obligations for destinations with prior obligations. This cannot be undone."
         },
@@ -405,7 +418,7 @@
         },
         {
           "name": "Add destination",
-          "does": "Creates an additional obligation for the current revision.",
+          "does": "From More actions, opens Add a destination, which creates an additional obligation for the current revision.",
           "availableWhen": "Report-delivery authority; current usable revision and a verified destination belonging to the ordering client.",
           "result": "Records the reason and adds delivery work; one obligation per revision, destination and kind is allowed."
         },

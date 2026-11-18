@@ -1,4 +1,5 @@
 import { screen, waitFor, within } from "@testing-library/react";
+import type { UserEvent } from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/lib/test/a11y";
 import { openRow, openRowActions } from "@/lib/test/grid";
@@ -35,6 +36,21 @@ function mockPage(commands: Record<string, (args: unknown) => unknown> = {}) {
     list_delivery_destinations: () => [DESTINATION],
     ...commands,
   });
+}
+
+/** Opens the header's More actions menu and returns its items' names. */
+async function moreActions(user: UserEvent) {
+  await user.click(await screen.findByRole("button", { name: "More actions" }));
+  const menu = await screen.findByRole("menu");
+  return within(menu)
+    .getAllByRole("menuitem")
+    .map((item) => item.textContent);
+}
+
+/** Chooses one item of the header's More actions menu. */
+async function chooseMoreAction(user: UserEvent, name: string) {
+  await moreActions(user);
+  await user.click(screen.getByRole("menuitem", { name }));
 }
 
 function renderPage(commands: Record<string, (args: unknown) => unknown> = {}) {
@@ -142,7 +158,7 @@ describe("ReportPage (REQ-RPT-002, REQ-RPT-003, REQ-RPT-013)", () => {
   it("withdraws the report with a reason and the password", async () => {
     const withdraw = vi.fn(() => ({ ...REPORT, availability: "withdrawn" }));
     const { user } = renderPage({ withdraw_report: withdraw });
-    await user.click(await screen.findByRole("button", { name: "Withdraw report" }));
+    await chooseMoreAction(user, "Withdraw report");
     const dialog = await screen.findByRole("alertdialog", {
       name: "Withdraw report A26000001-URN",
     });
@@ -176,7 +192,7 @@ describe("ReportPage (REQ-RPT-002, REQ-RPT-003, REQ-RPT-013)", () => {
         }),
       );
     const { user } = renderPage({ withdraw_report: withdraw });
-    await user.click(await screen.findByRole("button", { name: "Withdraw report" }));
+    await chooseMoreAction(user, "Withdraw report");
     const dialog = await screen.findByRole("alertdialog");
     await user.type(within(dialog).getByLabelText(/^Reason/), "Specimen mix-up");
     await user.type(within(dialog).getByLabelText(/^Your password/), "wrong");
@@ -198,7 +214,7 @@ describe("ReportPage (REQ-RPT-002, REQ-RPT-003, REQ-RPT-013)", () => {
   it("does not withdraw without a reason", async () => {
     const withdraw = vi.fn();
     const { user } = renderPage({ withdraw_report: withdraw });
-    await user.click(await screen.findByRole("button", { name: "Withdraw report" }));
+    await chooseMoreAction(user, "Withdraw report");
     const dialog = await screen.findByRole("alertdialog");
     await user.type(within(dialog).getByLabelText(/^Your password/), "synthetic-secret");
     await user.click(within(dialog).getByRole("button", { name: "Withdraw report" }));
@@ -229,8 +245,8 @@ describe("ReportPage (REQ-RPT-002, REQ-RPT-003, REQ-RPT-013)", () => {
       record_impact_assessment: assess,
     });
     expect(await screen.findByText(/Delivery of the current revision is paused/)).toBeTruthy();
-    expect(await screen.findByRole("button", { name: "Add destination" })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Withdraw report" })).toBeNull();
+    expect(await moreActions(user)).toEqual(["Add destination"]);
+    await user.keyboard("{Escape}");
     await user.click(screen.getByRole("button", { name: "Record impact assessment" }));
     const dialog = await screen.findByRole("dialog", { name: "Record impact assessment" });
     await user.click(within(dialog).getByRole("checkbox", { name: /QC for a reported result/ }));
@@ -262,22 +278,24 @@ describe("ReportPage (REQ-RPT-002, REQ-RPT-003, REQ-RPT-013)", () => {
       },
     };
     const { user } = renderPage({ get_report: () => withImpact });
-    expect(await screen.findByRole("button", { name: "Withdraw report" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Add destination" })).toBeTruthy();
+    expect(await moreActions(user)).toEqual([
+      "Prepare next revision",
+      "Add destination",
+      "Withdraw report",
+    ]);
+    await user.keyboard("{Escape}");
     expect(screen.getByText("Correction due")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Record impact assessment" })).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Prepare next revision" }));
+    await chooseMoreAction(user, "Prepare next revision");
     expect(await screen.findByText(`Navigated to /reports/specimens/${SPECIMEN_ID}`)).toBeTruthy();
   });
 
   it("offers a delivery clerk no release actions", async () => {
-    renderPage({
+    const { user } = renderPage({
       current_session: () => sessionWith(["deliver_reports"]),
       get_report: () => ({ ...REPORT, allowedActions: ["add_delivery_obligation"] }),
     });
-    expect(await screen.findByRole("button", { name: "Add destination" })).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Withdraw report" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Prepare next revision" })).toBeNull();
+    expect(await moreActions(user)).toEqual(["Add destination"]);
   });
 
   it("adds a verified destination of the order's client for the current revision", async () => {
@@ -287,7 +305,7 @@ describe("ReportPage (REQ-RPT-002, REQ-RPT-003, REQ-RPT-013)", () => {
       add_delivery_obligation: add,
       list_delivery_destinations: destinations,
     });
-    await user.click(await screen.findByRole("button", { name: "Add destination" }));
+    await chooseMoreAction(user, "Add destination");
     const dialog = await screen.findByRole("dialog", { name: "Add a destination" });
     expect(destinations).toHaveBeenCalledWith({
       input: { clientId: REPORT.clientId, state: "verified" },
@@ -343,8 +361,7 @@ describe("ReportPage (REQ-RPT-002, REQ-RPT-003, REQ-RPT-013)", () => {
     expect(screen.getByRole("gridcell", { name: "Revision 1 (withdrawn)" })).toBeTruthy();
     expect(screen.getByRole("gridcell", { name: "A26000001-URN-r1.pdf" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Export PDF/ })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Withdraw report" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Add destination" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "More actions" })).toBeNull();
   });
 
   it("closes an open preservation incident and shows closed ones (NFR-07)", async () => {

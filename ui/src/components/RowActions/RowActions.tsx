@@ -39,12 +39,19 @@ export function RowActions({ identifier, items, isOpen, onOpenChange }: RowActio
  * The "More" menu of a record view (side panel or page header), for the actions beyond the
  * primary button and up to two more. Renders nothing when there are no items.
  */
-export function MoreActions({ items }: { items: readonly ActionItem[] }) {
+export function MoreActions({
+  items,
+  label = "More",
+}: {
+  items: readonly ActionItem[];
+  /** The button's name, "More" unless a page names its menu otherwise. */
+  label?: string;
+}) {
   if (items.length === 0) return null;
   return (
     <MenuTrigger>
       <Button>
-        More
+        {label}
         <ChevronDown aria-hidden="true" />
       </Button>
       <ActionMenu items={items} />
