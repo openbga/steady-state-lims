@@ -60,6 +60,22 @@
   background: var(--color-surface-hover);
 }
 
+/* Looks like the links beside it: no box, accent text, underlined. */
+.button[data-variant="link"] {
+  min-height: 0;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-accent);
+  font-weight: var(--font-weight-regular);
+  text-decoration: underline;
+}
+
+.button[data-variant="link"][data-hovered] {
+  background: transparent;
+  color: var(--color-accent-hover);
+}
+
 .button svg {
   width: var(--icon-size);
   height: var(--icon-size);

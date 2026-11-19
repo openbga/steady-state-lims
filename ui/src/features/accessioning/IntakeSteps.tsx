@@ -11,10 +11,17 @@ const STEPS = [
 /**
  * Task position as a row of pills: earlier steps green with a check, the current step filled
  * with a dot, later steps outlined. Not a clinical status or an assertion that any safety
- * gate has passed.
+ * gate has passed. `complete` marks every step done, as Finish receipt once each specimen has
+ * a receipt decision.
  */
-export function IntakeSteps({ current }: { current: (typeof STEPS)[number]["id"] }) {
-  const position = STEPS.findIndex((step) => step.id === current);
+export function IntakeSteps({
+  current,
+  complete = false,
+}: {
+  current: (typeof STEPS)[number]["id"];
+  complete?: boolean;
+}) {
+  const position = complete ? STEPS.length : STEPS.findIndex((step) => step.id === current);
   return (
     <ol className={styles.steps} aria-label="Intake progress">
       {STEPS.map((step, index) => (

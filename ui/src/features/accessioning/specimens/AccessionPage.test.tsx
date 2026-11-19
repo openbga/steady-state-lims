@@ -11,6 +11,7 @@ import { expectNextKeepsFocus, renderFromList } from "@/lib/test/sequence";
 import {
   ACCESSION,
   ACCESSION_ID,
+  CLIENTS,
   container,
   ORDER,
   ORDER_ID,
@@ -72,6 +73,7 @@ function renderPage(
     get_accession: getAccession,
     get_order: () => ORDER,
     get_subject: () => SUBJECT_VIEW,
+    list_clients: () => CLIENTS,
     list_printers: () => PRINTERS,
     ...commands,
   });
@@ -97,31 +99,28 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
 
   it("shows the collection as recorded, the specimen and its containers", async () => {
     const { container: page, getAccession } = renderPage(ACCESSION);
-    expect(screen.getByRole("heading", { level: 1, name: "Accession" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "Finish receiving" })).toBeTruthy();
     expect(screen.getByText("Loading accession…")).toBeTruthy();
-    expect(await screen.findByRole("heading", { name: "Accession A26000001" })).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { name: "Finish receiving · A26000001" }),
+    ).toBeTruthy();
     expect(getAccession).toHaveBeenCalledWith({ input: { accessionId: ACCESSION_ID } });
     expect(screen.getByText("2026-10-12 13:30 UTC (site clock UTC−05:00)")).toBeTruthy();
-    expect(screen.getByText("Received, not yet decided")).toBeTruthy();
+    expect(screen.getByText("Waiting for a receipt decision")).toBeTruthy();
     expect(screen.getByText("30.0 mL, estimated")).toBeTruthy();
     expect(screen.getByText("No label requested")).toBeTruthy();
-    expect(await screen.findByRole("link", { name: "Order PO-0001" })).toHaveProperty(
-      "href",
-      expect.stringContaining(`/orders/${ORDER_ID}`),
-    );
-    expect(screen.getByRole("link", { name: "Order" })).toHaveProperty(
-      "href",
-      expect.stringContaining(`/orders/${ORDER_ID}`),
-    );
-    expect(screen.getByRole("list", { name: "Tests in this accession" }).textContent).toContain(
-      "SYN-SCR Synthetic drug screen",
-    );
+    // The breadcrumb and the strip both open the order, named by the accession number.
+    for (const link of screen.getAllByRole("link", { name: "A26000001" })) {
+      expect(link).toHaveProperty("href", expect.stringContaining(`/orders/${ORDER_ID}`));
+    }
     expect(screen.getByText("0 of 1 recorded")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Print labels" })).toBeTruthy();
     expect(await screen.findByRole("link", { name: "Patient, Test" })).toBeTruthy();
-    const banner = screen.getByRole("region", { name: "Patient and specimen identity" });
+    const banner = screen.getByRole("region", { name: "Patient identity" });
     expect(within(banner).getByText("MRN-00001")).toBeTruthy();
-    expect(within(banner).getByText("A26000001")).toBeTruthy();
+    expect(within(banner).getByRole("link", { name: "A26000001" })).toBeTruthy();
+    expect(await within(banner).findByText("Synthetic Clinic")).toBeTruthy();
+    expect(within(banner).getByText(/SYN-SCR Synthetic drug screen/)).toBeTruthy();
     // Two identifiers on every container row: the label and the accession.
     const grid = screen.getByRole("grid", { name: "Containers of Specimen 1 (urine)" });
     const row = within(grid).getByRole("gridcell", { name: "C00000001" }).closest("[role=row]");
@@ -154,7 +153,9 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
       current_session: () => sessionWith(["accession"]),
       get_order: getOrder,
     });
-    expect(await screen.findByRole("heading", { name: "Finish receiving" })).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { name: "Finish receiving · A26000001" }),
+    ).toBeTruthy();
     expect(screen.getByText("0 of 1 recorded")).toBeTruthy();
     expect(getOrder).not.toHaveBeenCalled();
     expect(screen.queryByRole("link", { name: /^Order/ })).toBeNull();
@@ -162,7 +163,9 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
 
   it("lets quality read an accession without offering accession or billing mutations", async () => {
     renderPage(ACCESSION, { current_session: () => sessionWith(["manage_quality"]) });
-    expect(await screen.findByRole("heading", { name: "Finish receiving" })).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { name: "Finish receiving · A26000001" }),
+    ).toBeTruthy();
     expect(
       screen.queryByRole("button", {
         name: /Print labels|Record receipt decision|Open order billing/,
@@ -183,8 +186,7 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
       ...ACCESSION,
       specimens: ACCESSION.specimens.map((specimen) => ({ ...specimen, acceptance: "held" })),
     });
-    expect(await screen.findByRole("heading", { name: "Receipt decisions recorded" })).toBeTruthy();
-    expect(screen.getByText("1 of 1 recorded")).toBeTruthy();
+    expect(await screen.findByText("1 of 1 recorded")).toBeTruthy();
     expect(screen.getByText("Held specimens need review under laboratory policy.")).toBeTruthy();
     expect(screen.getByText("Receipt decision recorded: held.")).toBeTruthy();
     expect(screen.queryByText(/ready for testing/i)).toBeNull();
@@ -224,26 +226,21 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
       current_session: () => sessionWith(["accession", "perform_analysis"]),
       record_receipt_decision: record,
     });
-    expect(
-      await screen.findByText("Receipt decision still needed: scan the label on C00000001"),
-    ).toBeTruthy();
-    expect(screen.getByText("1 receipt decision still needed.")).toBeTruthy();
+    expect(await screen.findByText(/^Scan the label on container/)).toBeTruthy();
+    expect(screen.getByText("C00000001", { selector: "code" })).toBeTruthy();
+    expect(screen.getByText("0 of 1 recorded")).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "Record receipt decision" })).toHaveLength(1);
 
     const dialog = await startReceiptDecision(user);
     await chooseWithKeyboard(user, /Decision$/, "Accept");
     await user.click(within(dialog).getByRole("button", { name: "Record decision" }));
-    expect(
-      await screen.findByText("Receipt finished. Work continues in the Worklist."),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(/lists C00000001 once its holds and order checks allow a run/),
-    ).toBeTruthy();
+    expect(await screen.findByText("Receipt finished. Next: put C00000001 on a run.")).toBeTruthy();
     expect(screen.getByText(/Accepted by Test Receiver/)).toBeTruthy();
     expect(screen.getByText("Accepted").closest("[data-tone]")?.getAttribute("data-tone")).toBe(
       "success",
     );
-    expect(screen.queryByText(/still needed/)).toBeNull();
+    expect(screen.queryByText(/^Scan the label/)).toBeNull();
+    expect(screen.getByText("1 of 1 recorded")).toBeTruthy();
     expect(screen.queryByText(/ready for testing/i)).toBeNull();
     expect(screen.getByRole("button", { name: "Runs" })).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Go to Worklist" }));
@@ -259,14 +256,10 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
         allowedActions: [],
       })),
     });
-    expect(
-      await screen.findByText("Receipt finished. Work continues in the Worklist."),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(
-        "Every specimen has a receipt decision. Each one below says where its work continues.",
-      ),
-    ).toBeTruthy();
+    expect(await screen.findByText("Receipt finished. Next: put C00000001 on a run.")).toBeTruthy();
+    // Every step of the intake is done: none is current any more.
+    const steps = screen.getByRole("list", { name: "Intake progress" });
+    expect(steps.querySelector("[aria-current]")).toBeNull();
     expect(screen.queryByRole("button", { name: "Go to Worklist" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Runs" })).toBeNull();
   });
@@ -572,15 +565,15 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
       ids,
     });
     expect(
-      await screen.findByRole("heading", { level: 1, name: "Accession A26000001" }),
+      await screen.findByRole("heading", { level: 1, name: "Finish receiving · A26000001" }),
     ).toBeTruthy();
-    await expectNextKeepsFocus(user, "Accession A26000002");
+    await expectNextKeepsFocus(user, "Finish receiving · A26000002");
   });
 
   it("shows the engine error with a retry", async () => {
     renderPage(() => Promise.reject(engineError("not_found", "The accession was not found.")));
     expect(await screen.findByText("The accession was not found.")).toBeTruthy();
-    expect(screen.getByRole("heading", { level: 1, name: "Accession" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "Finish receiving" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
   });
 });

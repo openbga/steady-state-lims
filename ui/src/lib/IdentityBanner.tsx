@@ -36,7 +36,15 @@ type IdentityBannerProps = (
   specimen?: SpecimenIdentity;
   /** A link at the right end of the strip, such as "Change patient" on order entry. */
   action?: ReactNode;
+  /** Facts after the patient's, such as the order, client and tests on Finish receiving. */
+  details?: readonly BannerDetail[];
 };
+
+/** One fact after the patient's in the strip. */
+interface BannerDetail {
+  label: string;
+  value: ReactNode;
+}
 
 /**
  * The current demographics (the last assertion), active identifiers and open hold count, from
@@ -64,29 +72,23 @@ export function subjectSummary(subject: SubjectView): SubjectSummary {
  * Given `subjectId`, it loads the patient, which is an audited read: render it only on a
  * screen the person explicitly opened.
  */
-export function IdentityBanner({ specimen, action, ...props }: IdentityBannerProps) {
-  if (props.subject) {
-    return <SubjectBanner subject={props.subject} specimen={specimen} action={action} />;
-  }
-  return <LoadedSubjectBanner subjectId={props.subjectId} specimen={specimen} action={action} />;
+export function IdentityBanner({ specimen, action, details, ...props }: IdentityBannerProps) {
+  const extras = { specimen, action, details };
+  if (props.subject) return <SubjectBanner subject={props.subject} {...extras} />;
+  return <LoadedSubjectBanner subjectId={props.subjectId} {...extras} />;
 }
 
 interface BannerExtras {
-  specimen: SpecimenIdentity | undefined;
-  action: ReactNode;
+  specimen?: SpecimenIdentity | undefined;
+  action?: ReactNode;
+  details?: readonly BannerDetail[] | undefined;
 }
 
-function LoadedSubjectBanner({
-  subjectId,
-  specimen,
-  action,
-}: BannerExtras & { subjectId: string }) {
+function LoadedSubjectBanner({ subjectId, ...extras }: BannerExtras & { subjectId: string }) {
+  const { specimen, action, details = [] } = extras;
   const subject = useCommandQuery<SubjectView>(GET_SUBJECT, { input: { subjectId } });
-  if (subject.isSuccess) {
-    return (
-      <SubjectBanner subject={subjectSummary(subject.data)} specimen={specimen} action={action} />
-    );
-  }
+  if (subject.isSuccess)
+    return <SubjectBanner subject={subjectSummary(subject.data)} {...extras} />;
   const value = subject.isError ? (
     <ErrorState
       title="The patient could not be loaded"
@@ -99,13 +101,18 @@ function LoadedSubjectBanner({
   return (
     <Banner
       label={bannerLabel(specimen)}
-      items={[{ label: "Patient", value }, ...specimenItems(specimen)]}
+      items={[{ label: "Patient", value }, ...specimenItems(specimen), ...details]}
       status={action}
     />
   );
 }
 
-function SubjectBanner({ subject, specimen, action }: BannerExtras & { subject: SubjectSummary }) {
+function SubjectBanner({
+  subject,
+  specimen,
+  action,
+  details = [],
+}: BannerExtras & { subject: SubjectSummary }) {
   const formatBirthDate = useFormatBirthDate();
   const holds = subject.openIdentityHolds;
   return (
@@ -116,6 +123,7 @@ function SubjectBanner({ subject, specimen, action }: BannerExtras & { subject: 
         { label: "Date of birth", value: formatBirthDate(subject.birthDate) },
         ...identifierItems(subject.identifiers),
         ...specimenItems(specimen),
+        ...details,
       ]}
       status={
         (holds > 0 || action) && (

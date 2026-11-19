@@ -2,14 +2,14 @@
   "id": "receive-specimens",
   "title": "Receiving specimens",
   "summary": "Register material for an accepted order, then verify labels and record receipt decisions.",
-  "reviewedOn": "2026-11-03",
+  "reviewedOn": "2026-11-19",
   "routes": ["/orders/:orderId/accession", "/accessions/:accessionId"],
   "sections": [
     {
       "title": "How to use this page",
       "paragraphs": [
         "Receive specimens shows tests eligible for new material and any existing accessions. Select the relevant tests, enter the supplied collection information and describe the specimens and containers that arrived. Saving opens the new accession.",
-        "The accession page (Finish receiving) shows collection details, each specimen’s receipt step, its receipt decisions and its containers. While a specimen has no decision, its card says Receipt decision still needed with the barcode to scan and Record receipt decision; once recorded, the card shows the outcome, who recorded it and where work continues. Use the available actions to print labels, record a receipt decision or create an aliquot. Check label status refreshes the printing outcome."
+        "The accession page is titled Finish receiving with the accession number. The intake steps show Finish receipt as the current step, and every step done once each specimen has a receipt decision. The strip under them names the patient (with the MRN and any identity hold), the order by its accession number as a link, the client and the accession’s tests. Each specimen is a card: its status badge, its next step in one box and its containers. A specimen waiting for a decision has a blue border and the box says Scan the label on container with the barcode, Record receipt decision and Print labels; once recorded, the box shows the outcome, who recorded it and where work continues, and an accepted specimen’s card turns green. Specimens waiting for a decision come first. Collection and Order billing sit in the side column. Check label status refreshes the printing outcome."
       ]
     },
     {
@@ -290,25 +290,31 @@
         {
           "name": "Receipt decisions / Held / Rejected",
           "meaning": "Progress of receipt review for this accession.",
-          "values": "Read-only decisions recorded out of total specimens, held count and rejected count.",
-          "rules": "A completed decision may be a hold or rejection; the count does not mean all material is ready for testing. Under the counts, the page says how many receipt decisions are still needed (for example 1 receipt decision still needed.), or, once every specimen has one, that each specimen below says where its work continues."
+          "values": "A bar and one line: decisions recorded out of total specimens (for example 0 of 1 recorded), then Held and Rejected counts.",
+          "rules": "On the specimen’s card when the accession has one specimen; above the cards when it has several. A completed decision may be a hold or rejection; the count does not mean all material is ready for testing."
         },
         {
-          "name": "Receipt decision still needed",
-          "meaning": "A specimen\u2019s receipt step while it is Received, not yet decided.",
-          "values": "Receipt decision still needed: scan the label on followed by the specimen\u2019s barcodes. With Accession: scanning confirms the tube matches this specimen, then choose Accept, Accept conditionally, Hold or Reject. Without it: someone who receives specimens scans the label and records the decision.",
-          "rules": "Record receipt decision is in this card, shown only with Accession and when the engine allows a decision."
+          "name": "Scan the label on container",
+          "meaning": "A specimen\u2019s next step while it is Waiting for a receipt decision.",
+          "values": "Scan the label on container followed by the specimen\u2019s barcodes. With Accession: scanning confirms the tube matches this specimen, then choose Accept, Accept conditionally, Hold or Reject. Without it: someone who receives specimens scans the label and records the decision.",
+          "rules": "Record receipt decision is in this box, shown only with Accession and when the engine allows a decision; Print labels sits beside it while no container row is selected."
         },
         {
           "name": "Receipt finished / Receipt decision recorded",
           "meaning": "A specimen\u2019s receipt step once a decision is recorded.",
-          "values": "Accepted or Accepted conditionally: Receipt finished. Work continues in the Worklist, and the Worklist lists the container (or its containers) once its holds and order checks allow a run. Held: Receipt decision recorded: held, and held specimens need review under laboratory policy. Rejected: Receipt decision recorded: rejected; the specimen will not be tested and its containers and decision are kept. The latest decision, who recorded it and when follow.",
-          "rules": "Receipt is not readiness for testing: open holds, an unresolved receipt chronology and order checks still keep a container off the Worklist. The specimen\u2019s Accepted badge shows green."
+          "values": "Accepted or Accepted conditionally: Receipt finished. Next: put followed by the container (or its containers) and on a run, in green. Held: Receipt decision recorded: held, and held specimens need review under laboratory policy. Rejected: Receipt decision recorded: rejected; the specimen will not be tested and its containers and decision are kept. The latest decision, who recorded it and when follow.",
+          "rules": "Receipt is not readiness for testing: the Worklist lists a container only once its holds, receipt chronology and order checks allow a run. The specimen\u2019s Accepted badge and card border show green."
         },
         {
-          "name": "Collected / Collected by / Tests in this accession",
-          "meaning": "Saved collection facts and order items linked to the material.",
-          "values": "Read-only supplied timing/collector and test list.",
+          "name": "Patient / Order / Client / Tests",
+          "meaning": "The strip under the steps: who the material belongs to and what was ordered.",
+          "values": "Patient name (a link with order-entry authority), date of birth and identifiers with the MRN in bold, and any identity hold. With order-entry authority: Order, the accession number linking to the order; Client; Tests, the accession\u2019s tests by code and name. Without it, the accession number only.",
+          "rules": "Read-only. Check the patient and accession against the physical material before a decision."
+        },
+        {
+          "name": "Collected / Collected by",
+          "meaning": "Saved collection facts, in the Collection card of the side column.",
+          "values": "Read-only supplied timing and collector.",
           "rules": "Use Collection timing review for evidence-backed timing corrections."
         },
         {
@@ -320,7 +326,7 @@
         {
           "name": "Specimen / Acceptance",
           "meaning": "The configured specimen type and receipt decision state.",
-          "values": "Received, not yet decided; Accepted; Accepted conditionally; Held; Rejected.",
+          "values": "Waiting for a receipt decision (the card badge); Accepted; Accepted conditionally; Held; Rejected.",
           "rules": "Read-only current state; completion of a receipt decision is not proof that all testing gates are clear."
         },
         {
@@ -361,7 +367,7 @@
         },
         {
           "name": "Receipt decisions history",
-          "meaning": "Earlier receipt decisions for each specimen.",
+          "meaning": "Every receipt decision of a specimen, under its containers when it has more than one; the box above shows the latest.",
           "values": "Decision, staff member, time, discrepancies, policy reference/scope and reason when present. Staff appear by their current account display name, including the signed-in user; an account that cannot be found shows as user followed by its identifier.",
           "rules": "Oldest first; earlier decisions remain retained."
         },
@@ -776,10 +782,10 @@
           "result": "Shows original/current timing and correction actions according to authority."
         },
         {
-          "name": "Review collection history / Refresh collection history",
-          "does": "Opens or refreshes original timing, corrections and review states.",
+          "name": "Collection history / Refresh collection history / Close",
+          "does": "The Collection history link in the Collection card opens a dialog with original timing, corrections and review states; Refresh collection history reloads them.",
           "availableWhen": "Accessioning or quality authority.",
-          "result": "Shows the latest collection revision and pending reviews."
+          "result": "Shows the latest collection revision and pending reviews, with the same correction and review actions as Collection timing review. Close or Escape returns to the page."
         },
         {
           "name": "Correct collection time / Record correction",
@@ -812,8 +818,8 @@
           "result": "Unsaved dialog entries are deliberately discarded when Cancel is chosen; saved records remain."
         },
         {
-          "name": "Open order billing / Refresh order billing",
-          "does": "Loads or refreshes the selected order’s financial facts and follow-up.",
+          "name": "Open order billing / Refresh order billing / Close",
+          "does": "The Open order billing link in the Order billing card opens a dialog with the order’s financial facts and follow-up; Refresh order billing reloads them. Close or Escape returns to the page.",
           "availableWhen": "Order-entry or billing authority is required for patient financial facts, order billing and follow-up. Opening a clinical patient or order record also requires its own access permission.",
           "result": "Shows the order-specific selection and financial evidence."
         },
@@ -881,7 +887,7 @@
       ],
       "workflow": [
         "Check identity, accession number and receipt progress.",
-        "Request the needed labels, verify output, then in each Receipt decision still needed card choose Record receipt decision and scan the correct container.",
+        "Request the needed labels, verify output, then in each specimen card waiting for a decision choose Record receipt decision and scan the correct container.",
         "After an acceptance, continue from Go to Worklist or Runs if you work at the bench; otherwise the bench picks the container up from its Worklist.",
         "Record any observed discrepancy and laboratory-approved conditional scope.",
         "Review outstanding holds, collection corrections and order billing separately."

@@ -6,7 +6,7 @@ import { chooseWithKeyboard, WALKTHROUGH_TIMEOUT_MS } from "@/lib/test/keyboard"
 import { renderWithProviders } from "@/lib/test/render";
 import { renderRoutes } from "@/lib/test/router";
 import { SUMMARY } from "../testData";
-import { CollectionHistorySection } from "./CollectionHistorySection";
+import { CollectionHistoryDialog } from "./CollectionHistorySection";
 import { CollectionReviewPage } from "./CollectionReviewPage";
 
 const COLLECTION = {
@@ -87,9 +87,8 @@ describe("Collection correction (BILL-G03)", { timeout: WALKTHROUGH_TIMEOUT_MS }
     );
     mockCommands({ get_collection_history: () => HISTORY, correct_collection_time: correct });
     const { user } = renderWithProviders(
-      <CollectionHistorySection accessionId={HISTORY.accessionId} />,
+      <CollectionHistoryDialog accessionId={HISTORY.accessionId} onClose={() => undefined} />,
     );
-    await user.click(screen.getByRole("button", { name: "Review collection history" }));
     await user.click(await screen.findByRole("button", { name: "Correct collection time" }));
     const dialog = await screen.findByRole("dialog", { name: "Correct collection time" });
     expect(within(dialog).queryByRole("textbox", { name: "Collected by" })).toBeNull();

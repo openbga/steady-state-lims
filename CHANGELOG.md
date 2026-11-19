@@ -7,7 +7,7 @@ What changed in OpenBGA Toxicology LIMS, newest release first. Changes not yet i
 release are listed under Unreleased. Within a release, changes are ordered by impact, then
 newest first. The application shows the same list under **What's new**.
 
-## Unreleased (2026-11-12 to 2026-11-18)
+## Unreleased (2026-11-12 to 2026-11-19)
 
 ### High impact
 
@@ -90,6 +90,10 @@ newest first. The application shows the same list under **What's new**.
   The reason is computed when read and never stored, so there is no migration.
 
 ### Low impact
+
+- **Changed:** Finish receiving shows each specimen's next step in one box (2026-11-19)
+
+  The accession page is now titled **Finish receiving** with the accession number. The patient strip also names the order (a link), the client and the tests. Each specimen card shows its status, the receipt progress and one box with the next step: the label to scan with **Record receipt decision** and **Print labels**, or, once decided, where work continues. **Collection** and **Order billing** move to a side column, where **Collection history** and **Open order billing** open in a dialog.
 
 - **Changed:** Report availability has its own color (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
 
