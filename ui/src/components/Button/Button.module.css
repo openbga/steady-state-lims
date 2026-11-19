@@ -64,7 +64,8 @@
 .button[data-variant="link"] {
   min-height: 0;
   padding: 0;
-  border-color: transparent;
+  /* No border, so the text lines up with a link above or beside it. */
+  border: 0;
   background: transparent;
   color: var(--color-accent);
   font-weight: var(--font-weight-regular);
