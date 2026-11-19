@@ -252,8 +252,9 @@
 
 /* A chosen test's name, at the start of its row: bold name and its code, up to two lines. */
 .testName {
-  flex: 0 0 15rem;
-  margin: 0 var(--space-3) 0 0;
+  flex: 0 0 18rem;
+  /* With the row gap, a wide space before Sequence role so the fields read apart from it. */
+  margin: 0 var(--space-10) 0 0;
   overflow-wrap: anywhere;
 }
 
