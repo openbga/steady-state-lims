@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { type FormEvent, type SyntheticEvent, useRef, useState } from "react";
+import { type FormEvent, type SyntheticEvent, useEffect, useRef, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { Navigate, useNavigate } from "react-router";
 import { Button } from "@/components/Button";
@@ -152,8 +152,28 @@ function markActiveSection(event: SyntheticEvent<HTMLDivElement>) {
 
 const activeSection = { onPointerDown: markActiveSection, onFocus: markActiveSection };
 
+/**
+ * A click outside every card clears the mark. A click in a popover (a list's options, a "?"
+ * tip, a calendar) belongs to the field that opened it, so it keeps the mark.
+ */
+function clearActiveSectionOnOutsideClick(event: PointerEvent) {
+  const target = event.target as Element;
+  if (target.closest?.("[data-trigger]")) return;
+  for (const card of document.querySelectorAll(`.${styles.stepFields} > section[data-active]`)) {
+    if (!card.contains(target)) card.removeAttribute("data-active");
+  }
+}
+
+function useClearActiveSectionOutside() {
+  useEffect(() => {
+    document.addEventListener("pointerdown", clearActiveSectionOnOutsideClick);
+    return () => document.removeEventListener("pointerdown", clearActiveSectionOnOutsideClick);
+  }, []);
+}
+
 /** Both steps stay mounted, so Back keeps every value and every field's error. */
 function StepFields({ step, subjectId, references, addBilling, onAddBilling }: StepFieldsProps) {
+  useClearActiveSectionOutside();
   return (
     <>
       <div hidden={step !== "requisition"} className={styles.stepFields} {...activeSection}>
