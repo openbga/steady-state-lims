@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { EmptyState } from "@/components/EmptyState";
 import { Page, PageHeader } from "@/components/Page";
+import type { OrderDetail } from "@/generated/OrderDetail";
 import { IdentityBanner } from "@/lib/IdentityBanner";
 import { IntakeSteps } from "../IntakeSteps";
+import { ReceiveSpecimens } from "../specimens/ReceiveSpecimens";
 import { newOrderPath } from "../subjects";
 import { OrderForm } from "./OrderForm";
 import { OrderReferencesGate } from "./OrderReferencesGate";
@@ -12,12 +15,15 @@ import type { OrderReferences } from "./references";
 /**
  * Order entry for one patient (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007), for people with
  * `enter_orders`. The first step chooses the patient; a patient chosen elsewhere starts at the
- * order details.
+ * order details. For people who receive specimens, Accept order and receive specimens goes on,
+ * on the same page, to the accepted order's Specimens step (REQ-SPC-001); saving it opens
+ * Finish receiving.
  */
 export function NewOrderPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const subjectId = params.get("subjectId");
+  const [accepted, setAccepted] = useState<OrderDetail | null>(null);
   return (
     <Page>
       <PageHeader
@@ -27,16 +33,26 @@ export function NewOrderPage() {
           { label: "New order", href: "/orders/new" },
         ]}
       />
-      <IntakeSteps current={subjectId ? "order" : "patient"} />
+      <IntakeSteps current={accepted ? "receive" : subjectId ? "order" : "patient"} />
       {subjectId ? (
         <>
           <IdentityBanner
             subjectId={subjectId}
-            action={<Link to="/orders/new">Change patient</Link>}
+            action={accepted ? undefined : <Link to="/orders/new">Change patient</Link>}
           />
-          <OrderReferencesGate>
-            {(references) => <OrderEntry subjectId={subjectId} references={references} />}
-          </OrderReferencesGate>
+          {accepted ? (
+            <ReceiveSpecimens orderId={accepted.orderId} inOrder />
+          ) : (
+            <OrderReferencesGate>
+              {(references) => (
+                <OrderEntry
+                  subjectId={subjectId}
+                  references={references}
+                  onAccepted={setAccepted}
+                />
+              )}
+            </OrderReferencesGate>
+          )}
         </>
       ) : (
         <PatientStep onChoose={(id) => navigate(newOrderPath(id))} />
@@ -45,7 +61,15 @@ export function NewOrderPage() {
   );
 }
 
-function OrderEntry({ subjectId, references }: { subjectId: string; references: OrderReferences }) {
+function OrderEntry({
+  subjectId,
+  references,
+  onAccepted,
+}: {
+  subjectId: string;
+  references: OrderReferences;
+  onAccepted: (order: OrderDetail) => void;
+}) {
   if (references.clients.length === 0 || references.practitioners.length === 0) {
     return (
       <EmptyState
@@ -62,5 +86,5 @@ function OrderEntry({ subjectId, references }: { subjectId: string; references: 
       />
     );
   }
-  return <OrderForm subjectId={subjectId} references={references} />;
+  return <OrderForm subjectId={subjectId} references={references} onAccepted={onAccepted} />;
 }

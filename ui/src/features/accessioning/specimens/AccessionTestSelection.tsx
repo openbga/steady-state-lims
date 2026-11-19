@@ -13,16 +13,25 @@ interface Props {
   order: OrderDetail;
   context: OrderAccessionContext;
   selectable?: boolean;
+  /** "Tests in this accession" as a card of its own in New order's Specimens step. */
+  title?: string;
+  variant?: "plain" | "surface";
 }
 
 /** Eligibility and its explanation come from the engine, including historical test names. */
-export function AccessionTestSelection({ order, context, selectable = false }: Props) {
+export function AccessionTestSelection({
+  order,
+  context,
+  selectable = false,
+  title = "Ordered tests",
+  variant = "plain",
+}: Props) {
   const blocked = context.items.filter((item) => !item.eligible);
   const names = new Map(
     order.items.map((item) => [item.itemId, `${item.orderableCode} ${item.orderableName}`]),
   );
   return (
-    <Section title="Ordered tests" variant="plain">
+    <Section title={title} variant={variant}>
       <p className={styles.hint}>
         Order <Link to={`/orders/${order.orderId}`}>{order.placerOrderId ?? order.orderId}</Link>
       </p>
@@ -61,7 +70,7 @@ export function AccessionTestSelection({ order, context, selectable = false }: P
   );
 }
 
-function EligibleTests({ order, context }: Omit<Props, "selectable">) {
+function EligibleTests({ order, context }: Pick<Props, "order" | "context">) {
   const { control, setValue } = useFormContext<AccessionFormValues>();
   const selected = useWatch({ control, name: "orderItemIds" });
   const eligible = context.items.filter((item) => item.eligible);

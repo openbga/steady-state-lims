@@ -14,6 +14,11 @@ import type { SpecimenTypeView } from "@/generated/SpecimenTypeView";
 import { useCommandMutation } from "@/lib/commands";
 import { UnsavedChangesGuard } from "@/lib/UnsavedChangesGuard";
 import { GET_ORDER, LIST_ORDERS } from "../orders/contract";
+import {
+  OrderReceiveActions,
+  OrderReceiveFields,
+  OrderReceiveLayout,
+} from "../orders/OrderReceiveStep";
 import { ORDER_ACCESSION_CONTEXT } from "../useOrderAccessionContext";
 import { AccessionTestSelection } from "./AccessionTestSelection";
 import { EMPTY_ACCESSION, toCreateAccessionInput } from "./accessionValues";
@@ -26,13 +31,40 @@ interface AccessionFormProps {
   order: OrderDetail;
   context: OrderAccessionContext;
   specimenTypes: readonly SpecimenTypeView[];
+  /**
+   * New order's Specimens step: one card per part, the order's eligible tests ticked (they
+   * were just ordered and accepted), and Finish later instead of Cancel.
+   */
+  inOrder?: boolean;
 }
 
+const FIELD_PATHS = {
+  "collection.time.timeZone": "timeZone",
+  "collection.utcOffsetMinutes": "utcOffset",
+  "collection.date": "collectedDate",
+  "collection.time": "collectedTime",
+  "collection.collector": "collector",
+};
+
 /** A failed or stale command keeps every entered field available for correction. */
-export function AccessionForm({ order, context, specimenTypes }: AccessionFormProps) {
+export function AccessionForm({
+  order,
+  context,
+  specimenTypes,
+  inOrder = false,
+}: AccessionFormProps) {
   const navigate = useNavigate();
   const toast = useToast();
-  const form = useForm({ defaultValues: EMPTY_ACCESSION });
+  const form = useForm({
+    defaultValues: inOrder
+      ? {
+          ...EMPTY_ACCESSION,
+          orderItemIds: context.items
+            .filter((item) => item.eligible)
+            .map((item) => item.orderItemId),
+        }
+      : EMPTY_ACCESSION,
+  });
   const [savedId, setSavedId] = useState<string | null>(null);
   const create = useCommandMutation<AccessionDetail, { input: CreateAccessionInput }>(
     CREATE_ACCESSION,
@@ -59,6 +91,52 @@ export function AccessionForm({ order, context, specimenTypes }: AccessionFormPr
     context.allowedActions.includes("create_accession") &&
     context.items.some((item) => item.eligible);
   const blocked = !canReceive && !create.isPending;
+  const fields = inOrder ? (
+    <OrderReceiveFields order={order} context={context} specimenTypes={specimenTypes} />
+  ) : (
+    <>
+      <AccessionTestSelection order={order} context={context} selectable />
+      <div className={styles.fields}>
+        <CollectionFields />
+        <Section title="Material received" variant="plain">
+          <SpecimenList specimenTypes={specimenTypes} />
+        </Section>
+      </div>
+    </>
+  );
+  const actions = inOrder ? (
+    <OrderReceiveActions isPending={create.isPending} />
+  ) : (
+    <>
+      <Button type="submit" variant="primary" isPending={create.isPending}>
+        Receive specimens
+      </Button>
+      <Button isDisabled={create.isPending} onPress={() => navigate(`/orders/${order.orderId}`)}>
+        Cancel
+      </Button>
+    </>
+  );
+  const content = blocked ? (
+    <>
+      <EmptyState
+        title="No tests available to receive"
+        description="Review this order's test status or continue an existing accession below."
+      />
+      <AccessionTestSelection order={order} context={context} />
+    </>
+  ) : (
+    <Form
+      aria-label="Receive specimens"
+      stickyActions
+      fieldPaths={FIELD_PATHS}
+      onSubmit={onSubmit}
+      error={create.error}
+      errorTitle="The specimens were not saved"
+      actions={actions}
+    >
+      {fields}
+    </Form>
+  );
   return (
     <FormProvider {...form}>
       <UnsavedChangesGuard
@@ -66,50 +144,12 @@ export function AccessionForm({ order, context, specimenTypes }: AccessionFormPr
         when={form.formState.isDirty && savedId === null}
       />
       {savedId !== null && <Navigate to={`/accessions/${savedId}`} />}
-      {blocked ? (
-        <>
-          <EmptyState
-            title="No tests available to receive"
-            description="Review this order's test status or continue an existing accession below."
-          />
-          <AccessionTestSelection order={order} context={context} />
-        </>
+      {inOrder ? (
+        <OrderReceiveLayout order={order} isPending={create.isPending}>
+          {content}
+        </OrderReceiveLayout>
       ) : (
-        <Form
-          aria-label="Receive specimens"
-          stickyActions
-          fieldPaths={{
-            "collection.time.timeZone": "timeZone",
-            "collection.utcOffsetMinutes": "utcOffset",
-            "collection.date": "collectedDate",
-            "collection.time": "collectedTime",
-            "collection.collector": "collector",
-          }}
-          onSubmit={onSubmit}
-          error={create.error}
-          errorTitle="The specimens were not saved"
-          actions={
-            <>
-              <Button type="submit" variant="primary" isPending={create.isPending}>
-                Receive specimens
-              </Button>
-              <Button
-                isDisabled={create.isPending}
-                onPress={() => navigate(`/orders/${order.orderId}`)}
-              >
-                Cancel
-              </Button>
-            </>
-          }
-        >
-          <AccessionTestSelection order={order} context={context} selectable />
-          <div className={styles.fields}>
-            <CollectionFields />
-            <Section title="Material received" variant="plain">
-              <SpecimenList specimenTypes={specimenTypes} />
-            </Section>
-          </div>
-        </Form>
+        content
       )}
     </FormProvider>
   );

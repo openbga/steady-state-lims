@@ -15,12 +15,19 @@ import { COLLECTION_TIME_KINDS } from "./labels";
  * When and by whom the specimens were collected (REQ-SPC-002). A missing time or date is
  * recorded as such: the form never fills one in.
  */
-export function CollectionFields({ includeCollector = true }: { includeCollector?: boolean }) {
+export function CollectionFields({
+  includeCollector = true,
+  variant = "plain",
+}: {
+  includeCollector?: boolean;
+  /** `surface` as a card of its own, as in New order's Specimens step. */
+  variant?: "plain" | "surface";
+}) {
   const { control, setValue } = useFormContext<AccessionFormValues>();
   const labTimeZone = useContext(LabTimeZoneContext);
   const timeKind = useWatch({ control, name: "timeKind" });
   return (
-    <Section title="Collection" variant="plain">
+    <Section title="Collection" variant={variant}>
       <FieldGrid>
         <ChoiceInput
           name="timeKind"

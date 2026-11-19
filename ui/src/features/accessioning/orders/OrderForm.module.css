@@ -313,3 +313,8 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* The accepted order's notice, above the Specimens step's cards. */
+.accepted {
+  margin-block-end: var(--space-3);
+}
