@@ -252,11 +252,6 @@
   flex: none;
 }
 
-.specimenRow > .specimenNumber {
-  flex: none;
-  min-width: 0;
-}
-
 .specimenRow > button:last-child {
   flex: none;
   min-width: 0;
@@ -274,6 +269,11 @@
   border-radius: 50%;
   background: var(--color-surface-hover);
   font-weight: var(--font-weight-semibold);
+}
+
+.specimenRow > .specimenNumber {
+  flex: none;
+  min-width: 0;
 }
 
 /* A dashed pill, as the optional parts of step 2. */
