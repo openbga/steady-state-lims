@@ -28,7 +28,6 @@ export function AccessionSide({ accession }: { accession: AccessionDetail }) {
     <div className={styles.side}>
       <Section title="Collection">
         <Facts
-          layout="compact"
           items={[
             { label: "Collected", value: collectionTimeText(collection, formatTime) },
             { label: "Collected by", value: orNotRecorded(collection.collector) },
