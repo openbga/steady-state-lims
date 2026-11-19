@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router";
-import { Button } from "@/components/Button";
 import { Page, PageHeader } from "@/components/Page";
 import { QueryContent } from "@/components/QueryContent";
+import { RefreshControl } from "@/components/RefreshControl";
 import type { AccessionDetail } from "@/generated/AccessionDetail";
 import type { AccessionSpecimenView } from "@/generated/AccessionSpecimenView";
 import type { ClientView } from "@/generated/ClientView";
@@ -30,7 +30,7 @@ const accessionPath = (accessionId: string) => `/accessions/${accessionId}`;
 /**
  * Finish receiving: one accession's collection, specimens, containers and labels
  * (REQ-SPC-001 to REQ-SPC-003). Viewing it is an audited access, so label outcomes are
- * refreshed on request, not polled. The header stays in place while another accession loads,
+ * refreshed on request (Refresh), not polled. The header stays in place while another accession loads,
  * so focus stays on Previous or Next.
  */
 export function AccessionPage() {
@@ -52,14 +52,8 @@ export function AccessionPage() {
           { label: "Finish receiving", href: accessionPath(accessionId) },
         ]}
         sequence={sequence}
-        actions={
-          data && (
-            <Button isPending={accession.isFetching} onPress={() => void accession.refetch()}>
-              Check label status
-            </Button>
-          )
-        }
       />
+      <RefreshControl query={accession} />
       <IntakeSteps current="finish" complete={data !== undefined && allDecided(data.specimens)} />
       <QueryContent query={accession} what="accession">
         {(loaded) => <AccessionRecord accession={loaded} />}

@@ -545,7 +545,7 @@ describe("AccessionPage (REQ-SPC-001 to REQ-SPC-003)", { timeout: WALKTHROUGH_TI
     });
 
     // Outcomes come from the printer worker; the screen asks for them on request.
-    await user.click(screen.getByRole("button", { name: "Check label status" }));
+    await user.click(screen.getByRole("button", { name: "Refresh" }));
     expect(getAccession.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 

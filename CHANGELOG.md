@@ -93,7 +93,7 @@ newest first. The application shows the same list under **What's new**.
 
 - **Changed:** Finish receiving shows each specimen's next step in one box (2026-11-19)
 
-  The accession page is now titled **Finish receiving** with the accession number. The patient strip also names the order (a link), the client and the tests. Each specimen card shows its status, the receipt progress and one box with the next step: the label to scan with **Record receipt decision** and **Print labels**, or, once decided, where work continues. **Collection** and **Order billing** move to a side column, where **Collection history** and **Open order billing** open in a dialog.
+  The accession page is now titled **Finish receiving** with the accession number. The patient strip also names the order (a link), the client and the tests. Each specimen card shows its status, the receipt progress and one box with the next step: the label to scan with **Record receipt decision** and **Print labels**, or, once decided, where work continues. **Collection** and **Order billing** move to a side column, where **Collection history** and **Open order billing** open in a dialog. **Check label status** is replaced by **Updated** with the time the page was read and **Refresh**, as on the order page.
 
 - **Changed:** Report availability has its own color (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
 

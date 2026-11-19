@@ -9,7 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "Receive specimens shows tests eligible for new material and any existing accessions. Select the relevant tests, enter the supplied collection information and describe the specimens and containers that arrived. Saving opens the new accession.",
-        "The accession page is titled Finish receiving with the accession number. The intake steps show Finish receipt as the current step, and every step done once each specimen has a receipt decision. The strip under them names the patient (with the MRN and any identity hold), the order by its accession number as a link, the client and the accession’s tests. Each specimen is a card: its status badge, its next step in one box and its containers. A specimen waiting for a decision has a blue border and the box says Scan the label on container with the barcode, Record receipt decision and Print labels; once recorded, the box shows the outcome, who recorded it and where work continues, and an accepted specimen’s card turns green. Specimens waiting for a decision come first. Collection and Order billing sit in the side column. Check label status refreshes the printing outcome."
+        "The accession page is titled Finish receiving with the accession number. The intake steps show Finish receipt as the current step, and every step done once each specimen has a receipt decision. The strip under them names the patient (with the MRN and any identity hold), the order by its accession number as a link, the client and the accession’s tests. Each specimen is a card: its status badge, its next step in one box and its containers. A specimen waiting for a decision has a blue border and the box says Scan the label on container with the barcode, Record receipt decision and Print labels; once recorded, the box shows the outcome, who recorded it and where work continues, and an accepted specimen’s card turns green. Specimens waiting for a decision come first. Collection and Order billing sit in the side column. Under the title, Updated shows when the page was last read and Refresh reads it again, with the latest printing outcome."
       ]
     },
     {
@@ -740,9 +740,9 @@
       ],
       "actions": [
         {
-          "name": "Check label status",
-          "does": "Refreshes accession data including latest print outcomes.",
-          "availableWhen": "The accession has loaded and no refresh is pending.",
+          "name": "Refresh",
+          "does": "Reads the accession again, including the latest print outcomes; Updated beside it shows when the page was last read. The page does not refresh on its own: each read is recorded in the audit trail.",
+          "availableWhen": "Always; while a refresh runs the arrows turn and the text reads Refreshing….",
           "result": "Shows current job results; does not send another label job."
         },
         {
@@ -903,7 +903,7 @@
         },
         {
           "problem": "No active label printer is set up or a print job failed.",
-          "recovery": "Ask configuration staff to verify the printer and destination. Check label status for its actual outcome before deciding whether to reprint."
+          "recovery": "Ask configuration staff to verify the printer and destination. Choose Refresh to see its actual outcome before deciding whether to reprint."
         },
         {
           "problem": "Create aliquot is unavailable.",
