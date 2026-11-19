@@ -19,6 +19,8 @@ interface SegmentedInputProps {
   tip?: ReactNode;
   /** Read after the label by screen readers only, such as " for SYN-SCR" in a test's row. */
   hiddenSuffix?: string;
+  /** The buttons share the field's whole width, for choices that share a row on purpose. */
+  fill?: boolean;
 }
 
 /**
@@ -34,6 +36,7 @@ export function SegmentedInput({
   description,
   tip,
   hiddenSuffix,
+  fill,
 }: SegmentedInputProps) {
   const { control } = useFormContext();
   return (
@@ -68,7 +71,7 @@ export function SegmentedInput({
             </FieldLabel>
             {tip && <FieldTip label={`About ${label.toLowerCase()}`}>{tip}</FieldTip>}
           </span>
-          <div className={styles.segments}>
+          <div className={styles.segments} data-fill={fill || undefined}>
             {options.map((option) => (
               <Radio key={option.id} value={option.id} className={styles.segment}>
                 {option.label}

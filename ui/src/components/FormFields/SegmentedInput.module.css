@@ -11,19 +11,25 @@
   padding: 0;
 }
 
-/* The options joined into one bordered row, sharing the field's width; they wrap when narrow. */
+/* The options joined into one bordered row at their natural width; they wrap when narrow. */
 .segments {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
+  align-self: flex-start;
   max-width: 100%;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
 
+/* Choices sharing a row on purpose fill the field's width. */
+.segments[data-fill] {
+  display: flex;
+  align-self: stretch;
+}
+
 .segment {
   display: flex;
-  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
   min-height: var(--control-height);
@@ -31,6 +37,10 @@
   border-inline-start: 1px solid var(--color-border-control);
   background: var(--color-surface);
   cursor: pointer;
+}
+
+.segments[data-fill] > .segment {
+  flex: 1 1 auto;
 }
 
 .segment:first-child {

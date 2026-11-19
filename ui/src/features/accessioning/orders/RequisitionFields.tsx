@@ -69,11 +69,18 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
         />
       </div>
       <div className={styles.sourceChoices}>
-        <SegmentedInput name="sourceKind" label="Received as" options={SOURCE_KINDS} isRequired />
+        <SegmentedInput
+          name="sourceKind"
+          label="Received as"
+          options={SOURCE_KINDS}
+          fill
+          isRequired
+        />
         <SegmentedInput
           name="billingResponsibility"
           label="Billing responsibility"
           options={BILLING_RESPONSIBILITIES}
+          fill
           tip={
             <p>
               Who pays, as the requisition states it; Not supplied when it does not say. The order
@@ -86,6 +93,7 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
           name="templateKind"
           label="Template use"
           options={TEMPLATE_KINDS}
+          fill
           tip={
             <p>
               Whether the clinic marked tests on a preset template. Choosing Clinic template never
@@ -94,19 +102,20 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
           }
           isRequired
         />
+        {/* A clinic template's details line up under Received as and Billing responsibility. */}
+        {templateKind === "clinic_template" && (
+          <>
+            <TextInput name="templateName" label="Template name" isRequired />
+            <SegmentedInput
+              name="templateConfirmed"
+              label="Confirmed for this patient"
+              options={YES_NO}
+              description="The practitioner confirmed the template's tests for this patient."
+              isRequired
+            />
+          </>
+        )}
       </div>
-      {templateKind === "clinic_template" && (
-        <div className={styles.choiceRow}>
-          <TextInput name="templateName" label="Template name" isRequired />
-          <SegmentedInput
-            name="templateConfirmed"
-            label="Confirmed for this patient"
-            options={YES_NO}
-            description="The practitioner confirmed the template's tests for this patient."
-            isRequired
-          />
-        </div>
-      )}
       <details className={styles.references} open={referencesInvalid || undefined}>
         <summary>
           Clinic order number and source references{" "}

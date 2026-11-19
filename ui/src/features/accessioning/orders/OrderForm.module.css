@@ -175,14 +175,6 @@
   align-items: start;
 }
 
-/* Segmented choices side by side, wrapping when they do not fit. */
-.choiceRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-5);
-  align-items: flex-start;
-}
-
 /*
  * Received as, Billing responsibility and Template use: each column as wide as its choices
  * need, the rest of the row shared out, so the row has no empty end.

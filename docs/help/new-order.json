@@ -142,7 +142,7 @@
           "name": "Template use",
           "meaning": "Whether a clinic template supplied the requested tests.",
           "values": "No template; Clinic template.",
-          "rules": "Required. On the same row as Received as and Billing responsibility; Clinic template adds a row with Template name and Confirmed for this patient. Selecting a template never selects tests automatically. Shown as a row of buttons; select one, or use the arrow keys to move between them. Nothing is chosen at first. The ? beside the label explains it."
+          "rules": "Required. On the same row as Received as and Billing responsibility; Clinic template adds Template name under Received as and Confirmed for this patient (compact Yes and No buttons) under Billing responsibility. Selecting a template never selects tests automatically. Shown as a row of buttons; select one, or use the arrow keys to move between them. Nothing is chosen at first. The ? beside the label explains it."
         },
         {
           "name": "Template name",
