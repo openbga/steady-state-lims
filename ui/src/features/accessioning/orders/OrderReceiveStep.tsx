@@ -11,7 +11,7 @@ import type { SpecimenTypeView } from "@/generated/SpecimenTypeView";
 import { AccessionTestSelection } from "../specimens/AccessionTestSelection";
 import type { AccessionFormValues } from "../specimens/accessionValues";
 import { CollectionFields } from "../specimens/CollectionFields";
-import { SpecimenList } from "../specimens/SpecimenList";
+import { SpecimenRows } from "../specimens/SpecimenRows";
 import { activeSection, useClearActiveSectionOutside } from "./activeSection";
 import styles from "./OrderForm.module.css";
 import { OrderSteps } from "./OrderSteps";
@@ -75,9 +75,12 @@ export function OrderReceiveFields({
   useClearActiveSectionOutside();
   return (
     <div className={styles.stepFields} {...activeSection}>
-      <CollectionFields variant="surface" />
-      <Section title="Specimens received">
-        <SpecimenList specimenTypes={specimenTypes} />
+      <CollectionFields variant="card" />
+      <Section
+        title="Specimens received"
+        description="One row per specimen that arrived; each gets its own container labels."
+      >
+        <SpecimenRows specimenTypes={specimenTypes} />
       </Section>
       <AccessionTestSelection
         order={order}

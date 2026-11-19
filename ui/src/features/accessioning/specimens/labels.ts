@@ -28,6 +28,15 @@ export const COLLECTION_TIME_KINDS: readonly Choice<"datetime" | "zoned" | "date
   { id: "unknown", label: "Unknown" },
 ];
 
+/** The same kinds as buttons, named short: the named timezone is the usual case. */
+export const COLLECTION_TIME_CHOICES: readonly Choice<"datetime" | "zoned" | "date" | "unknown">[] =
+  [
+    { id: "zoned", label: "Date and time" },
+    { id: "datetime", label: "With UTC offset" },
+    { id: "date", label: "Date only" },
+    { id: "unknown", label: "Unknown" },
+  ];
+
 export const VOLUME_KINDS: readonly Choice<VolumeKind>[] = [
   { id: "estimated", label: "Estimated" },
   { id: "measured", label: "Measured" },

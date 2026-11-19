@@ -191,3 +191,93 @@
   gap: var(--space-3);
   margin-inline-start: auto;
 }
+
+/* New order's Specimens step: the collection's fields on one row. */
+.collectionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3) var(--space-4);
+}
+
+.collectionRow > * {
+  flex: 0 1 12rem;
+  min-width: 9rem;
+}
+
+/* The buttons keep their width; Collected by takes what is left. */
+.collectionRow > :first-child {
+  flex: none;
+}
+
+.collectionRow > :last-child {
+  flex: 1 1 12rem;
+}
+
+.specimenRows {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.specimenList {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One specimen: its number, then its fields on one line, × at the end. */
+.specimenRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+
+.specimenRow > * {
+  flex: 0 1 9rem;
+  min-width: 6rem;
+}
+
+.specimenRow > :nth-child(2) {
+  flex: 1 1 12rem;
+}
+
+.specimenRow > :nth-child(4) {
+  flex: none;
+}
+
+.specimenRow > .specimenNumber {
+  flex: none;
+  min-width: 0;
+}
+
+.specimenRow > button:last-child {
+  flex: none;
+  min-width: 0;
+  margin-inline-start: auto;
+  align-self: center;
+}
+
+.specimenNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-top: 1.6rem;
+  border-radius: 50%;
+  background: var(--color-surface-hover);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A dashed pill, as the optional parts of step 2. */
+.addSpecimen > button[data-variant] {
+  border: 1px dashed var(--color-border-control);
+  border-radius: var(--radius-full);
+}
