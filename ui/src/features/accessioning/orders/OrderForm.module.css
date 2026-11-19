@@ -157,11 +157,17 @@
   border-radius: var(--radius-full);
 }
 
+/*
+ * The sticky action row (Form's last element) keeps the section cards' inner padding on both
+ * sides: the tip or Back lines up with their content, and the last button keeps off the edge.
+ */
+.main form[data-sticky-actions] > div:last-child {
+  padding-inline: calc(var(--space-4) + 1px);
+}
+
 /* Pushes what follows to the end of the action row: the tip, or Back, stays at the start. */
 .actionsStart {
   margin: 0 auto 0 0;
-  /* Lined up with the content of the section cards above. */
-  padding-inline-start: calc(var(--space-4) + 1px);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
   align-self: center;
@@ -246,9 +252,8 @@
 
 /* A chosen test's name, at the start of its row: bold name and its code, up to two lines. */
 .testName {
-  flex: 0 1 16rem;
-  min-width: 10rem;
-  margin: 0;
+  flex: 0 0 15rem;
+  margin: 0 var(--space-3) 0 0;
   overflow-wrap: anywhere;
 }
 
@@ -297,7 +302,8 @@
 
 @container (max-width: 40rem) {
   .testName {
-    flex-basis: 100%;
+    flex: 1 1 100%;
+    margin: 0;
   }
 
   .fields,

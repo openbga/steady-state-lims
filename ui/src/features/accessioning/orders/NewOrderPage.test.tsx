@@ -430,17 +430,22 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     const find = screen.getByRole("combobox", { name: /Find tests/ });
     const rows = () =>
       within(screen.getByRole("list", { name: "Chosen tests" })).queryAllByRole("group");
+    expect(find.getAttribute("placeholder")).toMatch(/^Search tests and panels/);
     for (const code of ["SYN-SCR", "SYN-CNF"]) {
       await user.type(find, code);
       await user.keyboard("{ArrowDown}{Enter}");
     }
     await user.keyboard("{Escape}");
     expect(rows()).toHaveLength(2);
+    // The chips show what is chosen, so the hint goes; the label still names the search.
+    expect(find.getAttribute("placeholder")).toBeNull();
+    expect(screen.getByRole("combobox", { name: "Find tests" })).toBe(find);
     await user.keyboard("{Backspace}");
     expect(rows()).toHaveLength(1);
     expect(screen.queryByRole("button", { name: /Remove SYN-CNF .* from Find tests/ })).toBeNull();
     await user.click(screen.getByRole("button", { name: /Remove SYN-SCR .* from Find tests/ }));
     expect(rows()).toHaveLength(0);
+    expect(find.getAttribute("placeholder")).toMatch(/^Search tests and panels/);
   });
 
   it("lists only the chosen client's locations, and clears the location when the client changes", async () => {

@@ -4,6 +4,7 @@ import {
   Button,
   ComboBox,
   ComboBoxStateContext,
+  Group,
   Input,
   ListBox,
   ListBoxItem,
@@ -114,7 +115,7 @@ export function RecordPicker(props: RecordPickerProps) {
   const keepChosen =
     chosen !== null && chosen.id === props.value && !options.some(({ id }) => id === chosen.id);
   const items = keepChosen ? [chosen, ...options] : options;
-  const { chips, ...searchKeys } = multipleSearch(props);
+  const { chips, Control, ...searchKeys } = multipleSearch(props);
   const search = (text: string) => {
     // Choosing a record writes its text into the field; that is not a new search.
     if (chosen === null || text !== optionText(chosen)) pause.later(text);
@@ -145,7 +146,7 @@ export function RecordPicker(props: RecordPickerProps) {
       <FieldLabel isRequired={isRequired} isHidden={isLabelHidden}>
         {label}
       </FieldLabel>
-      <div
+      <Control
         className={styles.control}
         data-clearable={isClearable || undefined}
         data-chips={chips ? "" : undefined}
@@ -153,7 +154,7 @@ export function RecordPicker(props: RecordPickerProps) {
         {chips && <Chips {...chips} fieldLabel={label} />}
         <PickerInput
           ref={inputRef}
-          placeholder={placeholder}
+          placeholder={chips?.ids.length ? undefined : placeholder}
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
@@ -175,7 +176,7 @@ export function RecordPicker(props: RecordPickerProps) {
         <Button className={styles.opener}>
           <ChevronDown aria-hidden="true" className={selectStyles.chevron} />
         </Button>
-      </div>
+      </Control>
       <FieldHelp description={description} errorMessage={errorMessage} />
       <OptionList isLoading={isLoading} layout={optionLayout} />
     </ComboBox>
@@ -214,15 +215,18 @@ function ClearButton({ label, onClear }: { label: string; onClear: () => void })
 }
 
 /**
- * A multiple picker's chips, when asked for, and its search keys: Ctrl/Cmd+A selects the text,
+ * A multiple picker's chips, when asked for (the placeholder then shows only while there are
+ * none; the label still names the search), and its search keys: Ctrl/Cmd+A selects the text,
  * Enter never submits the form, and Backspace in an empty search removes the last chip.
  */
 function multipleSearch(props: RecordPickerProps) {
-  if (props.selectionMode !== "multiple") return { chips: null };
+  if (props.selectionMode !== "multiple") return { chips: null, Control: "div" as const };
   const { value, onChange, chipLabel } = props;
   const onRemove = (id: string) => onChange(value.filter((each) => each !== id));
   return {
     chips: chipLabel ? { ids: value, labelOf: chipLabel, onRemove } : null,
+    // With chips the field is a Group, which the list lines up with, not the text after them.
+    Control: chipLabel ? Group : ("div" as const),
     onKeyDownCapture: selectSearchText,
     onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => {
       keepSearchEnter(event);
