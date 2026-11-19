@@ -424,6 +424,25 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     expect(authority.hasAttribute("data-active")).toBe(true);
   });
 
+  it("shows chosen tests as chips: Backspace or a chip's × removes the test and its row", async () => {
+    const { user } = renderPage({ list_active_orderables: () => LONG_CATALOG });
+    await fillRequisition(user);
+    const find = screen.getByRole("combobox", { name: /Find tests/ });
+    const rows = () =>
+      within(screen.getByRole("list", { name: "Chosen tests" })).queryAllByRole("group");
+    for (const code of ["SYN-SCR", "SYN-CNF"]) {
+      await user.type(find, code);
+      await user.keyboard("{ArrowDown}{Enter}");
+    }
+    await user.keyboard("{Escape}");
+    expect(rows()).toHaveLength(2);
+    await user.keyboard("{Backspace}");
+    expect(rows()).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /Remove SYN-CNF .* from Find tests/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Remove SYN-SCR .* from Find tests/ }));
+    expect(rows()).toHaveLength(0);
+  });
+
   it("lists only the chosen client's locations, and clears the location when the client changes", async () => {
     const { user } = renderPage({ list_clients: () => TWO_CLIENTS });
     await screen.findByRole("combobox", { name: /^Client/ });
@@ -452,6 +471,14 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await user.keyboard("{ArrowDown}{Enter}");
     expect(document.activeElement).toBe(find);
     expect(find).toHaveProperty("value", "");
+    // The choice shows in the field as a chip, with its own remove button; the list stays open
+    // for the next one, so the page behind it is hidden from assistive technology meanwhile.
+    expect(
+      screen.getByRole("button", {
+        name: "Remove SYN-SCR Synthetic drug screen from Find tests",
+        hidden: true,
+      }),
+    ).toBeTruthy();
     await user.type(find, "SYN-CNF");
     await user.keyboard("{ArrowDown}{Enter}{Escape}");
     expect(
@@ -464,7 +491,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     );
     expectChosen(/Sequence role for SYN-CNF/, "Confirmation");
     expectChosen(/Reflex testing for SYN-CNF/, "Not authorized");
-    expect(screen.queryByRole("group", { name: /Synthetic drug screen SYN-SCR$/ })).toBeNull();
+    expect(screen.queryByRole("group", { name: /SYN-SCR Synthetic drug screen$/ })).toBeNull();
     await user.type(find, "zzz");
     expect(screen.getByRole("listbox").textContent).toBe("No matches");
     await user.keyboard("{Enter}");
@@ -491,8 +518,8 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     expect(
       within(screen.getByRole("list", { name: "Chosen tests" })).getAllByRole("group"),
     ).toHaveLength(2);
-    expect(screen.getByRole("group", { name: /Synthetic drug screen SYN-SCR$/ })).toBeTruthy();
-    expect(screen.getByRole("group", { name: /Synthetic panel 10 SYN-T10$/ })).toBeTruthy();
+    expect(screen.getByRole("group", { name: /SYN-SCR Synthetic drug screen$/ })).toBeTruthy();
+    expect(screen.getByRole("group", { name: /SYN-T10 Synthetic panel 10$/ })).toBeTruthy();
   });
 
   // jsdom re-renders the 1,000-row list on each keystroke: about 20 s on a developer computer

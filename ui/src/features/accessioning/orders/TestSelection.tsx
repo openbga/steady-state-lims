@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { useContext, useRef } from "react";
-import { FormValidationContext } from "react-aria-components";
+import { FormValidationContext, VisuallyHidden } from "react-aria-components";
 import {
   useController,
   useFieldArray,
@@ -145,17 +145,19 @@ function ReflexFields({ index, orderable, others, onRemove }: TestRowProps) {
   const title = orderable ? orderableLabel(orderable) : "Test";
   return (
     <Inset as="fieldset">
-      <legend className={formStyles.testName}>
-        {orderable ? (
-          <>
-            <strong>{orderable.name}</strong>{" "}
-            <span className={formStyles.hint}>{orderable.code}</span>
-          </>
-        ) : (
-          title
-        )}
-      </legend>
+      {/* The legend names the group for screen readers; the row shows the name beside the choices. */}
+      <VisuallyHidden elementType="legend">{title}</VisuallyHidden>
       <div className={formStyles.selectedFields}>
+        <p className={formStyles.testName} aria-hidden="true">
+          {orderable ? (
+            <>
+              <strong>{orderable.name}</strong>{" "}
+              <span className={formStyles.hint}>{orderable.code}</span>
+            </>
+          ) : (
+            title
+          )}
+        </p>
         <SegmentedInput
           name={`items.${index}.sequenceRole`}
           label="Sequence role"

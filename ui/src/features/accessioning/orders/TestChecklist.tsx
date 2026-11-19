@@ -6,7 +6,7 @@ import { Select } from "@/components/Select";
 import type { OrderableVersionView } from "@/generated/OrderableVersionView";
 import styles from "../accessioning.module.css";
 import formStyles from "./OrderForm.module.css";
-import { testChoiceLabel } from "./references";
+import { orderableLabel, testChoiceLabel } from "./references";
 
 const CHECKLIST_LIMIT = 15;
 const CATALOG_KINDS = [
@@ -59,6 +59,11 @@ export function TestChecklist({
         })),
     [orderables, idOf, kind],
   );
+  // A chip shows the code and name, without the specimen types the options add.
+  const chipLabel = (id: string) => {
+    const orderable = orderables.find((each) => idOf(each) === id);
+    return orderable ? orderableLabel(orderable) : "Test";
+  };
   return (
     <>
       {findable ? (
@@ -70,6 +75,7 @@ export function TestChecklist({
             inputRef={inputRef}
             name={name}
             selectionMode="multiple"
+            chipLabel={children === undefined ? undefined : chipLabel}
             options={options}
             value={choice.chosen}
             onChange={choice.onChange}

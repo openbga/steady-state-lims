@@ -17,6 +17,7 @@ import { FieldHelp } from "@/components/Form/FieldHelp";
 import { FieldLabel } from "@/components/Form/FieldLabel";
 import formStyles from "@/components/Form/Form.module.css";
 import selectStyles from "@/components/Select/Select.module.css";
+import { Chips } from "./Chips";
 import styles from "./RecordPicker.module.css";
 
 /** One existing record to choose. */
@@ -67,6 +68,11 @@ type RecordPickerProps = RecordPickerBaseProps &
         value: readonly string[];
         onChange: (value: string[]) => void;
         onInputChange?: never;
+        /**
+         * Shows each chosen record inside the field as a chip, with its text from this
+         * function and its own remove button; Backspace in an empty search removes the last.
+         */
+        chipLabel?: (id: string) => string;
       }
   );
 
@@ -108,6 +114,7 @@ export function RecordPicker(props: RecordPickerProps) {
   const keepChosen =
     chosen !== null && chosen.id === props.value && !options.some(({ id }) => id === chosen.id);
   const items = keepChosen ? [chosen, ...options] : options;
+  const { chips, ...searchKeys } = multipleSearch(props);
   const search = (text: string) => {
     // Choosing a record writes its text into the field; that is not a new search.
     if (chosen === null || text !== optionText(chosen)) pause.later(text);
@@ -138,33 +145,32 @@ export function RecordPicker(props: RecordPickerProps) {
       <FieldLabel isRequired={isRequired} isHidden={isLabelHidden}>
         {label}
       </FieldLabel>
-      <div className={styles.control} data-clearable={isClearable || undefined}>
+      <div
+        className={styles.control}
+        data-clearable={isClearable || undefined}
+        data-chips={chips ? "" : undefined}
+      >
+        {chips && <Chips {...chips} fieldLabel={label} />}
         <PickerInput
           ref={inputRef}
           placeholder={placeholder}
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
-          onKeyDownCapture={props.selectionMode === "multiple" ? selectSearchText : undefined}
-          onKeyDown={props.selectionMode === "multiple" ? keepSearchEnter : undefined}
+          {...searchKeys}
           className={`${formStyles.control} ${styles.input}`}
         />
         {isClearable &&
           !props.isDisabled &&
           props.selectionMode !== "multiple" &&
           props.value !== null && (
-            <Button
-              // Out of the ComboBox's button slot, which would make it a second list opener.
-              slot={null}
-              aria-label={`Clear ${label}`}
-              className={styles.clear}
-              onPress={() => {
+            <ClearButton
+              label={label}
+              onClear={() => {
                 setChosen(null);
                 props.onChange(null);
               }}
-            >
-              <X aria-hidden="true" />
-            </Button>
+            />
           )}
         <Button className={styles.opener}>
           <ChevronDown aria-hidden="true" className={selectStyles.chevron} />
@@ -190,6 +196,40 @@ function PickerInput(props: ComponentProps<typeof Input>) {
       }}
     />
   );
+}
+
+/** Empties a single choice; before the arrow. */
+function ClearButton({ label, onClear }: { label: string; onClear: () => void }) {
+  return (
+    <Button
+      // Out of the ComboBox's button slot, which would make it a second list opener.
+      slot={null}
+      aria-label={`Clear ${label}`}
+      className={styles.clear}
+      onPress={onClear}
+    >
+      <X aria-hidden="true" />
+    </Button>
+  );
+}
+
+/**
+ * A multiple picker's chips, when asked for, and its search keys: Ctrl/Cmd+A selects the text,
+ * Enter never submits the form, and Backspace in an empty search removes the last chip.
+ */
+function multipleSearch(props: RecordPickerProps) {
+  if (props.selectionMode !== "multiple") return { chips: null };
+  const { value, onChange, chipLabel } = props;
+  const onRemove = (id: string) => onChange(value.filter((each) => each !== id));
+  return {
+    chips: chipLabel ? { ids: value, labelOf: chipLabel, onRemove } : null,
+    onKeyDownCapture: selectSearchText,
+    onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => {
+      keepSearchEnter(event);
+      const last = chipLabel && value.at(-1);
+      if (last && event.key === "Backspace" && event.currentTarget.value === "") onRemove(last);
+    },
+  };
 }
 
 /** Preserve text editing: React Aria's multiple list selection otherwise consumes Ctrl/Cmd+A. */

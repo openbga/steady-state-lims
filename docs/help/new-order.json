@@ -184,7 +184,7 @@
           "name": "Find tests / Find reflex tests for …",
           "meaning": "Finds the tests and panels to order, and the reflex tests of a long catalog.",
           "values": "Part of a configured code, name or required specimen-type code; Test or Panel also matches the displayed kind.",
-          "rules": "Find tests is always the search at the top of Tests, reading Search tests and panels by name, code or specimen type while empty. Find reflex tests is shown when more than 15 choices are available; shorter reflex scopes are checkboxes. Type to narrow the popup, then choose an option or use Arrow Down and Enter. The search clears after a choice so you can find another; Escape closes the popup. Free text is not an ordered test. Searching does not remove chosen tests. Scroll the popup or narrow the search to reach other choices. Ctrl+A (Command+A on macOS) selects the search text for replacement. Enter in the search does not save the form."
+          "rules": "Find tests is always the search at the top of Tests, reading Search tests and panels by name, code or specimen type while empty. Find reflex tests is shown when more than 15 choices are available; shorter reflex scopes are checkboxes. Type to narrow the popup, then choose an option or use Arrow Down and Enter. The popup stays open and the search clears after a choice so you can pick several; Escape closes the popup. In Find tests each chosen test shows inside the field as a chip with its code and name and its own ×; × on a chip removes that test, and Backspace in an empty search removes the last one; either also removes its row below. Free text is not an ordered test. Searching does not remove chosen tests. Scroll the popup or narrow the search to reach other choices. Ctrl+A (Command+A on macOS) selects the search text for replacement. Enter in the search does not save the form."
         },
         {
           "name": "Show — tests or reflex scope",
@@ -195,7 +195,7 @@
         {
           "name": "Chosen tests",
           "meaning": "The complete unsaved selection, including choices that are outside the current search or Show filter.",
-          "values": "One row per chosen test: its name in bold and its code, then Sequence role, Reflex testing and ×. Before any choice: No tests chosen yet. Search above for each test or panel marked on the requisition. Reflex scopes show a selected count, and long ones a separate Chosen reflex tests list.",
+          "values": "A chip in the search field and one row below per chosen test: its name in bold and its code on the left, then Sequence role, Reflex testing and × on the same line (stacked on a narrow window). Before any choice: No tests chosen yet. Search above for each test or panel marked on the requisition. Reflex scopes show a selected count, and long ones a separate Chosen reflex tests list.",
           "rules": "Review this list against the requisition. Complete sequence role and reflex permission for each ordered item; choosing a panel does not independently select or substitute its component tests."
         },
         {
