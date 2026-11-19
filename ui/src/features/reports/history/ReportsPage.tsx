@@ -57,7 +57,7 @@ const COLUMNS: readonly DataGridColumn<ReportSummary>[] = [
 
 /**
  * Released reports (REQ-RPT-002), latest release first: partial, withdrawn or all, searchable
- * by the start of the report number. The filter and the find text (`?q=`) stay in the address. The list
+ * by any part of the report or accession number. The filter and the find text (`?q=`) stay in the address. The list
  * carries no patient details. Older releases load on request, a page at a time, from where
  * the engine's last page ended.
  */
@@ -66,7 +66,7 @@ export function ReportsPage() {
   const [, setParams] = useSearchParams();
   const [filterParam, setFilter] = useSearchParam("filter");
   const filter = choiceOf(REPORT_FILTERS, filterParam) ?? "all";
-  // The engine finds reports whose number starts with the text, kept in `?q=`.
+  // The engine finds reports whose report or accession number contains the text, kept in `?q=`.
   const [search, setSearch] = useFindParam();
   const searched = optionalText(search) ?? undefined;
   const reports = useCursorPages<ReportSummary[]>(LIST_REPORTS, {
@@ -98,8 +98,8 @@ export function ReportsPage() {
         }
       >
         <FindField
-          label="Find by report number"
-          placeholder="Report number"
+          label="Find by report or accession number"
+          placeholder="Report or accession number"
           value={search}
           onChange={setSearch}
         />

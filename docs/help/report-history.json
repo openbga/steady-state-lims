@@ -2,7 +2,7 @@
   "id": "report-history",
   "title": "Reports and revisions",
   "summary": "Inspect issued reports, preserved revisions, delivery history and post-release work.",
-  "reviewedOn": "2026-11-05",
+  "reviewedOn": "2026-11-18",
   "routes": ["/reports", "/reports/:reportId", "/reports/revisions/:revisionId"],
   "sections": [
     {
@@ -94,10 +94,10 @@
       "access": "Requires report-delivery authority or quality-management authority.",
       "fields": [
         {
-          "name": "Find by report number",
-          "meaning": "Finds reports whose number starts with the entered text.",
-          "values": "Report-number prefix.",
-          "rules": "Optional; blank shows all matching the state filter. This is not patient-name or accession-wide searching."
+          "name": "Find by report or accession number",
+          "meaning": "Finds reports whose report number or accession number contains the entered text.",
+          "values": "Any part of a report number (for example DEMO-UR) or of an accession number (for example A26000015); upper and lower case match alike. The placeholder reads Report or accession number.",
+          "rules": "Optional; leading and trailing spaces are ignored and blank shows all reports matching Show. The list loads after a short pause in typing or on Enter. Patient names and other patient details are not searched."
         },
         {
           "name": "Show",
@@ -120,7 +120,7 @@
         {
           "name": "Availability",
           "meaning": "Distinguishes current from historical or withdrawn content.",
-          "values": "Current, Superseded or Withdrawn.",
+          "values": "Current (green badge): the revision to rely on. Superseded (gray badge): a later revision replaced it. Withdrawn (red-tinted badge): the report must no longer be relied on.",
           "rules": "Read-only; an earlier readable revision may be superseded."
         },
         {
@@ -162,7 +162,7 @@
           "result": "Restores the unfiltered directory."
         },
         {
-          "name": "Find by report number / Show",
+          "name": "Find by report or accession number / Show",
           "does": "Changes the directory query.",
           "availableWhen": "The page is open.",
           "result": "Loads the latest matching page."
@@ -176,17 +176,17 @@
       ],
       "restrictions": [
         "This directory contains released reports. An unreleased candidate belongs to the specimen’s report workspace.",
-        "Report number search is a prefix match; a numeric fragment from the middle of a report number may not match."
+        "Find searches report and accession numbers only, never patient details. A short fragment such as 260 can match many reports; type more of the number to narrow the list."
       ],
       "workflow": [
-        "Set Show and enter a report-number prefix if known.",
+        "Set Show and, if known, enter any part of the report or accession number in Find.",
         "Verify accession, latest revision, completeness and availability; open the intended report.",
         "Load older reports if the needed release is beyond the loaded pages."
       ],
       "troubleshooting": [
         {
           "problem": "No report matches.",
-          "recovery": "Clear the prefix/filter with Show all reports and check whether the report was actually released."
+          "recovery": "Check the number typed in Find, or clear the search and filter with Show all reports and check whether the report was actually released."
         },
         {
           "problem": "Older reports could not be loaded.",
@@ -257,7 +257,7 @@
         {
           "name": "Revisions: Availability / Completeness / Released / Reason for correction",
           "meaning": "Preserves status, signatory and change rationale.",
-          "values": "Current, Superseded or Withdrawn; Final or Partial; releaser/date/time; recorded amendment reason or none.",
+          "values": "Current (green), Superseded (gray) or Withdrawn (red tint); Final or Partial; releaser/date/time; recorded amendment reason or none.",
           "rules": "Read-only; supplied by the current record."
         },
         {
@@ -536,7 +536,7 @@
         {
           "name": "Availability",
           "meaning": "Indicates whether this revision is current, superseded or withdrawn.",
-          "values": "Current, Superseded or Withdrawn.",
+          "values": "Current (green badge): the revision to rely on. Superseded (gray badge): a later revision replaced it. Withdrawn (red-tinted badge): the report must no longer be relied on.",
           "rules": "Read-only; inspect before using or exporting a copy."
         },
         {

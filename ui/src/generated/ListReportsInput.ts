@@ -10,7 +10,8 @@ export type ListReportsInput = {
  */
 filter: ReportListFilter, 
 /**
- * A report number prefix.
+ * Text found anywhere in the report number or the specimen's accession
+ * number, ignoring ASCII case. Both are PHI-free; blank finds every report.
  */
 search?: string, 
 /**

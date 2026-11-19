@@ -212,7 +212,11 @@ function ReportLink({ report, canRead }: { report: WorkspaceReport; canRead: boo
       ) : (
         report.reportNumber
       )}{" "}
-      {availability && <StatusBadge tone={availability.tone}>{availability.label}</StatusBadge>}
+      {availability && (
+        <StatusBadge tone={availability.tone} variant={availability.variant}>
+          {availability.label}
+        </StatusBadge>
+      )}
       {current &&
         `, ${revisionText(current.revisionNo, current.relationship)}, ${COMPLETENESS[current.completeness].label.toLowerCase()}`}
     </>

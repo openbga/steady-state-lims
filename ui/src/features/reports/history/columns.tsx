@@ -15,7 +15,10 @@ export function statusColumns<Row extends WithStatus>(): DataGridColumn<Row>[] {
       id: "availability",
       header: "Availability",
       cell: (row) => (
-        <StatusBadge tone={AVAILABILITY[row.availability].tone}>
+        <StatusBadge
+          tone={AVAILABILITY[row.availability].tone}
+          variant={AVAILABILITY[row.availability].variant}
+        >
           {AVAILABILITY[row.availability].label}
         </StatusBadge>
       ),

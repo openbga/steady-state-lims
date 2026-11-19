@@ -22,4 +22,16 @@ describe("StatusBadge", () => {
     expect(badge.querySelector("svg[aria-hidden='true']")).not.toBeNull();
     await expectNoA11yViolations(container);
   });
+
+  it("shows a danger tone as a tint when asked", async () => {
+    const { container } = renderWithProviders(
+      <StatusBadge tone="danger" variant="tint">
+        Withdrawn
+      </StatusBadge>,
+    );
+    const badge = screen.getByText("Withdrawn");
+    expect(badge.getAttribute("data-tone")).toBe("danger");
+    expect(badge.getAttribute("data-variant")).toBe("tint");
+    await expectNoA11yViolations(container);
+  });
 });
