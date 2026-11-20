@@ -54,8 +54,11 @@ export function AccessionPage() {
         ]}
         sequence={sequence}
       />
-      <RefreshControl query={accession} />
-      <IntakeSteps current="finish" complete={data !== undefined && allDecided(data.specimens)} />
+      {/* Refresh at the end of the steps' row: the page reads the accession on request. */}
+      <div className={styles.stepsRow}>
+        <IntakeSteps current="finish" complete={data !== undefined && allDecided(data.specimens)} />
+        <RefreshControl query={accession} />
+      </div>
       <QueryContent query={accession} what="accession">
         {(loaded) => <AccessionRecord accession={loaded} />}
       </QueryContent>
