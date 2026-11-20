@@ -63,6 +63,7 @@
 }
 
 .version {
+  width: min(26rem, 100%);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
