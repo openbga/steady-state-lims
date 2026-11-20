@@ -22,6 +22,13 @@ export const GET_ORDER = "get_order";
 /** `list_orders({input: ListOrdersInput}) → OrderSummary[]` (audited read), newest first. */
 export const LIST_ORDERS = "list_orders";
 
+/**
+ * `find_order_patients({input: FindOrderPatientsInput}) → OrderPatientChoices` (audited
+ * read): the user's recent patients and the patients the find text matches, each with
+ * their latest order.
+ */
+export const FIND_ORDER_PATIENTS = "find_order_patients";
+
 /** The queries every order command makes stale. */
 export const ORDER_QUERIES: readonly CommandName[] = [
   GET_ORDER,

@@ -20,6 +20,7 @@ import {
   type RevisionDetail,
 } from "../contract";
 import { DeliverySection } from "../delivery/DeliverySection";
+import { InterfaceDeliveries } from "../delivery/InterfaceDeliveries";
 import { reportPath } from "../paths";
 import { ExportsSection } from "./ExportsSection";
 import { ImpactSection } from "./ImpactSection";
@@ -121,7 +122,10 @@ function ReportHistory({ report }: { report: ReportDetail }) {
         {tab === "results" && <ResultsTab revision={revision} isReleased={shown !== undefined} />}
         {tab === "preview" && <PreviewTab report={report} shown={shown} revision={revision} />}
         {tab === "delivery" && (
-          <DeliverySection obligations={report.obligations} addTo={addDestinationTo(report)} />
+          <div className={styles.stack}>
+            <DeliverySection obligations={report.obligations} addTo={addDestinationTo(report)} />
+            <InterfaceDeliveries reportId={report.reportId} reportNumber={report.reportNumber} />
+          </div>
         )}
         {tab === "revisions" && (
           <RevisionsSection

@@ -3,7 +3,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import { Button } from "@/components/Button";
 import { Form } from "@/components/Form";
-import { chooseWithKeyboard, WALKTHROUGH_TIMEOUT_MS } from "@/lib/test/keyboard";
+import { chooseSegment, expectChosen, WALKTHROUGH_TIMEOUT_MS } from "@/lib/test/keyboard";
 import { mockGridLayout } from "@/lib/test/layout";
 import { renderWithProviders } from "@/lib/test/render";
 import { CONFIRM, LONG_CATALOG, SCREEN } from "../testData";
@@ -35,13 +35,13 @@ describe("TestSelection (REQ-ORD-003, REQ-ORD-005)", () => {
     const picker = screen.getByRole("combobox", { name: "Find tests" });
     await user.type(picker, "SYN-SCR");
     await user.keyboard("{ArrowDown}{Enter}{Escape}");
-    await chooseWithKeyboard(user, /Testing sequence role for SYN-SCR/, "First-line test");
-    await chooseWithKeyboard(user, /Reflex testing for SYN-SCR/, "Not authorized");
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not authorized");
 
     await user.type(picker, "SYN-CNF");
     await user.keyboard("{ArrowDown}{Enter}{Escape}");
-    await chooseWithKeyboard(user, /Testing sequence role for SYN-CNF/, "Confirmation");
-    await chooseWithKeyboard(user, /Reflex testing for SYN-CNF/, "Authorized");
+    await chooseSegment(user, /Sequence role for SYN-CNF/, "Confirmation");
+    await chooseSegment(user, /Reflex testing for SYN-CNF/, "Authorized");
     await user.type(
       screen.getByRole("combobox", {
         name: "Find reflex tests for SYN-CNF Synthetic confirmation",
@@ -54,14 +54,8 @@ describe("TestSelection (REQ-ORD-003, REQ-ORD-005)", () => {
     await user.keyboard("{ArrowDown}{Enter}{Escape}");
     await user.click(screen.getByRole("button", { name: "Remove SYN-SCR Synthetic drug screen" }));
     expect(document.activeElement).toBe(picker);
-    expect(
-      screen.getByRole("button", { name: /Testing sequence role for SYN-CNF/, expanded: false })
-        .textContent,
-    ).toContain("Confirmation");
-    expect(
-      screen.getByRole("button", { name: /Reflex testing for SYN-CNF/, expanded: false })
-        .textContent,
-    ).toContain("Authorized");
+    expectChosen(/Sequence role for SYN-CNF/, "Confirmation");
+    expectChosen(/Reflex testing for SYN-CNF/, "Authorized");
     await user.click(screen.getByRole("button", { name: "Read draft" }));
     expect(onRead).toHaveBeenLastCalledWith([
       {
@@ -74,6 +68,38 @@ describe("TestSelection (REQ-ORD-003, REQ-ORD-005)", () => {
         orderableVersionId: LONG_CATALOG[2]?.id,
         sequenceRole: null,
         reflexAuthorization: null,
+        reflexScopeOrderableIds: [],
+      },
+    ]);
+  });
+
+  it("applies the first test's choices to the other tests, keeping each reflex scope", {
+    timeout: WALKTHROUGH_TIMEOUT_MS,
+  }, async () => {
+    mockGridLayout();
+    const onRead = vi.fn();
+    const { user } = renderWithProviders(<Draft onRead={onRead} />);
+    const picker = screen.getByRole("combobox", { name: "Find tests" });
+    await user.type(picker, "SYN-SCR");
+    await user.keyboard("{ArrowDown}{Enter}{Escape}");
+    expect(screen.queryByRole("button", { name: /Apply the first test/ })).toBeNull();
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "Confirmation");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not authorized");
+    await user.type(picker, "SYN-CNF");
+    await user.keyboard("{ArrowDown}{Enter}{Escape}");
+    await user.click(
+      screen.getByRole("button", { name: "Apply the first test's choices to all tests" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Read draft" }));
+    expect(onRead).toHaveBeenLastCalledWith([
+      expect.objectContaining({
+        sequenceRole: "confirmation",
+        reflexAuthorization: "not_authorized",
+      }),
+      {
+        orderableVersionId: CONFIRM.id,
+        sequenceRole: "confirmation",
+        reflexAuthorization: "not_authorized",
         reflexScopeOrderableIds: [],
       },
     ]);

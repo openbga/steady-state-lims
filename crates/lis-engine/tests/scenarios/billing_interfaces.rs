@@ -275,6 +275,7 @@ fn all() -> ListPartnerMessages {
         search: None,
         hide_tests: false,
         row_ids: Vec::new(),
+        report_id: None,
     }
 }
 

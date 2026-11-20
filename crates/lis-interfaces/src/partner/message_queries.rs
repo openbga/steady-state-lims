@@ -9,7 +9,6 @@ use ts_rs::TS;
 use super::acceptance::acceptance_hold;
 use super::error::PartnerError;
 use super::message_filter::kept;
-use super::message_repo::NOT_REPLACED;
 use super::mllp::NO_ACK;
 use super::model::{
     AckCode, DeliveryReason, DeliveryState, MessageSource, PartnerConnectionId, PartnerDeliveryId,
@@ -18,6 +17,7 @@ use super::model::{
 use super::received::ReceivedState;
 use super::received_queries::received_rows;
 use super::rejections::{RESOLUTION_COLUMNS, RejectionResolution, resolution_at};
+use super::unrouted_queries::unrouted_rows;
 use crate::folder_path::shown_path;
 
 /// Rows the log returns at most, newest first.
@@ -115,6 +115,11 @@ pub struct ListPartnerMessages {
     #[serde(default)]
     #[ts(as = "Option<_>", optional)]
     pub row_ids: Vec<String>,
+    /// Only the outgoing messages of this report, its revisions and withdrawal notice: a
+    /// report's Delivery tab (#4725). Received orders are left out.
+    #[serde(default)]
+    #[ts(optional)]
+    pub report_id: Option<String>,
 }
 
 /// A connection named in a row.
@@ -199,14 +204,16 @@ pub fn list_partner_messages(
 ) -> Result<PartnerMessagePage, PartnerError> {
     let mut rows = delivery_rows(conn, input)?;
     if input.connection_id.is_none() {
-        rows.extend(unrouted_rows(conn, input.since)?);
+        rows.extend(unrouted_rows(conn, input, SCAN_LIMIT)?);
     }
-    rows.extend(received_rows(
-        conn,
-        input.since,
-        input.connection_id,
-        SCAN_LIMIT,
-    )?);
+    if input.report_id.is_none() {
+        rows.extend(received_rows(
+            conn,
+            input.since,
+            input.connection_id,
+            SCAN_LIMIT,
+        )?);
+    }
     rows.retain(|row| kept(row, input));
     rows.sort_by_key(|row| std::cmp::Reverse(row.at));
     let more = rows.len() > LOG_LIMIT;
@@ -231,11 +238,16 @@ fn delivery_rows(
          JOIN ifc_partner_connections c ON c.id = d.connection_id \
          LEFT JOIN ifc_partner_rejection_resolutions x ON x.delivery_id = d.id \
          WHERE (?1 IS NULL OR COALESCE(d.written_at, d.last_attempt_at, d.created_at) >= ?1) \
-         AND (?2 IS NULL OR c.id = ?2) \
+         AND (?2 IS NULL OR c.id = ?2) AND (?4 IS NULL OR m.source_group = ?4) \
          ORDER BY at DESC LIMIT ?3"
     ))?
     .query_map(
-        params![input.since, input.connection_id, SCAN_LIMIT],
+        params![
+            input.since,
+            input.connection_id,
+            SCAN_LIMIT,
+            input.report_id
+        ],
         delivery_row,
     )?
     .collect::<rusqlite::Result<_>>()
@@ -345,51 +357,4 @@ fn transport(state: DeliveryState, attempts: u32) -> TransportOutcome {
         DeliveryState::Waiting if attempts > 0 => TransportOutcome::Failed,
         DeliveryState::Waiting | DeliveryState::Superseded => TransportOutcome::NotSent,
     }
-}
-
-fn unrouted_rows(
-    conn: &Connection,
-    since: Option<UtcTimestamp>,
-) -> Result<Vec<PartnerMessageRow>, PartnerError> {
-    conn.prepare_cached(&format!(
-        "SELECT m.id, m.created_at, m.message_type, m.source_kind, m.source_id, m.source_number, \
-         r.resolution, m.source_label, NOT {NOT_REPLACED} FROM ifc_partner_messages m \
-         LEFT JOIN ifc_partner_unrouted_resolutions r ON r.message_id = m.id \
-         WHERE m.unrouted = 1 AND (?1 IS NULL OR m.created_at >= ?1) \
-         ORDER BY m.created_at DESC LIMIT ?2"
-    ))?
-    .query_map(params![since, SCAN_LIMIT], |row| {
-        Ok(PartnerMessageRow {
-            message_id: row.get(0)?,
-            delivery_id: None,
-            at: row.get(1)?,
-            message_type: row.get(2)?,
-            source: row.get(3)?,
-            source_id: row.get(4)?,
-            source_number: row.get(5)?,
-            source_label: row.get(7)?,
-            connection: None,
-            reason: None,
-            transport: TransportOutcome::NotSent,
-            outcome_unknown: false,
-            waiting: None,
-            attempts: 0,
-            given_up: false,
-            superseded: row.get(8)?,
-            next_attempt_at: None,
-            error_code: None,
-            written_path: None,
-            ack_code: None,
-            ack_text: None,
-            awaiting_ack: false,
-            peer: None,
-            unrouted: true,
-            resolution: row.get(6)?,
-            rejection_resolved: None,
-            allowed_actions: Vec::new(),
-            received: None,
-        })
-    })?
-    .collect::<rusqlite::Result<_>>()
-    .map_err(Into::into)
 }

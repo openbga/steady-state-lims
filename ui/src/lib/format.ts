@@ -81,6 +81,18 @@ export function useFormatTime(): (timestamp: string, options?: TimeOptions) => s
   );
 }
 
+/** The laboratory calendar day (`YYYY-MM-DD`) of an engine timestamp. */
+export function useFormatDay(): (timestamp: string) => string {
+  const timeZone = useContext(LabTimeZoneContext);
+  return useCallback(
+    (timestamp: string) => {
+      const date = new Date(timestamp);
+      return Number.isNaN(date.getTime()) ? timestamp : calendarDayToday(date, timeZone);
+    },
+    [timeZone],
+  );
+}
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 interface CalendarDate {

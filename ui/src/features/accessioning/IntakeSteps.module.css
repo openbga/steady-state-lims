@@ -1,7 +1,8 @@
 .steps {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-6);
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -11,26 +12,46 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.separator {
+  width: var(--space-3);
+  height: var(--space-3);
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
 }
 
-.number {
-  display: grid;
-  place-items: center;
-  width: var(--space-6);
-  height: var(--space-6);
+/* A later step: outlined, no background. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4);
+  min-height: 2rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
 }
 
-.step[aria-current="step"] {
-  color: var(--color-accent);
+.step[data-done] .pill {
+  border-color: var(--tone-success-border);
+  color: var(--tone-success-text);
+}
+
+.step[aria-current="step"] .pill {
+  border-color: var(--color-selected);
+  background: var(--color-selected);
+  color: var(--color-on-selected);
   font-weight: var(--font-weight-semibold);
 }
 
-.step[aria-current="step"] .number {
-  border-color: var(--color-accent);
-  background: var(--color-accent-subtle);
+.check {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.dot {
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: 50%;
+  background: currentcolor;
 }

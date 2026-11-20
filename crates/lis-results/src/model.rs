@@ -62,6 +62,10 @@ QuarantineReason {
 text_enum!(/// How a measurement holds its source value; `word` keeps an approved
     /// value word as received (result files brief F7).
     MeasurementForm { Quantity = "quantity", Censored = "censored", Qualitative = "qualitative", NotPerformed = "not_performed", Word = "word", });
+text_enum!(/// What an import attempt did with one received row (REQ-ANA-003): a new
+    /// patient measurement, one kept outside the ordered scope (F17), a repeat of
+    /// the stored value, a correction, a QC observation, or a quarantined row.
+    ImportRowOutcome { New = "new", Retained = "retained", Duplicate = "duplicate", Reprocessed = "reprocessed", Qc = "qc", Quarantined = "quarantined", });
 text_enum!(/// Why an import attempt lists a row without quarantining it (F9, F17).
     SetAsideKind { BatchRowNotPlaced = "batch_row_not_placed", NotOrderedUnusable = "not_ordered_unusable", });
 text_enum!(/// State of a quarantined source row.

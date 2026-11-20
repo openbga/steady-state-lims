@@ -17,4 +17,14 @@ describe("Section", () => {
     expect(screen.getByRole("button", { name: "Print labels" })).toBeTruthy();
     await expectNoA11yViolations(container);
   });
+
+  it("shows a description right under the heading", () => {
+    renderWithProviders(
+      <Section title="Ordering source" description="Synthetic description.">
+        <p>Synthetic content</p>
+      </Section>,
+    );
+    const heading = screen.getByRole("heading", { level: 2, name: "Ordering source" });
+    expect(heading.nextElementSibling?.textContent).toBe("Synthetic description.");
+  });
 });

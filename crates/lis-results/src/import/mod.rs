@@ -34,6 +34,7 @@ mod file_rows;
 mod patient;
 mod planning;
 mod quarantine_acceptance;
+mod rows;
 mod writing;
 
 use attempt::{
@@ -135,6 +136,9 @@ struct PatientTarget {
 #[derive(Debug)]
 struct QcPlan {
     observation: QcRow,
+    /// The label and mapped analyte as received, for the attempt's row list.
+    sample_label: Option<String>,
+    analyte_id: Option<AnalyteId>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -213,6 +217,7 @@ pub fn import_receipt(
     count_plans(&plans, &mut counts);
     let attempt_id = ImportAttemptId::generate();
     let summary = insert_attempt(ctx, attempt_id, &attempt, None, &counts)?;
+    rows::record_rows(ctx, attempt_id, &plans)?;
     write_plans(ctx, attempt_id, plans)?;
     let superseded = supersede_prior_quarantine(ctx, input.receipt_id, input.attempt_no)?;
     audit_attempt(ctx, &summary, superseded)?;

@@ -2,14 +2,14 @@
   "id": "receive-specimens",
   "title": "Receiving specimens",
   "summary": "Register material for an accepted order, then verify labels and record receipt decisions.",
-  "reviewedOn": "2026-11-03",
+  "reviewedOn": "2026-11-20",
   "routes": ["/orders/:orderId/accession", "/accessions/:accessionId"],
   "sections": [
     {
       "title": "How to use this page",
       "paragraphs": [
-        "Receive specimens shows tests eligible for new material and any existing accessions. Select the relevant tests, enter the supplied collection information and describe the specimens and containers that arrived. Saving opens the new accession.",
-        "The accession page (Finish receiving) shows collection details, each specimen’s receipt step, its receipt decisions and its containers. While a specimen has no decision, its card says Receipt decision still needed with the barcode to scan and Record receipt decision; once recorded, the card shows the outcome, who recorded it and where work continues. Use the available actions to print labels, record a receipt decision or create an aliquot. Check label status refreshes the printing outcome."
+        "Receive specimens, titled with the patient's name, shows one summary line (patient, order, client, ordering practitioner) and three numbered boxes: 1 · Tests for this material, 2 · Collection and 3 · Specimens received, with Next and Order beside them. Keep or choose the tests, enter the collection as supplied and the specimens that arrived; Receive specimens works once the line beside it says nothing is missing, and opens Finish receiving for the new accession. New order shows this same page after Accept order and receive specimens. The box you last clicked or moved into keeps a blue border until you click outside every box.",
+        "The accession page is titled Finish receiving with the accession number. The intake steps show Finish receipt as the current step, and every step done once each specimen has a receipt decision. The strip under them names the patient (with the MRN and any identity hold), the order by its accession number as a link, the client and the accession’s tests. Each specimen is a card: its status badge, its next step in one box and its containers. A specimen waiting for a decision has a blue border and the box says Scan the label on container with the barcode, Record receipt decision and Print labels; once recorded, the box shows the outcome, who recorded it and where work continues, and an accepted specimen’s card turns green. Specimens waiting for a decision come first. Collection and Order billing sit in the side column. A card you click keeps a blue border until you click outside every card; a specimen waiting for a decision already has one, and an accepted specimen's green border stays green. At the right end of the steps row, Updated shows when the page was last read and Refresh reads it again, with the latest printing outcome."
       ]
     },
     {
@@ -35,7 +35,7 @@
     {
       "title": "Container material and label history",
       "paragraphs": [
-        "Open Material history and actions beside a container, or scan its barcode in Container lookup. The identity banner, accession, barcode, material state, volume, location and open holds identify the material. Its one Refresh reads the container and its history again before actions. The History card has one tab per evidence stream \u2014 Location moves, Holds and releases, Terminal events and Label jobs \u2014 each with its total count; Previous history and Next history appear in a tab with more than 50 events and do not require earlier work to be resolved.",
+        "Open Material history and actions beside a container, or scan its barcode in Container lookup. The identity banner, accession, barcode, material state, volume, location and open holds identify the material. Its one Refresh reads the container and its history again before actions. The History card has one tab per evidence stream — Location moves, Holds and releases, Terminal events and Label jobs — each with its total count; Previous history and Next history appear in a tab with more than 50 events and do not require earlier work to be resolved.",
         "Move container selects an active named location and records a reason. An unresolved legacy location requires checking the physical material and recording a new attributable move; the application does not fabricate past movement order. Manage quality can place retention, legal or quality holds and release individual open holds with a reason. Excursion holds are recorded through a storage incident assessment. Open holds block testing, aliquots and disposal.",
         "Mark depleted and Dispose container require confirmation and an attributable reason. Depletion prevents further use; disposal is permanent and requires all holds released. Engine permissions and optimistic revision checks remain authoritative. On conflict, cancel, refresh, review the updated material and reopen the action.",
         "The Label jobs tab shows every requested print/reprint, recorded time and queued, handed-off or failed outcome. Queued after interruption does not prove printing failed or succeeded. Refresh, inspect the physical printer and material, and use a reasoned reprint only when another label is needed. A reprint preserves the barcode. The configuration link is shown only to administrators and opens local printer setup; no active printer means printing remains unavailable. Receiving staff must ask an administrator to configure a missing destination."
@@ -48,7 +48,11 @@
     "ui/src/components/FieldPicker/FieldPicker.tsx",
     "ui/src/components/FieldPicker/DateCalendar.tsx",
     "ui/src/components/FieldPicker/PeriodViews.tsx",
-    "ui/src/features/accessioning/specimens/SpecimenList.tsx",
+    "ui/src/features/accessioning/specimens/SpecimenRows.tsx",
+    "ui/src/features/accessioning/specimens/ReceiveTests.tsx",
+    "ui/src/features/accessioning/specimens/ReceiveCollection.tsx",
+    "ui/src/features/accessioning/specimens/ReceiveSide.tsx",
+    "ui/src/features/accessioning/specimens/ReceiveBanner.tsx",
     "ui/src/features/accessioning/specimens/AccessionTestSelection.tsx",
     "ui/src/features/accessioning/specimens/accessionValues.ts",
     "ui/src/features/accessioning/specimens/labels.ts",
@@ -101,7 +105,6 @@
     "crates/lis-engine/src/commands/specimens.rs",
     "crates/lis-identity/src/billing_model.rs",
     "crates/lis-identity/src/billing.rs",
-    "ui/src/features/accessioning/specimens/AccessionTestPicker.tsx",
     "ui/src/components/RecordPicker/RecordPicker.tsx",
     "ui/src/components/RecordPicker/RecordPicker.test.tsx",
     "ui/src/features/accessioning/specimens/ReceiptChronologyDialog.tsx",
@@ -115,136 +118,94 @@
     {
       "title": "Receive specimens",
       "routes": ["/orders/:orderId/accession"],
-      "purpose": "Register the material received for selected eligible tests on an accepted order.",
+      "purpose": "Register the material received for the tests of an accepted order, on this page or as New order's step after Accept order and receive specimens.",
       "access": "This page loads the clinical order using order-entry authority and registers material using accessioning authority. Both are needed for the complete on-screen receiving flow; submitted receipt is checked again against current eligibility.",
       "fields": [
         {
-          "name": "Patient identity / Order / Existing accessions",
-          "meaning": "Identity and saved request to which the material will be linked.",
-          "values": "Read-only patient banner, order link and existing accession links with specimen and pending-review counts.",
-          "rules": "Review these before creating new material; follow existing accession links for work already received."
+          "name": "Summary line: Patient / Order / Client / Ordering practitioner",
+          "meaning": "Who and what the material is for, under the steps.",
+          "values": "The patient (name, date of birth, identifiers with the MRN in bold, any identity hold); Order: Received and the time the order was received, as a link to the order, with its status; Client and its location; Ordering practitioner with the NPI. No internal order ID is shown.",
+          "rules": "Read-only. Check them against the requisition and the material before receiving."
         },
         {
-          "name": "Tests for this material / selected count",
-          "meaning": "Order items being associated with this accession.",
-          "values": "Eligible ordered tests, initially none selected. Up to 15 choices use checkboxes; more than 15 use Find ordered tests with Selected tests for this material below it.",
-          "rules": "Choose at least one, each once. Selection does not change the order’s requested work. Existing accessions and blocked tests are shown separately with reasons. The displayed count follows all chosen items, including those outside the current search."
+          "name": "1 · Tests for this material",
+          "meaning": "The order's tests waiting for material, to link to this accession.",
+          "values": "One row per test with a checkbox, its code and name, and the specimen types it needs. When only one test waits, it is chosen already and the row says Selected: the only test waiting for material; with several, none is chosen.",
+          "rules": "Choose at least one. Tests that cannot be received now are listed below with the reason, and earlier accessions with a link. Choosing tests fills in the specimen rows' types."
         },
         {
-          "name": "Find ordered tests",
-          "meaning": "Finds an eligible item on this order to associate with the received material.",
-          "values": "Part of the ordered test code, historical name or required specimen-type code.",
-          "rules": "Shown when more than 15 eligible tests are available. Type to narrow the popup, then choose an option or use Arrow Down and Enter. The search clears after a choice so you can find the next one; Escape closes the popup. The selected list stays visible after searches. Free text never creates an order item. Ctrl+A (Command+A on macOS) selects the search text for replacement. Enter in the search does not save the form."
+          "name": "2 · Collection: Collection date / Collection time / Collected by",
+          "meaning": "When and by whom the specimens were collected, as the requisition states.",
+          "values": "Date as YYYY-MM-DD (calendar button; no day after today in the laboratory time zone); time as 24-hour HH:MM (clock button); Collected by, optional text up to 200 characters.",
+          "rules": "Date and time start empty and are required unless a checkbox below says they are not on the requisition. Nothing is filled in for you; do not use the receipt time."
         },
         {
-          "name": "Required specimen types for the selected tests",
-          "meaning": "Exact material types needed by the selected catalog tests.",
-          "values": "Read-only configured specimen-type codes.",
-          "rules": "Register exactly one specimen row per required type; duplicate, missing and extra types are refused."
+          "name": "Time not on the requisition / Date not on the requisition",
+          "meaning": "Which part of the collection time the requisition does not give.",
+          "values": "Time not on the requisition: the time field shows Not on the requisition and is no longer required; the date stays required (recorded as date only), and the note says the report will show time not recorded. Date not on the requisition: date and time both show Not on the requisition and are not required (recorded as unknown); Time not on the requisition is checked too and greyed out.",
+          "rules": "With Date not on the requisition, a warning says billing for the order will be held (Date of service unknown) and a later correction needs a collection correction and quality review. Choose it only if no date was supplied."
         },
         {
-          "name": "Collection time known",
-          "meaning": "Precision of the collection timing actually supplied.",
-          "values": "Date and time (UTC offset supplied); Date and time (named timezone); Date only; time not recorded; Unknown.",
-          "rules": "Required; no default. Choose Unknown if neither date nor time is supplied; do not substitute receipt time. Choosing Unknown shows a warning: without a collection date, billing for the order is held (Date of service unknown), and correcting it later requires a collection correction and quality review. Date only shows a note that the report will show time not recorded."
+          "name": "Time zone",
+          "meaning": "The collection site's time zone, needed for a date and time.",
+          "values": "not set, with Use laboratory time zone (…) and Other time zone or UTC offset…; once set, the zone (laboratory) and Change. Other time zone or UTC offset… shows a Time zone field (a named zone such as America/New_York) or, with Use a UTC offset, a UTC offset field (signed HH:MM such as -05:00).",
+          "rules": "Required with a date and time, marked * like the other required fields; hidden when the time is not on the requisition. Use the laboratory's zone only when it is the collection site's. Ambiguous or nonexistent daylight-saving clock times are refused."
         },
         {
-          "name": "Collection date",
-          "meaning": "Local calendar date at the collection site.",
-          "values": "Real date in YYYY-MM-DD format. Type it, or use the calendar button in the field: the picked day is filled in as YYYY-MM-DD, and days after today in the laboratory timezone cannot be picked.",
-          "rules": "Required except when Unknown. Date-only entry cannot exceed the current UTC date by more than one day; this accommodates timezone differences and is not permission to invent a date."
+          "name": "3 · Specimens received: Specimen type / Containers / Volume / Unit / Volume is",
+          "meaning": "One row per specimen that arrived, numbered, with its count after the title.",
+          "values": "Specimen type: configured types as Name (code), filled in from the chosen tests' types and still changeable; Containers: whole number 1–10; Volume: a positive exact decimal; Unit: mL (where a row starts) or L; Volume is: Measured, Estimated or Unknown.",
+          "rules": "Specimen type, Containers and Volume is are required. Measured or Estimated also needs the volume; Unknown empties and disables the volume and its unit. There must be exactly one row per specimen type the chosen tests need. The volume applies to each container of the row."
         },
         {
-          "name": "Collection time",
-          "meaning": "Local clock time at collection.",
-          "values": "24-hour HH:MM, without seconds. Type it, or use the clock button in the field: pick the hour, then the minutes; the value is filled in as HH:MM.",
-          "rules": "Required for either date-and-time choice; hidden for date-only or Unknown. The resulting instant cannot be in the future."
+          "name": "Next / Order",
+          "meaning": "The side column.",
+          "values": "Next lists what follows: Receive specimens creates the accession number; print and stick the labels; Finish receipt: scan each label and record the receipt decision. Order shows Tests waiting for material and Already received, with Open order.",
+          "rules": "Read-only."
         },
         {
-          "name": "Collection timezone (UTC offset)",
-          "meaning": "Offset supplied with the collection-site clock time.",
-          "values": "Signed HH:MM, from -12:00 through +14:00, such as -05:00.",
-          "rules": "Required for the UTC-offset choice. Use the offset at the collection event, not today’s offset."
-        },
-        {
-          "name": "Collection site timezone",
-          "meaning": "Named timezone for the collection site.",
-          "values": "A recognized named zone such as America/New_York, up to 200 characters.",
-          "rules": "Required for named-timezone entry. Ambiguous or nonexistent daylight-saving clock times are refused; verify the supplied time/offset."
-        },
-        {
-          "name": "Collected by",
-          "meaning": "Collector as supplied on the requisition.",
-          "values": "Optional source text, up to 200 characters.",
-          "rules": "Present during new receipt; collection-time correction does not change the collector."
-        },
-        {
-          "name": "Specimen type",
-          "meaning": "Configured material type received.",
-          "values": "Configured specimen types listed by name.",
-          "rules": "Required in each row; there must be 1–10 specimen rows and exactly the types required by the selected tests."
-        },
-        {
-          "name": "Containers",
-          "meaning": "Number of primary containers received for this specimen.",
-          "values": "Whole number from 1 through 10.",
-          "rules": "Required in each specimen row. The form starts with one blank specimen row, without assuming a count."
-        },
-        {
-          "name": "Volume is / Volume / Volume unit",
-          "meaning": "How the volume was obtained, then the quantity, for the primary containers in this specimen row.",
-          "values": "Measured, Estimated or Unknown; a positive exact decimal and a unit up to 16 characters.",
-          "rules": "Volume is comes first, is required and starts empty. Measured or Estimated marks Volume and Volume unit required; leaving either empty highlights it when you save. Unknown empties and disables both. The row’s volume applies to each generated container, not a split total."
+          "name": "Required entries line",
+          "meaning": "What Receive specimens still needs, beside the buttons.",
+          "values": "Fill in the required fields: followed by what is missing (a test, collection date, time, time zone or UTC offset, specimen type, containers, Volume is, volume), or All required fields are filled in.",
+          "rules": "Receive specimens works only once nothing is missing. The application checks every value again when saving."
         }
       ],
       "actions": [
         {
-          "name": "Use all eligible tests",
-          "does": "Selects every currently eligible test.",
-          "availableWhen": "The receiving form is available.",
-          "result": "Selects the complete eligible set, including items outside the current search. Updates the unsaved choice; review the required material types before saving."
+          "name": "Use laboratory time zone (…)",
+          "does": "Sets the collection site's time zone to the laboratory's.",
+          "availableWhen": "A date and time are recorded, the time zone is not set, and a laboratory time zone is configured.",
+          "result": "The line shows the zone with (laboratory) and Change."
         },
         {
-          "name": "Clear selected tests",
-          "does": "Clears the test allocation in this unsaved accession.",
-          "availableWhen": "At least one eligible test is selected.",
-          "result": "No tests remain selected. Collection and specimen entries remain available; choose the applicable tests and recheck required specimen types before saving."
-        },
-        {
-          "name": "Remove — selected test for this material",
-          "does": "Removes one item from the visible selected list.",
-          "availableWhen": "The long-list picker is shown and that item is selected.",
-          "result": "Changes only the unsaved allocation, updates the required specimen types and returns focus to Find ordered tests. Other selected tests remain; saved order items are not cancelled."
-        },
-        {
-          "name": "Add specimen / Remove specimen …",
-          "does": "Adds or removes a material row.",
-          "availableWhen": "During receipt entry.",
-          "result": "Only changes unsaved material; maintain exactly one row per required type."
-        },
-        {
-          "name": "Use laboratory timezone (…)",
-          "does": "Copies the configured laboratory timezone into the collection-site field.",
-          "availableWhen": "Named-timezone entry and a laboratory timezone is configured.",
-          "result": "Changes only the unsaved timezone value; use it only when it is the collection site’s correct zone."
+          "name": "Other time zone or UTC offset… / Use a UTC offset / Use a named time zone / Change",
+          "does": "Types another named zone, or a UTC offset, as the requisition states; Change clears the zone to choose again.",
+          "availableWhen": "A date and time are recorded.",
+          "result": "Only changes the unsaved collection time zone."
         },
         {
           "name": "Choose the collection date / Choose the collection time",
-          "does": "The calendar and clock buttons inside Collection date and Collection time open a calendar, or hour and minute lists (24-hour). The calendar heading opens the months of the year, and the year heading a decade of years, to reach a distant date quickly.",
-          "availableWhen": "The date or time field is shown for the chosen collection precision.",
-          "result": "Fills the field as YYYY-MM-DD or HH:MM and closes; picking an hour keeps any minutes already entered. The value is checked like a typed one: a future collection instant is still refused on saving. Escape closes without a change."
+          "does": "The calendar and clock buttons inside Collection date and Collection time open a calendar, or hour and minute lists (24-hour). The calendar heading opens the months of the year, and the year heading a decade of years.",
+          "availableWhen": "The date or time is on the requisition.",
+          "result": "Fills the field as YYYY-MM-DD or HH:MM; a future collection instant is still refused on saving. Escape closes without a change."
+        },
+        {
+          "name": "Add another specimen / Remove",
+          "does": "Adds a specimen row, or removes one.",
+          "availableWhen": "Remove shows on each row while there is more than one.",
+          "result": "Only changes unsaved material; keep one row per required type."
         },
         {
           "name": "Receive specimens",
-          "does": "Creates the accession, specimens and uniquely labeled primary containers.",
-          "availableWhen": "Accessioning authority, eligible accepted items, valid collection information and matching material types.",
-          "result": "Opens the new accession. Specimens are Received, not yet decided; labels and receipt decisions remain to be completed."
+          "does": "Creates the accession, its specimens and uniquely labelled primary containers.",
+          "availableWhen": "Accessioning authority, a test waiting for material, and every required entry in.",
+          "result": "Opens Finish receiving for the new accession. Specimens are waiting for a receipt decision; labels and receipt decisions come next."
         },
         {
-          "name": "Cancel / Order or accession link",
-          "does": "Returns to the saved order or opens existing material.",
+          "name": "Cancel / Open order / links",
+          "does": "Returns to the order, or opens a linked record.",
           "availableWhen": "The form is not saving.",
-          "result": "Unsaved changes require confirmation before leaving."
+          "result": "Typed input asks for confirmation before leaving."
         }
       ],
       "restrictions": [
@@ -253,10 +214,11 @@
         "This form records supplied collection timing, not automatically the current clock."
       ],
       "workflow": [
-        "Review the patient, order and existing accession list.",
-        "Choose the tests that this material covers, using Find ordered tests for a long list or Use all eligible tests when all apply. Review the selected count and required specimen types, then record collection precision and source values.",
-        "Add exactly the required specimen types with their actual containers and quantity provenance.",
-        "Choose Receive specimens; finish the label and receipt steps on the new accession."
+        "Check the summary line against the requisition and the material.",
+        "1 · Tests: keep or choose the tests this material is for.",
+        "2 · Collection: type the date and time as supplied, or tick what the requisition does not give; set the time zone.",
+        "3 · Specimens: check each row's type, enter containers, and Volume is: the volume when measured or estimated, or Unknown.",
+        "Choose Receive specimens, then print the labels and record each receipt decision on Finish receiving."
       ],
       "troubleshooting": [
         {
@@ -269,15 +231,11 @@
         },
         {
           "problem": "Specimen types do not match the selected tests.",
-          "recovery": "Compare Required specimen types with your specimen rows. Keep exactly one row per required type and no unrelated material."
+          "recovery": "Compare each test's specimen types with your rows. Keep exactly one row per required type and no unrelated material."
         },
         {
           "problem": "A named-timezone time is ambiguous or nonexistent.",
           "recovery": "Verify the source clock time at the collection site. Use the supplied UTC offset if it disambiguates the event; do not let the computer guess."
-        },
-        {
-          "problem": "No matches in Find ordered tests.",
-          "recovery": "Clear or shorten the search and try the ordered code, name or specimen-type code. The picker only lists this order’s eligible items. Review Tests unavailable for this accession for blocked or already received work; changing the search cannot make those items eligible."
         }
       ]
     },
@@ -290,25 +248,31 @@
         {
           "name": "Receipt decisions / Held / Rejected",
           "meaning": "Progress of receipt review for this accession.",
-          "values": "Read-only decisions recorded out of total specimens, held count and rejected count.",
-          "rules": "A completed decision may be a hold or rejection; the count does not mean all material is ready for testing. Under the counts, the page says how many receipt decisions are still needed (for example 1 receipt decision still needed.), or, once every specimen has one, that each specimen below says where its work continues."
+          "values": "A bar and one line: decisions recorded out of total specimens (for example 0 of 1 recorded), then Held and Rejected counts.",
+          "rules": "On the specimen’s card when the accession has one specimen; above the cards when it has several. A completed decision may be a hold or rejection; the count does not mean all material is ready for testing."
         },
         {
-          "name": "Receipt decision still needed",
-          "meaning": "A specimen\u2019s receipt step while it is Received, not yet decided.",
-          "values": "Receipt decision still needed: scan the label on followed by the specimen\u2019s barcodes. With Accession: scanning confirms the tube matches this specimen, then choose Accept, Accept conditionally, Hold or Reject. Without it: someone who receives specimens scans the label and records the decision.",
-          "rules": "Record receipt decision is in this card, shown only with Accession and when the engine allows a decision."
+          "name": "Scan the label on container",
+          "meaning": "A specimen’s next step while it is Waiting for a receipt decision.",
+          "values": "Scan the label on container followed by the specimen’s barcodes. With Accession: scanning confirms the tube matches this specimen, then choose Accept, Accept conditionally, Hold or Reject. Without it: someone who receives specimens scans the label and records the decision.",
+          "rules": "Record receipt decision is in this box, shown only with Accession and when the engine allows a decision; Print labels sits beside it while no container row is selected."
         },
         {
           "name": "Receipt finished / Receipt decision recorded",
-          "meaning": "A specimen\u2019s receipt step once a decision is recorded.",
-          "values": "Accepted or Accepted conditionally: Receipt finished. Work continues in the Worklist, and the Worklist lists the container (or its containers) once its holds and order checks allow a run. Held: Receipt decision recorded: held, and held specimens need review under laboratory policy. Rejected: Receipt decision recorded: rejected; the specimen will not be tested and its containers and decision are kept. The latest decision, who recorded it and when follow.",
-          "rules": "Receipt is not readiness for testing: open holds, an unresolved receipt chronology and order checks still keep a container off the Worklist. The specimen\u2019s Accepted badge shows green."
+          "meaning": "A specimen’s receipt step once a decision is recorded.",
+          "values": "Accepted or Accepted conditionally: Receipt finished. Next: put followed by the container (or its containers) and on a run, in green. Held: Receipt decision recorded: held, and held specimens need review under laboratory policy. Rejected: Receipt decision recorded: rejected; the specimen will not be tested and its containers and decision are kept. The latest decision, who recorded it and when follow.",
+          "rules": "Receipt is not readiness for testing: the Worklist lists a container only once its holds, receipt chronology and order checks allow a run. The specimen’s Accepted badge and card border show green."
         },
         {
-          "name": "Collected / Collected by / Tests in this accession",
-          "meaning": "Saved collection facts and order items linked to the material.",
-          "values": "Read-only supplied timing/collector and test list.",
+          "name": "Patient / Order / Client / Tests",
+          "meaning": "The strip under the steps: who the material belongs to and what was ordered.",
+          "values": "Patient name (a link with order-entry authority), date of birth and identifiers with the MRN in bold, and any identity hold. With order-entry authority: Order, the accession number linking to the order; Client; Tests, the accession’s tests by code and name. Without it, the accession number only.",
+          "rules": "Read-only. Check the patient and accession against the physical material before a decision."
+        },
+        {
+          "name": "Collected / Collected by",
+          "meaning": "Saved collection facts, in the Collection card of the side column.",
+          "values": "Read-only supplied timing and collector.",
           "rules": "Use Collection timing review for evidence-backed timing corrections."
         },
         {
@@ -320,7 +284,7 @@
         {
           "name": "Specimen / Acceptance",
           "meaning": "The configured specimen type and receipt decision state.",
-          "values": "Received, not yet decided; Accepted; Accepted conditionally; Held; Rejected.",
+          "values": "Waiting for a receipt decision (the card badge); Accepted; Accepted conditionally; Held; Rejected.",
           "rules": "Read-only current state; completion of a receipt decision is not proof that all testing gates are clear."
         },
         {
@@ -361,7 +325,7 @@
         },
         {
           "name": "Receipt decisions history",
-          "meaning": "Earlier receipt decisions for each specimen.",
+          "meaning": "Every receipt decision of a specimen, under its containers when it has more than one; the box above shows the latest.",
           "values": "Decision, staff member, time, discrepancies, policy reference/scope and reason when present. Staff appear by their current account display name, including the signed-in user; an account that cannot be found shows as user followed by its identifier.",
           "rules": "Oldest first; earlier decisions remain retained."
         },
@@ -734,9 +698,9 @@
       ],
       "actions": [
         {
-          "name": "Check label status",
-          "does": "Refreshes accession data including latest print outcomes.",
-          "availableWhen": "The accession has loaded and no refresh is pending.",
+          "name": "Refresh",
+          "does": "Reads the accession again, including the latest print outcomes; Updated beside it shows when the page was last read. The page does not refresh on its own: each read is recorded in the audit trail.",
+          "availableWhen": "Always; while a refresh runs the arrows turn and the text reads Refreshing….",
           "result": "Shows current job results; does not send another label job."
         },
         {
@@ -753,7 +717,7 @@
         },
         {
           "name": "Record receipt decision / Check label / Record decision",
-          "does": "Checks the physical label and records acceptance, conditional acceptance, hold or rejection. Record receipt decision is in the specimen\u2019s Receipt decision still needed card; the same dialog opens from Container lookup.",
+          "does": "Checks the physical label and records acceptance, conditional acceptance, hold or rejection. Record receipt decision is in the specimen’s Receipt decision still needed card; the same dialog opens from Container lookup.",
           "availableWhen": "Accession, and the engine offering a receipt decision for a Received or Held specimen.",
           "result": "Updates the specimen state and appends its decision history. Reject leads to a separate Reject specimen confirmation."
         },
@@ -776,10 +740,10 @@
           "result": "Shows original/current timing and correction actions according to authority."
         },
         {
-          "name": "Review collection history / Refresh collection history",
-          "does": "Opens or refreshes original timing, corrections and review states.",
+          "name": "Collection history / Refresh collection history / Close",
+          "does": "The Collection history link in the Collection card opens a dialog with original timing, corrections and review states; Refresh collection history reloads them.",
           "availableWhen": "Accessioning or quality authority.",
-          "result": "Shows the latest collection revision and pending reviews."
+          "result": "Shows the latest collection revision and pending reviews, with the same correction and review actions as Collection timing review. Close or Escape returns to the page."
         },
         {
           "name": "Correct collection time / Record correction",
@@ -812,8 +776,8 @@
           "result": "Unsaved dialog entries are deliberately discarded when Cancel is chosen; saved records remain."
         },
         {
-          "name": "Open order billing / Refresh order billing",
-          "does": "Loads or refreshes the selected order’s financial facts and follow-up.",
+          "name": "Open order billing / Refresh order billing / Close",
+          "does": "The Open order billing link in the Order billing card opens a dialog with the order’s financial facts and follow-up; Refresh order billing reloads them. Close or Escape returns to the page.",
           "availableWhen": "Order-entry or billing authority is required for patient financial facts, order billing and follow-up. Opening a clinical patient or order record also requires its own access permission.",
           "result": "Shows the order-specific selection and financial evidence."
         },
@@ -861,7 +825,7 @@
         },
         {
           "name": "Go to Worklist / Runs",
-          "does": "Open Bench \u203a Worklist or Bench \u203a Runs from an accepted specimen\u2019s Receipt finished card.",
+          "does": "Open Bench › Worklist or Bench › Runs from an accepted specimen’s Receipt finished card.",
           "availableWhen": "The specimen is Accepted or Accepted conditionally, for people with Perform analysis.",
           "result": "The Worklist lists the container for a run only once its holds and order checks allow testing; Runs shows runs already created."
         },
@@ -881,7 +845,7 @@
       ],
       "workflow": [
         "Check identity, accession number and receipt progress.",
-        "Request the needed labels, verify output, then in each Receipt decision still needed card choose Record receipt decision and scan the correct container.",
+        "Request the needed labels, verify output, then in each specimen card waiting for a decision choose Record receipt decision and scan the correct container.",
         "After an acceptance, continue from Go to Worklist or Runs if you work at the bench; otherwise the bench picks the container up from its Worklist.",
         "Record any observed discrepancy and laboratory-approved conditional scope.",
         "Review outstanding holds, collection corrections and order billing separately."
@@ -897,7 +861,7 @@
         },
         {
           "problem": "No active label printer is set up or a print job failed.",
-          "recovery": "Ask configuration staff to verify the printer and destination. Check label status for its actual outcome before deciding whether to reprint."
+          "recovery": "Ask configuration staff to verify the printer and destination. Choose Refresh to see its actual outcome before deciding whether to reprint."
         },
         {
           "problem": "Create aliquot is unavailable.",

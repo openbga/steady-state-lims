@@ -97,7 +97,7 @@ export const detailScreens: readonly { path: string; page: PageLoader; tabbed?: 
     path: "/review/imports/:importAttemptId",
     page: () =>
       import("@/features/analytics/imports/ImportAttemptPage").then((m) => m.ImportAttemptPage),
-    // A result file's attempt has tabs: quarantined rows and rows set aside.
+    // An attempt has tabs: every row, quarantined rows and, for a result file, rows set aside.
     tabbed: true,
   },
   {
