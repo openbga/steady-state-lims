@@ -333,6 +333,8 @@
 /* Box 3: one row per specimen, numbered, Remove at the end. */
 .countBadge {
   display: inline-flex;
+  vertical-align: middle;
+  line-height: 1.4;
   min-width: 1.5rem;
   margin-inline-start: var(--space-2);
   padding: 0 var(--space-2);
@@ -362,12 +364,14 @@
   min-width: 5rem;
 }
 
-.specimenRow > :nth-child(2) {
-  flex: 1 1 13rem;
+/* The type is the widest field, as in the mockup; Volume is keeps its buttons on one line. */
+.specimenRow > .typeCell {
+  flex: 0 1 17rem;
 }
 
-.specimenRow > :nth-child(6) {
+.specimenRow > .volumeIsCell {
   flex: none;
+  min-width: max-content;
 }
 
 .specimenNumber {

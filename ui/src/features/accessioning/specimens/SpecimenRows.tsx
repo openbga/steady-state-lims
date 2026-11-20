@@ -62,12 +62,14 @@ export function SpecimenRows({ specimenTypes, requiredTypes }: SpecimenRowsProps
         {rows.fields.map((field, index) => (
           <li key={field.id} className={styles.specimenRow}>
             <span className={styles.specimenNumber}>{index + 1}</span>
-            <ChoiceInput
-              name={`specimens.${index}.specimenTypeCode`}
-              label="Specimen type"
-              options={typeOptions}
-              isRequired
-            />
+            <div className={styles.typeCell}>
+              <ChoiceInput
+                name={`specimens.${index}.specimenTypeCode`}
+                label="Specimen type"
+                options={typeOptions}
+                isRequired
+              />
+            </div>
             <TextInput
               name={`specimens.${index}.containerCount`}
               label="Containers"
@@ -106,13 +108,15 @@ function SpecimenVolume({ index }: { index: number }) {
     <>
       <TextInput name={`specimens.${index}.volume`} label="Volume" format={VOLUME_FORMAT} />
       <ChoiceInput name={`specimens.${index}.volumeUnit`} label="Unit" options={UNITS} />
-      <SegmentedInput
-        name={`specimens.${index}.volumeKind`}
-        label="Volume is"
-        options={VOLUME_IS}
-        hiddenSuffix={` for specimen ${index + 1}`}
-        isRequired={volume.trim() !== ""}
-      />
+      <div className={styles.volumeIsCell}>
+        <SegmentedInput
+          name={`specimens.${index}.volumeKind`}
+          label="Volume is"
+          options={VOLUME_IS}
+          hiddenSuffix={` for specimen ${index + 1}`}
+          isRequired={volume.trim() !== ""}
+        />
+      </div>
     </>
   );
 }
