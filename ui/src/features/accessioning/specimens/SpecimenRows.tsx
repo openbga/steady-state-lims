@@ -7,7 +7,7 @@ import { Section } from "@/components/Section";
 import type { SpecimenTypeView } from "@/generated/SpecimenTypeView";
 import { type AccessionFormValues, EMPTY_SPECIMEN } from "./accessionValues";
 import { COUNT_FORMAT, VOLUME_FORMAT } from "./formats";
-import styles from "./receiving.module.css";
+import styles from "./receive.module.css";
 
 /** Units offered for a volume; mL is where a new row starts. */
 const UNITS = ["mL", "L"].map((unit) => ({ id: unit, label: unit }));

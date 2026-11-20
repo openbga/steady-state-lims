@@ -20,8 +20,8 @@ import { CREATE_ACCESSION } from "./contract";
 import { ReceiveCollection } from "./ReceiveCollection";
 import { ReceiveSide } from "./ReceiveSide";
 import { ReceiveTests } from "./ReceiveTests";
+import styles from "./receive.module.css";
 import { missingEntries, missingText } from "./receiveProgress";
-import styles from "./receiving.module.css";
 import { SpecimenRows } from "./SpecimenRows";
 
 interface AccessionFormProps {

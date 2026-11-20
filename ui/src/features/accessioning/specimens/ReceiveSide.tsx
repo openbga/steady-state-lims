@@ -1,7 +1,8 @@
 import { Link } from "react-router";
 import { Section } from "@/components/Section";
 import type { OrderAccessionContext } from "@/generated/OrderAccessionContext";
-import styles from "./receiving.module.css";
+import styles from "./receive.module.css";
+import receiving from "./receiving.module.css";
 
 /**
  * Receive specimens' side column: what comes after this step, and the order's tests still
@@ -11,7 +12,7 @@ export function ReceiveSide({ context }: { context: OrderAccessionContext }) {
   const waiting = context.items.filter((item) => item.eligible).length;
   const received = context.items.filter((item) => item.accessionId !== null).length;
   return (
-    <aside className={styles.side} aria-label="Receiving">
+    <aside className={receiving.side} aria-label="Receiving">
       <Section title="Next">
         <ol className={styles.nextList}>
           <li>Receive specimens creates the accession number.</li>

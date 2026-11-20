@@ -10,7 +10,7 @@ import { Section } from "@/components/Section";
 import { LabTimeZoneContext } from "@/lib/format";
 import type { AccessionFormValues } from "./accessionValues";
 import { OFFSET_FORMAT, TIME_FORMAT } from "./formats";
-import styles from "./receiving.module.css";
+import styles from "./receive.module.css";
 
 const NOT_ON_REQUISITION = "Not on the requisition";
 

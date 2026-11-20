@@ -7,7 +7,7 @@ import type { OrderAccessionContext } from "@/generated/OrderAccessionContext";
 import type { OrderDetail } from "@/generated/OrderDetail";
 import { AccessionTestSelection } from "./AccessionTestSelection";
 import type { AccessionFormValues } from "./accessionValues";
-import styles from "./receiving.module.css";
+import styles from "./receive.module.css";
 
 interface ReceiveTestsProps {
   order: OrderDetail;

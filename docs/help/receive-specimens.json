@@ -154,8 +154,8 @@
         {
           "name": "3 · Specimens received: Specimen type / Containers / Volume / Unit / Volume is",
           "meaning": "One row per specimen that arrived, numbered, with its count after the title.",
-          "values": "Specimen type: configured types as Name (code), filled in from the chosen tests' types and still changeable; Containers: whole number 1–10; Volume: a positive exact decimal; Unit: mL (where a row starts) or L; Volume is: Measured or Estimated.",
-          "rules": "Specimen type and Containers are required. Volume is is required once a volume is typed; a row without a volume records the volume as unknown, whatever the unit shows. There must be exactly one row per specimen type the chosen tests need. The volume applies to each container of the row."
+          "values": "Specimen type: configured types as Name (code), filled in from the chosen tests' types and still changeable; Containers: whole number 1–10; Volume: a positive exact decimal; Unit: mL (where a row starts) or L; Volume is: Measured, Estimated or Unknown.",
+          "rules": "Specimen type, Containers and Volume is are required. Measured or Estimated also needs the volume; Unknown empties and disables the volume and its unit. There must be exactly one row per specimen type the chosen tests need. The volume applies to each container of the row."
         },
         {
           "name": "Next / Order",
@@ -166,7 +166,7 @@
         {
           "name": "Required entries line",
           "meaning": "What Receive specimens still needs, beside the buttons.",
-          "values": "Fill in the required fields: followed by what is missing (a test, collection date, time, time zone or UTC offset, specimen type, containers, Measured or Estimated), or All required fields are filled in.",
+          "values": "Fill in the required fields: followed by what is missing (a test, collection date, time, time zone or UTC offset, specimen type, containers, Volume is, volume), or All required fields are filled in.",
           "rules": "Receive specimens works only once nothing is missing. The application checks every value again when saving."
         }
       ],
@@ -217,7 +217,7 @@
         "Check the summary line against the requisition and the material.",
         "1 · Tests: keep or choose the tests this material is for.",
         "2 · Collection: type the date and time as supplied, or tick what the requisition does not give; set the time zone.",
-        "3 · Specimens: check each row's type, enter containers, and the volume with Measured or Estimated when one is given.",
+        "3 · Specimens: check each row's type, enter containers, and Volume is: the volume when measured or estimated, or Unknown.",
         "Choose Receive specimens, then print the labels and record each receipt decision on Finish receiving."
       ],
       "troubleshooting": [
