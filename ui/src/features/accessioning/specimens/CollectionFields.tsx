@@ -1,54 +1,33 @@
-import { type ReactNode, useContext } from "react";
+import { useContext } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { TimePickerButton } from "@/components/FieldPicker";
 import { FieldAction, FieldGrid } from "@/components/Form";
-import { ChoiceInput, DATE_FORMAT, SegmentedInput, TextInput } from "@/components/FormFields";
+import { ChoiceInput, DATE_FORMAT, TextInput } from "@/components/FormFields";
 import { Section } from "@/components/Section";
 import { LabTimeZoneContext } from "@/lib/format";
 import type { AccessionFormValues } from "./accessionValues";
 import { OFFSET_FORMAT, TIME_FORMAT } from "./formats";
-import { COLLECTION_TIME_CHOICES, COLLECTION_TIME_KINDS } from "./labels";
-import receiving from "./receiving.module.css";
+import { COLLECTION_TIME_KINDS } from "./labels";
 
 /**
  * When and by whom the specimens were collected (REQ-SPC-002). A missing time or date is
  * recorded as such: the form never fills one in.
  */
-export function CollectionFields({
-  includeCollector = true,
-  variant = "plain",
-}: {
-  includeCollector?: boolean;
-  /**
-   * `card`, as in New order's Specimens step: a card of its own, Collection time known as a
-   * row of buttons and the fields beside it on one row.
-   */
-  variant?: "plain" | "card";
-}) {
+export function CollectionFields({ includeCollector = true }: { includeCollector?: boolean }) {
   const { control, setValue } = useFormContext<AccessionFormValues>();
   const labTimeZone = useContext(LabTimeZoneContext);
   const timeKind = useWatch({ control, name: "timeKind" });
-  const Row = variant === "card" ? CardRow : FieldGrid;
   return (
-    <Section title="Collection" variant={variant === "card" ? "surface" : "plain"}>
-      <Row>
-        {variant === "card" ? (
-          <SegmentedInput
-            name="timeKind"
-            label="Collection time known"
-            options={COLLECTION_TIME_CHOICES}
-            isRequired
-          />
-        ) : (
-          <ChoiceInput
-            name="timeKind"
-            label="Collection time known"
-            options={COLLECTION_TIME_KINDS}
-            isRequired
-          />
-        )}
+    <Section title="Collection" variant="plain">
+      <FieldGrid>
+        <ChoiceInput
+          name="timeKind"
+          label="Collection time known"
+          options={COLLECTION_TIME_KINDS}
+          isRequired
+        />
         {(timeKind === "datetime" || timeKind === "zoned" || timeKind === "date") && (
           <TextInput
             name="collectedDate"
@@ -111,7 +90,7 @@ export function CollectionFields({
             description="As written on the requisition."
           />
         )}
-      </Row>
+      </FieldGrid>
       {timeKind === "unknown" && (
         <Alert tone="warning" compact>
           Without a collection date, billing for this order will be held ("Date of service
@@ -126,9 +105,4 @@ export function CollectionFields({
       )}
     </Section>
   );
-}
-
-/** The card's fields on one row, wrapping only when the window is narrow. */
-function CardRow({ children }: { children: ReactNode }) {
-  return <div className={receiving.collectionRow}>{children}</div>;
 }

@@ -110,7 +110,7 @@ export function OrderForm({ subjectId, references, onAccepted }: OrderFormProps)
       <UnsavedChangesGuard form="New order" when={form.formState.isDirty && savedPath === null} />
       {savedPath !== null && <Navigate to={savedPath} />}
       <div className={styles.entry}>
-        <OrderSteps step={step} withSpecimens={canReceive && onAccepted !== undefined} />
+        <OrderSteps step={step} />
         <div className={styles.main}>
           <Form
             aria-label="New order"

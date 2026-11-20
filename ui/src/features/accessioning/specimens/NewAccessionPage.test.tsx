@@ -1,17 +1,20 @@
 import { screen, within } from "@testing-library/react";
+import type { UserEvent } from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/lib/test/a11y";
 import { engineError, mockCommands } from "@/lib/test/ipc";
-import { chooseWithKeyboard, tabTo, typeInto, WALKTHROUGH_TIMEOUT_MS } from "@/lib/test/keyboard";
+import { chooseWithKeyboard, typeInto, WALKTHROUGH_TIMEOUT_MS } from "@/lib/test/keyboard";
 import { renderRoutes } from "@/lib/test/router";
 import {
   ACCESSION,
   ACCESSION_CONTEXT,
   ACCESSION_ID,
+  CLIENTS,
   ITEM_ID,
   ORDER,
   ORDER_ID,
   orderAccessionContext,
+  PRACTITIONERS,
   SUBJECT_VIEW,
   sessionWith,
 } from "../testData";
@@ -25,6 +28,7 @@ const ACCEPTED_ORDER = {
 
 const SPECIMEN_TYPES = [
   { id: "st-1", code: "urine", name: "Urine", versionInEffect: null, draftVersion: null },
+  { id: "st-2", code: "oral_fluid", name: "Oral fluid", versionInEffect: null, draftVersion: null },
 ];
 
 function renderPage(commands: Record<string, (args: unknown) => unknown> = {}) {
@@ -33,6 +37,8 @@ function renderPage(commands: Record<string, (args: unknown) => unknown> = {}) {
     current_session: () => sessionWith(["accession", "enter_orders"]),
     get_order: () => ACCEPTED_ORDER,
     get_subject: () => SUBJECT_VIEW,
+    list_clients: () => CLIENTS,
+    list_practitioners: () => PRACTITIONERS,
     list_specimen_types: () => SPECIMEN_TYPES,
     get_order_accession_context: () => ACCESSION_CONTEXT,
     ...commands,
@@ -43,32 +49,81 @@ function renderPage(commands: Record<string, (args: unknown) => unknown> = {}) {
   );
 }
 
+/** A date, a time and a named time zone typed as another zone than the laboratory's. */
+async function enterCollection(user: UserEvent, zone = "America/New_York") {
+  await typeInto(user, /^Collection date/, "2026-10-12");
+  await typeInto(user, /^Collection time/, "08:30");
+  await user.click(screen.getByRole("button", { name: "Other time zone or UTC offset…" }));
+  await typeInto(user, /^Time zone/, zone);
+}
+
+const receive = () => screen.getByRole("button", { name: "Receive specimens" });
+
+/** An order with a second test, for oral fluid, waiting for material. */
+function twoTests() {
+  const original = ORDER.items[0];
+  const item = ACCESSION_CONTEXT.items[0];
+  if (!original || !item) throw new Error("Missing fixture");
+  return {
+    get_order: () => ({
+      ...ACCEPTED_ORDER,
+      items: [
+        original,
+        {
+          ...original,
+          itemId: "eligible-2",
+          orderableCode: "OF",
+          orderableName: "Oral fluid panel",
+        },
+      ],
+    }),
+    get_order_accession_context: () =>
+      orderAccessionContext({
+        items: [
+          item,
+          { ...item, orderItemId: "eligible-2", requiredSpecimenTypeCodes: ["oral_fluid"] },
+        ],
+      }),
+  };
+}
+
 describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_TIMEOUT_MS }, () => {
-  it("accessions an accepted order with the keyboard only, time and offset as recorded", async () => {
+  it("receives the only waiting test's material: date, time and time zone as recorded", async () => {
     const create = vi.fn(() => ACCESSION);
     const { user, container } = renderPage({ create_accession: create });
-    expect(screen.getByRole("heading", { level: 1, name: "Receive specimens" })).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Receive specimens · Patient, Test" }),
+    ).toBeTruthy();
+    // The only test waiting is chosen already, and says so.
     const test = await screen.findByRole("checkbox", { name: /SYN-SCR Synthetic drug screen/ });
-    expect(screen.getByText("Specimen types: urine")).toBeTruthy();
-    // Who the material is for, under the header.
-    expect(await screen.findByRole("link", { name: "Patient, Test" })).toBeTruthy();
-    const banner = screen.getByRole("region", { name: "Patient identity" });
+    expect(test).toHaveProperty("checked", true);
+    expect(screen.getByText("Selected: the only test waiting for material")).toBeTruthy();
+    // One summary line: the patient with the MRN, the order by when it was received, client.
+    const banner = await screen.findByRole("region", { name: "Patient identity" });
     expect(within(banner).getByText("MRN-00001")).toBeTruthy();
+    expect(within(banner).getByRole("link", { name: /^Received/ })).toHaveProperty(
+      "href",
+      expect.stringContaining(`/orders/${ORDER_ID}`),
+    );
+    expect(await within(banner).findByText(/Synthetic Clinic/)).toBeTruthy();
+    // Nothing assumed: the date and time are empty, and Receive specimens says what is missing.
+    expect(receive()).toHaveProperty("disabled", true);
+    expect(
+      screen.getByText(
+        "Fill in the required fields: collection date, time, time zone and containers.",
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText("not set")).toBeTruthy();
+    // The test's specimen type fills in the first row; mL is where the unit starts.
+    expect(screen.getAllByText("Urine (urine)").length).toBeGreaterThan(0);
     await expectNoA11yViolations(container, { wholePage: true });
 
-    await tabTo(user, test);
-    await user.keyboard(" ");
-    await chooseWithKeyboard(user, /Collection time known$/, "Date and time (UTC offset supplied)");
-    await typeInto(user, /^Collection date/, "2026-10-12");
-    await typeInto(user, /^Collection time$/, "08:30");
-    await typeInto(user, /^Collection timezone/, "-05:00");
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
+    await enterCollection(user);
     await typeInto(user, /^Containers/, "2");
-    await typeInto(user, /^Volume\b(?! unit)/, "30.0");
-    await typeInto(user, /^Volume unit/, "mL");
-    await chooseWithKeyboard(user, /Volume is$/, "Estimated");
-    await tabTo(user, screen.getByRole("button", { name: "Receive specimens" }));
-    await user.keyboard("{Enter}");
+    await typeInto(user, /^Volume$/, "30.0");
+    await user.click(screen.getByRole("radio", { name: /Estimated/ }));
+    expect(screen.getByText("All required fields are filled in.")).toBeTruthy();
+    await user.click(receive());
 
     expect(await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`)).toBeTruthy();
     expect(screen.getByText("Accession A26000001 created")).toBeTruthy();
@@ -77,7 +132,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
         orderId: ORDER_ID,
         orderItemIds: [ITEM_ID],
         collection: {
-          time: { kind: "datetime", local: "2026-10-12T08:30", utcOffsetMinutes: -300 },
+          time: { kind: "zoned", local: "2026-10-12T08:30", timeZone: "America/New_York" },
           observations: [],
         },
         specimens: [
@@ -93,56 +148,151 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     });
   });
 
-  it("records an unknown collection time as unknown, never a guess", async () => {
+  it("sends a UTC offset as supplied when the requisition gives one", async () => {
     const create = vi.fn(() => ACCESSION);
     const { user } = renderPage({ create_accession: create });
-    await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
-    await chooseWithKeyboard(user, /Collection time known$/, "Unknown");
-    expect(screen.queryByRole("textbox", { name: /^Collection date/ })).toBeNull();
-    screen.getByText(/billing for this order will be held/);
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
+    await screen.findByRole("checkbox", { name: /SYN-SCR/ });
+    await typeInto(user, /^Collection date/, "2026-10-12");
+    await typeInto(user, /^Collection time/, "08:30");
+    await user.click(screen.getByRole("button", { name: "Other time zone or UTC offset…" }));
+    await user.click(screen.getByRole("button", { name: "Use a UTC offset" }));
+    await typeInto(user, /^UTC offset/, "-05:00");
     await typeInto(user, /^Containers/, "1");
-    await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
+    await user.click(receive());
+    await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
+    expect(create).toHaveBeenCalledWith({
+      input: expect.objectContaining({
+        collection: {
+          time: { kind: "datetime", local: "2026-10-12T08:30", utcOffsetMinutes: -300 },
+          observations: [],
+        },
+      }),
+    });
+  });
+
+  it("records a date without a time when the time is not on the requisition", async () => {
+    const create = vi.fn(() => ACCESSION);
+    const { user } = renderPage({ create_accession: create });
+    await user.click(await screen.findByRole("checkbox", { name: "Time not on the requisition" }));
+    const time = screen.getByRole("textbox", { name: /^Collection time/ });
+    expect(time).toHaveProperty("disabled", true);
+    expect(time.getAttribute("placeholder")).toBe("Not on the requisition");
+    expect(screen.getByText('The report will show "time not recorded".')).toBeTruthy();
+    expect(screen.queryByText(/^Time zone:/)).toBeNull();
+    await typeInto(user, /^Collection date/, "2026-10-12");
+    await typeInto(user, /^Containers/, "1");
+    await user.click(receive());
+    await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
+    expect(create).toHaveBeenCalledWith({
+      input: expect.objectContaining({
+        collection: { time: { kind: "date", date: "2026-10-12" }, observations: [] },
+      }),
+    });
+  });
+
+  it("records an unknown collection, and a blank volume as unknown, never a guess", async () => {
+    const create = vi.fn(() => ACCESSION);
+    const { user } = renderPage({ create_accession: create });
+    await user.click(await screen.findByRole("checkbox", { name: "Date not on the requisition" }));
+    expect(screen.getByRole("textbox", { name: /^Collection date/ })).toHaveProperty(
+      "disabled",
+      true,
+    );
+    const noTime = screen.getByRole("checkbox", { name: "Time not on the requisition" });
+    expect(noTime).toHaveProperty("checked", true);
+    expect(noTime).toHaveProperty("disabled", true);
+    expect(screen.getByText(/billing for this order will be held/)).toBeTruthy();
+    await typeInto(user, /^Containers/, "1");
+    await user.click(receive());
     await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
     expect(create).toHaveBeenCalledWith({
       input: expect.objectContaining({
         // Fields left empty are left out of the input, not sent as "".
         collection: { time: { kind: "unknown" }, observations: [] },
-        specimens: [
-          {
-            specimenTypeCode: "urine",
-            containerCount: 1,
-            volumeKind: "unknown",
-          },
-        ],
+        specimens: [{ specimenTypeCode: "urine", containerCount: 1, volumeKind: "unknown" }],
       }),
     });
   });
 
-  it("asks for the volume and its unit when measured, and clears them when unknown (REQ-SPC-003)", async () => {
-    const create = vi.fn(() => ACCESSION);
-    const { user } = renderPage({ create_accession: create });
-    await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
-    await chooseWithKeyboard(user, /Collection time known$/, "Unknown");
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
+  it("asks whether a typed volume was measured or estimated (REQ-SPC-003)", async () => {
+    const { user } = renderPage();
+    await user.click(await screen.findByRole("checkbox", { name: "Date not on the requisition" }));
     await typeInto(user, /^Containers/, "1");
-    await chooseWithKeyboard(user, /Volume is$/, "Measured");
-    const volume = screen.getByRole("textbox", { name: /^Volume\b(?! unit)/ });
-    const unit = screen.getByRole("textbox", { name: /^Volume unit/ });
-    expect(volume.getAttribute("aria-required")).toBe("true");
-    expect(unit.getAttribute("aria-required")).toBe("true");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
-    expect(await screen.findByText("Enter volume.")).toBeTruthy();
-    expect(screen.getByText("Enter volume unit.")).toBeTruthy();
-    expect(volume.getAttribute("aria-invalid")).toBe("true");
-    expect(create).not.toHaveBeenCalled();
+    await typeInto(user, /^Volume$/, "30");
+    expect(screen.getByText("Fill in the required fields: Measured or Estimated.")).toBeTruthy();
+    expect(receive()).toHaveProperty("disabled", true);
+    await user.click(screen.getByRole("radio", { name: /Measured/ }));
+    expect(receive()).toHaveProperty("disabled", false);
+  });
 
-    await typeInto(user, /^Volume\b(?! unit)/, "30");
-    await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-    expect(volume).toHaveProperty("disabled", true);
-    expect(volume).toHaveProperty("value", "");
-    expect(screen.queryByText("Enter volume unit.")).toBeNull();
+  it("lists several waiting tests unchosen, and a row for each specimen type they need", async () => {
+    const create = vi.fn(() => ACCESSION);
+    const { user } = renderPage({ ...twoTests(), create_accession: create });
+    const screenTest = await screen.findByRole("checkbox", { name: /SYN-SCR/ });
+    expect(screenTest).toHaveProperty("checked", false);
+    expect(screen.queryByText(/Selected: the only test/)).toBeNull();
+    expect(
+      screen.getByText(
+        "Fill in the required fields: a test, collection date, time, time zone, specimen type and containers.",
+      ),
+    ).toBeTruthy();
+    await user.click(screenTest);
+    await user.click(screen.getByRole("checkbox", { name: /Oral fluid panel/ }));
+    const rows = screen.getByRole("list", { name: "Specimens received" });
+    expect(within(rows).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(rows).getAllByRole("button", { name: /Remove specimen/ })).toHaveLength(2);
+    await user.click(screen.getByRole("button", { name: "Remove specimen 2" }));
+    expect(within(rows).getAllByRole("listitem")).toHaveLength(1);
+    expect(within(rows).queryByRole("button", { name: /Remove specimen/ })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Add another specimen" }));
+    expect(within(rows).getAllByRole("listitem")).toHaveLength(2);
+  });
+
+  it("lists tests that cannot be received now, with the reason and their accession", async () => {
+    const original = ORDER.items[0];
+    const item = ACCESSION_CONTEXT.items[0];
+    if (!original || !item) throw new Error("Missing fixture");
+    renderPage({
+      get_order: () => ({
+        ...ACCEPTED_ORDER,
+        items: [
+          original,
+          { ...original, itemId: "allocated", orderableCode: "OLD", orderableName: "Old test" },
+          { ...original, itemId: "held", orderableCode: "HOLD", orderableName: "Held test" },
+        ],
+      }),
+      get_order_accession_context: () =>
+        orderAccessionContext({
+          items: [
+            item,
+            {
+              ...item,
+              orderItemId: "allocated",
+              eligible: false,
+              reason: "Already assigned to an accession.",
+              accessionId: ACCESSION_ID,
+              accessionNumber: "A26000001",
+            },
+            {
+              ...item,
+              orderItemId: "held",
+              eligible: false,
+              reason: "Order authority is on hold.",
+            },
+          ],
+        }),
+    });
+    await screen.findByRole("checkbox", { name: /SYN-SCR/ });
+    expect(screen.queryByRole("checkbox", { name: /Old test|Held test/ })).toBeNull();
+    expect(screen.getByText(/Order authority is on hold/)).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Accession A26000001" })).toHaveProperty(
+      "href",
+      expect.stringContaining(`/accessions/${ACCESSION_ID}`),
+    );
+    const side = screen.getByRole("complementary", { name: "Receiving" });
+    expect(side.textContent).toContain("Tests waiting for material: 1");
+    expect(side.textContent).toContain("Already received: 1");
+    expect(within(side).getByRole("link", { name: "Open order" })).toBeTruthy();
   });
 
   it("opens the created accession after eligibility refresh removes its tests", async () => {
@@ -166,12 +316,9 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
         return ACCESSION;
       },
     });
-    await user.click(await screen.findByRole("button", { name: "Use all eligible tests" }));
-    await chooseWithKeyboard(user, /Collection time known$/, "Unknown");
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
+    await user.click(await screen.findByRole("checkbox", { name: "Date not on the requisition" }));
     await typeInto(user, /^Containers/, "1");
-    await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
+    await user.click(receive());
     expect(await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`)).toBeTruthy();
     expect(screen.queryByRole("alertdialog")).toBeNull();
   });
@@ -202,12 +349,11 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
             : otherData,
         create_accession: create,
       });
-      await user.click(await screen.findByRole("button", { name: "Use all eligible tests" }));
-      await chooseWithKeyboard(user, /Collection time known$/, "Unknown");
-      await chooseWithKeyboard(user, /Specimen type$/, "Urine");
+      await user.click(
+        await screen.findByRole("checkbox", { name: "Date not on the requisition" }),
+      );
       await typeInto(user, /^Containers/, "1");
-      await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-      await user.click(screen.getByRole("button", { name: "Receive specimens" }));
+      await user.click(receive());
       await screen.findByText("The saved order could not be refreshed.");
       expect(screen.getByRole("textbox", { name: /^Containers/ })).toHaveProperty("value", "1");
       if (!finishRefresh) throw new Error("The other invalidation did not start");
@@ -218,213 +364,60 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     },
   );
 
-  it("preserves a date-only collection without adding a time or timezone", async () => {
-    const create = vi.fn(() => ACCESSION);
-    const { user } = renderPage({ create_accession: create });
-    await user.click(await screen.findByRole("button", { name: "Use all eligible tests" }));
-    await chooseWithKeyboard(user, /Collection time known$/, "Date only; time not recorded");
-    await typeInto(user, /^Collection date/, "2026-10-12");
-    expect(screen.queryByRole("textbox", { name: /^Collection time/ })).toBeNull();
-    screen.getByText('The report will show "time not recorded".');
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
-    await typeInto(user, /^Containers/, "1");
-    await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
-    await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
-    expect(create).toHaveBeenCalledWith({
-      input: expect.objectContaining({
-        collection: { time: { kind: "date", date: "2026-10-12" }, observations: [] },
-      }),
-    });
-  });
-
-  it("checks presence and format before creating", async () => {
+  it("checks the date's format before creating", async () => {
     const create = vi.fn();
     const { user } = renderPage({ create_accession: create });
-    await screen.findByRole("checkbox", { name: /SYN-SCR/ });
-    await chooseWithKeyboard(user, /Collection time known$/, "Date only; time not recorded");
+    await user.click(await screen.findByRole("checkbox", { name: "Time not on the requisition" }));
     await typeInto(user, /^Collection date/, "12/10/2026");
     await typeInto(user, /^Containers/, "0");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
-    expect(await screen.findByText("Choose at least one test.")).toBeTruthy();
-    expect(screen.getByText("Enter the date as YYYY-MM-DD.")).toBeTruthy();
+    await user.click(receive());
+    expect(await screen.findByText("Enter the date as YYYY-MM-DD.")).toBeTruthy();
     expect(screen.getByText("Enter a whole number of 1 or more.")).toBeTruthy();
-    expect(screen.getByText("Choose specimen type.")).toBeTruthy();
     expect(create).not.toHaveBeenCalled();
   });
 
-  it("shows the engine's refusal, such as a test on hold", async () => {
+  it("shows the engine's refusal, such as a test on hold, and keeps every entry", async () => {
     const { user } = renderPage({
       create_accession: () =>
         Promise.reject(engineError("gate_blocked", "A test on this order has an open hold.")),
     });
-    await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
-    await chooseWithKeyboard(user, /Collection time known$/, "Unknown");
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
+    await user.click(await screen.findByRole("checkbox", { name: "Date not on the requisition" }));
     await typeInto(user, /^Containers/, "1");
-    await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
+    await user.click(receive());
     expect(await screen.findByText("A test on this order has an open hold.")).toBeTruthy();
     expect(screen.getByText(/corr-test-0001/)).toBeTruthy();
     expect(screen.getByRole("checkbox", { name: /SYN-SCR/ })).toHaveProperty("checked", true);
     expect(screen.getByRole("textbox", { name: /^Containers/ })).toHaveProperty("value", "1");
   });
 
-  it("asks before leaving typed input, by Cancel or by a link", async () => {
+  it("maps an engine time zone refusal to the field and keeps what was typed", async () => {
+    const message = "Enter a collection-site timezone such as America/New_York.";
+    const { user } = renderPage({
+      create_accession: () =>
+        Promise.reject(
+          engineError("validation", "Check the collection timezone.", {
+            fieldErrors: [{ field: "collection.time.timeZone", code: "invalid_zone", message }],
+          }),
+        ),
+    });
+    await screen.findByRole("checkbox", { name: /SYN-SCR/ });
+    await enterCollection(user, "Unknown/Zone");
+    await typeInto(user, /^Containers/, "1");
+    await user.click(receive());
+    expect(await screen.findByText(message)).toBeTruthy();
+    const field = screen.getByRole("textbox", { name: /^Time zone/ });
+    expect(field.getAttribute("aria-invalid")).toBe("true");
+    expect(field).toHaveProperty("value", "Unknown/Zone");
+  });
+
+  it("asks before leaving typed input, by Cancel", async () => {
     const { user } = renderPage();
-    await user.click(await screen.findByRole("checkbox", { name: /SYN-SCR/ }));
+    await screen.findByRole("checkbox", { name: /SYN-SCR/ });
+    await typeInto(user, /^Containers/, "2");
     await user.click(screen.getByRole("button", { name: "Cancel" }));
     const stay = await screen.findByRole("alertdialog", { name: "Leave without saving?" });
     await user.click(within(stay).getByRole("button", { name: "Cancel" }));
-    expect(screen.getByRole("checkbox", { name: /SYN-SCR/ })).toHaveProperty("checked", true);
-
-    await user.click(await screen.findByRole("link", { name: "Patient, Test" }));
-    const leave = await screen.findByRole("alertdialog", { name: "Leave without saving?" });
-    await user.click(within(leave).getByRole("button", { name: "Leave without saving" }));
-    expect(await screen.findByText(/Navigated to \/patients\//)).toBeTruthy();
-  });
-
-  it("offers only engine-eligible tests and preserves the exact selected scope", async () => {
-    const original = ORDER.items[0];
-    const itemContext = ACCESSION_CONTEXT.items[0];
-    if (!original || !itemContext) throw new Error("Missing fixture");
-    const create = vi.fn(() => ACCESSION);
-    const { user } = renderPage({
-      get_order: () => ({
-        ...ACCEPTED_ORDER,
-        items: [
-          original,
-          {
-            ...original,
-            itemId: "eligible-2",
-            orderableCode: "OF",
-            orderableName: "Oral fluid panel",
-          },
-          {
-            ...original,
-            itemId: "allocated",
-            orderableCode: "OLD",
-            orderableName: "Previously accessioned test",
-          },
-          { ...original, itemId: "held", orderableCode: "HOLD", orderableName: "Held test" },
-        ],
-      }),
-      get_order_accession_context: () =>
-        orderAccessionContext({
-          items: [
-            itemContext,
-            {
-              ...itemContext,
-              orderItemId: "eligible-2",
-              requiredSpecimenTypeCodes: ["oral_fluid"],
-            },
-            {
-              ...itemContext,
-              orderItemId: "allocated",
-              eligible: false,
-              reason: "Already assigned to an accession.",
-              accessionId: ACCESSION_ID,
-              accessionNumber: "A26000001",
-            },
-            {
-              ...itemContext,
-              orderItemId: "held",
-              eligible: false,
-              reason: "Order authority is on hold.",
-            },
-          ],
-        }),
-      create_accession: create,
-    });
-    await screen.findByRole("checkbox", { name: /SYN-SCR/ });
-    expect(screen.queryByRole("checkbox", { name: /Previously accessioned|Held test/ })).toBeNull();
-    expect(screen.getByText(/Order authority is on hold/)).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Accession A26000001" })).toHaveProperty(
-      "href",
-      expect.stringContaining(`/accessions/${ACCESSION_ID}`),
-    );
-    await user.click(screen.getByRole("button", { name: "Use all eligible tests" }));
-    expect(screen.getByRole("checkbox", { name: /SYN-SCR/ })).toHaveProperty("checked", true);
-    expect(screen.getByRole("checkbox", { name: /Oral fluid panel/ })).toHaveProperty(
-      "checked",
-      true,
-    );
-    expect(screen.getByRole("status").textContent).toContain("urine, oral_fluid");
-    await user.click(screen.getByRole("checkbox", { name: /Oral fluid panel/ }));
-    expect(screen.getByRole("status").textContent).not.toContain("oral_fluid");
-    await chooseWithKeyboard(user, /Collection time known$/, "Unknown");
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
-    await typeInto(user, /^Containers/, "1");
-    await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
-    await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
-    expect(create).toHaveBeenCalledWith({
-      input: expect.objectContaining({ orderItemIds: [ITEM_ID] }),
-    });
-  });
-
-  it("clears selected tests without discarding entered material", async () => {
-    const { user } = renderPage();
-    await user.click(await screen.findByRole("button", { name: "Use all eligible tests" }));
-    await typeInto(user, /^Containers/, "2");
-    await user.click(screen.getByRole("button", { name: "Clear selected tests" }));
-    expect(screen.getByRole("checkbox", { name: /SYN-SCR/ })).toHaveProperty("checked", false);
     expect(screen.getByRole("textbox", { name: /^Containers/ })).toHaveProperty("value", "2");
-    expect(screen.queryByText(/Required specimen types for the selected tests/)).toBeNull();
-    expect(screen.getByText("Choose at least one test.")).toBeTruthy();
-  });
-
-  it("searches a long eligible list and saves only the selected tests", async () => {
-    const create = vi.fn(() => ACCESSION);
-    const { user, container } = renderPage({
-      get_order: () => ({
-        ...ACCEPTED_ORDER,
-        items: ACCEPTED_ORDER.items.flatMap((item) =>
-          Array.from({ length: 20 }, (_, index) => ({
-            ...item,
-            itemId: `item-${index}`,
-            orderableCode: `SYN-${index}`,
-            orderableName: `Synthetic test ${index}`,
-          })),
-        ),
-      }),
-      get_order_accession_context: () =>
-        orderAccessionContext({
-          items: ACCESSION_CONTEXT.items.flatMap((item) =>
-            Array.from({ length: 20 }, (_, index) => ({
-              ...item,
-              orderItemId: `item-${index}`,
-            })),
-          ),
-        }),
-      create_accession: create,
-    });
-    const picker = await screen.findByRole("combobox", { name: "Find ordered tests" });
-    await expectNoA11yViolations(container, { wholePage: true });
-    await tabTo(user, picker);
-    await user.keyboard("SYN-17{ArrowDown}{Enter}{Escape}");
-    expect(
-      screen.getByRole("list", { name: "Selected tests for this material" }).textContent,
-    ).toContain("SYN-17 Synthetic test 17");
-    await user.clear(picker);
-    await user.type(picker, "no-matching-test");
-    expect(screen.getByRole("listbox").textContent).toBe("No matches");
-    await user.keyboard("{Escape}");
-    await user.click(screen.getByRole("button", { name: "Remove SYN-17 Synthetic test 17" }));
-    expect(picker).toBe(document.activeElement);
-    expect(screen.queryByRole("list", { name: "Selected tests for this material" })).toBeNull();
-    await user.clear(picker);
-    await user.type(picker, "SYN-18");
-    await user.keyboard("{ArrowDown}{Enter}{Escape}");
-    await chooseWithKeyboard(user, /Collection time known$/, "Unknown");
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
-    await typeInto(user, /^Containers/, "1");
-    await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
-    await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
-    expect(create).toHaveBeenCalledWith({
-      input: expect.objectContaining({ orderItemIds: ["item-18"] }),
-    });
   });
 
   it("continues an existing accession when no eligible work remains", async () => {
@@ -461,57 +454,16 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     expect(existing.textContent).toContain("1 need receipt review");
   });
 
-  it("sends a named collection timezone without guessing the UTC offset", async () => {
-    const create = vi.fn(() => ACCESSION);
-    const { user } = renderPage({ create_accession: create });
-    await user.click(await screen.findByRole("button", { name: "Use all eligible tests" }));
-    await chooseWithKeyboard(user, /Collection time known$/, "Date and time (named timezone)");
-    expect(screen.getByRole("textbox", { name: /^Collection site timezone/ })).toHaveProperty(
-      "value",
-      "",
-    );
-    await typeInto(user, /^Collection date/, "2026-10-12");
-    await typeInto(user, /^Collection time$/, "08:30");
-    await typeInto(user, /^Collection site timezone/, "America/New_York");
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
-    await typeInto(user, /^Containers/, "1");
-    await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
-    await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
-    expect(create).toHaveBeenCalledWith({
-      input: expect.objectContaining({
-        collection: {
-          time: { kind: "zoned", local: "2026-10-12T08:30", timeZone: "America/New_York" },
-          observations: [],
-        },
-      }),
-    });
-  });
-
-  it("maps an engine timezone refusal to the field and preserves entered material", async () => {
-    const message = "Enter a collection-site timezone such as America/New_York.";
+  it("chooses a specimen type when the tests need none it can fill in", async () => {
+    const item = ACCESSION_CONTEXT.items[0];
+    if (!item) throw new Error("Missing fixture");
     const { user } = renderPage({
-      create_accession: () =>
-        Promise.reject(
-          engineError("validation", "Check the collection timezone.", {
-            fieldErrors: [{ field: "collection.time.timeZone", code: "invalid_zone", message }],
-          }),
-        ),
+      get_order_accession_context: () =>
+        orderAccessionContext({ items: [{ ...item, requiredSpecimenTypeCodes: [] }] }),
     });
-    await user.click(await screen.findByRole("button", { name: "Use all eligible tests" }));
-    await chooseWithKeyboard(user, /Collection time known$/, "Date and time (named timezone)");
-    await typeInto(user, /^Collection date/, "2026-10-12");
-    await typeInto(user, /^Collection time$/, "08:30");
-    await typeInto(user, /^Collection site timezone/, "Unknown/Zone");
-    await chooseWithKeyboard(user, /Specimen type$/, "Urine");
-    await typeInto(user, /^Containers/, "1");
-    await chooseWithKeyboard(user, /Volume is$/, "Unknown");
-    await user.click(screen.getByRole("button", { name: "Receive specimens" }));
-    expect(await screen.findByText(message)).toBeTruthy();
-    const field = screen.getByRole("textbox", { name: /^Collection site timezone/ });
-    expect(field.getAttribute("aria-invalid")).toBe("true");
-    expect(field).toHaveProperty("value", "Unknown/Zone");
-    expect(screen.getByRole("textbox", { name: /^Containers/ })).toHaveProperty("value", "1");
+    await screen.findByRole("checkbox", { name: /SYN-SCR/ });
+    await chooseWithKeyboard(user, /Specimen type$/, "Oral fluid (oral_fluid)");
+    expect(screen.getAllByText("Oral fluid (oral_fluid)").length).toBeGreaterThan(0);
   });
 
   it("shows a load failure with a retry", async () => {

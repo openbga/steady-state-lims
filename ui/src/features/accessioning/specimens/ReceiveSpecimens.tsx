@@ -9,19 +9,14 @@ import { GET_ORDER } from "../orders/contract";
 import { useOrderAccessionContext } from "../useOrderAccessionContext";
 import { AccessionForm } from "./AccessionForm";
 import { LIST_SPECIMEN_TYPES } from "./contract";
+import { ReceiveBanner } from "./ReceiveBanner";
 
 /**
  * Loads what receiving an order's material needs (the order, which of its tests can be
- * received, the specimen types) and shows the Receive specimens form, or why it cannot open.
- * `inOrder` lays it out as New order's Specimens step.
+ * received, the specimen types) and shows the order's summary line and the Receive specimens
+ * form, or why it cannot open. Used by Receive specimens and by New order's Specimens step.
  */
-export function ReceiveSpecimens({
-  orderId,
-  inOrder = false,
-}: {
-  orderId: string;
-  inOrder?: boolean;
-}) {
+export function ReceiveSpecimens({ orderId }: { orderId: string }) {
   const order = useCommandQuery<OrderDetail>(GET_ORDER, { input: { orderId } });
   const context = useOrderAccessionContext(orderId);
   const specimenTypes = useCommandQuery<SpecimenTypeView[]>(LIST_SPECIMEN_TYPES);
@@ -41,12 +36,12 @@ export function ReceiveSpecimens({
           order={order.data}
           context={context.data}
           specimenTypes={specimenTypes.data}
-          inOrder={inOrder}
         />
       );
   }
   return (
     <>
+      {order.data && <ReceiveBanner order={order.data} />}
       {failed?.error && (
         <ErrorState
           title={

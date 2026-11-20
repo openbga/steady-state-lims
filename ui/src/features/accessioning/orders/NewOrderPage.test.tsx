@@ -88,7 +88,7 @@ async function fillRequisition(user: UserEvent) {
   await chooseSegment(user, /Template use/, "No template");
   await chooseSegment(user, /As supplied/, "Handwritten signature");
   await user.click(screen.getByRole("button", { name: "Next: Tests" }));
-  await screen.findByRole("heading", { name: /step 2 of 3/ });
+  await screen.findByRole("heading", { name: /step 2 of 2/ });
 }
 
 describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
@@ -113,7 +113,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     // Enter in a field of the first step checks it and moves on; it never saves.
     await tabTo(user, screen.getByRole("textbox", { name: /^Clinic order number$/ }));
     await user.keyboard("{Enter}");
-    expect(await screen.findByRole("heading", { name: /step 2 of 3: Tests/ })).toBe(
+    expect(await screen.findByRole("heading", { name: /step 2 of 2: Tests/ })).toBe(
       document.activeElement,
     );
     await expectNoA11yViolations(container, { wholePage: true });
@@ -196,7 +196,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
       expect(screen.getByText(message)).toBeTruthy();
     }
     // The step is checked first: Tests opens only when it is complete.
-    expect(screen.getByRole("heading", { name: /step 1 of 3: Requisition/ })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /step 1 of 2: Requisition/ })).toBeTruthy();
     await fillRequisition(user);
     expect(screen.getByText(/No tests chosen yet/)).toBeTruthy();
     expect(within(summary).getAllByText(/To do/)).toHaveLength(1);
@@ -316,7 +316,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await user.click(screen.getByRole("button", { name: "Save order" }));
     // The refused field is on the first step: it opens there, with the field's error.
     expect(await screen.findByText("This placer order exists.")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: /step 1 of 3/ })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /step 1 of 2/ })).toBeTruthy();
     expect(screen.getByText("corr-test-0001")).toBeTruthy();
     expect(screen.getByRole("textbox", { name: /^Clinic order number$/ })).toHaveProperty(
       "value",
@@ -596,6 +596,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
       accept_order: accept,
       get_order: () => ({ ...ORDER, status: "accepted", revision: 2 }),
       get_order_accession_context: () => ACCESSION_CONTEXT,
+      list_practitioners: () => PRACTITIONERS,
       list_specimen_types: () => [
         { id: "st-1", code: "urine", name: "Urine", versionInEffect: null, draftVersion: null },
       ],
@@ -605,23 +606,22 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
     await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not stated");
     await user.click(screen.getByRole("button", { name: "Accept order and receive specimens" }));
-    expect(await screen.findByRole("heading", { name: /step 3 of 3: Specimens/ })).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { name: "1 · Tests for this material" }),
+    ).toBeTruthy();
     expect(register).toHaveBeenCalledTimes(1);
     // The press is the explicit acceptance, of the revision just saved.
     expect(accept).toHaveBeenCalledWith({
       input: { orderId: ORDER_ID, expectedRevision: ORDER.revision },
     });
-    expect(screen.getByText("Order accepted.")).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Change patient" })).toBeNull();
     const intake = screen.getByRole("list", { name: "Intake progress" });
     expect(within(intake).getByText("Receive specimens").closest("[aria-current]")).toBeTruthy();
-    const summary = screen.getByRole("complementary", { name: "Order summary" });
-    expect(within(summary).getByText("Order accepted")).toBeTruthy();
-    expect(within(summary).getByText("Collection")).toBeTruthy();
-    // The order's eligible tests are ticked: they were just ordered and accepted.
+    // The same Receive specimens as its own page: the only waiting test chosen, Next beside it.
     expect(screen.getByRole("checkbox", { name: /SYN-SCR/ })).toHaveProperty("checked", true);
-    expect(screen.getByRole("button", { name: /^Receive specimens/ })).toBeTruthy();
-    await user.click(within(summary).getByRole("button", { name: "Finish later" }));
+    expect(screen.getByRole("complementary", { name: "Receiving" })).toBeTruthy();
+    expect(screen.queryByRole("complementary", { name: "Order summary" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
     expect(router.state.location.pathname).toBe(`/orders/${ORDER_ID}`);
   });
 

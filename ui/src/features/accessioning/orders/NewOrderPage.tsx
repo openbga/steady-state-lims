@@ -35,14 +35,14 @@ export function NewOrderPage() {
       />
       <IntakeSteps current={accepted ? "receive" : subjectId ? "order" : "patient"} />
       {subjectId ? (
-        <>
-          <IdentityBanner
-            subjectId={subjectId}
-            action={accepted ? undefined : <Link to="/orders/new">Change patient</Link>}
-          />
-          {accepted ? (
-            <ReceiveSpecimens orderId={accepted.orderId} inOrder />
-          ) : (
+        accepted ? (
+          <ReceiveSpecimens orderId={accepted.orderId} />
+        ) : (
+          <>
+            <IdentityBanner
+              subjectId={subjectId}
+              action={<Link to="/orders/new">Change patient</Link>}
+            />
             <OrderReferencesGate>
               {(references) => (
                 <OrderEntry
@@ -52,8 +52,8 @@ export function NewOrderPage() {
                 />
               )}
             </OrderReferencesGate>
-          )}
-        </>
+          </>
+        )
       ) : (
         <PatientStep onChoose={(id) => navigate(newOrderPath(id))} />
       )}
