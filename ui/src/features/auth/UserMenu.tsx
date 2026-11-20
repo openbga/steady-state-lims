@@ -1,5 +1,5 @@
 import { Check, ChevronDown, Copy, Info, KeyRound, Lock, LogOut, UserRound } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   Header,
   Menu,
@@ -16,6 +16,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
 import type { AppInfo } from "@/generated/AppInfo";
 import type { CommandError } from "@/generated/CommandError";
+import type { RoleCode } from "@/generated/RoleCode";
 import type { SessionInfo } from "@/generated/SessionInfo";
 import { APPEARANCES, type Appearance, useAppearance } from "@/lib/appearance";
 import { useCommandMutation, useCommandQuery } from "@/lib/commands";
@@ -41,6 +42,7 @@ export function UserMenu({ session }: { session: SessionInfo }) {
   const [managingKeys, setManagingKeys] = useState(false);
   const [managingPin, setManagingPin] = useState(false);
   const [leavingForms, setLeavingForms] = useState<string[]>([]);
+  const signedInId = useId();
   const [appearance, chooseAppearance] = useAppearance(session.userId);
   const authentication = useCommandQuery<AuthenticationStatus>("get_authentication_status");
   const lock = useCommandMutation<null>("lock_session", { invalidates: "all" });
@@ -66,7 +68,8 @@ export function UserMenu({ session }: { session: SessionInfo }) {
           <ChevronDown aria-hidden="true" />
         </Button>
         <Popover placement="bottom end" className={styles.popover}>
-          <Menu className={styles.menu}>
+          <SignedInAs id={signedInId} session={session} />
+          <Menu className={styles.menu} aria-describedby={`${signedInId}-name ${signedInId}-roles`}>
             {authentication.data?.method === "password_totp" && (
               <MenuItem
                 className={styles.item}
@@ -177,6 +180,42 @@ export function UserMenu({ session }: { session: SessionInfo }) {
         </p>
       </ConfirmDialog>
     </>
+  );
+}
+
+/** Every role, so the menu can say "All roles" instead of listing all eight (ticket #4869). */
+const ROLE_CODES: Record<RoleCode, true> = {
+  accessioner: true,
+  analyst: true,
+  technical_reviewer: true,
+  releaser: true,
+  quality_manager: true,
+  billing: true,
+  auditor: true,
+  administrator: true,
+};
+
+/** "All roles", "No roles" or the roles' short names, as the engine names them. */
+function rolesText(session: SessionInfo): string {
+  if (new Set(session.roles).size === Object.keys(ROLE_CODES).length) return "All roles";
+  return session.roleLabels.length === 0 ? "No roles" : session.roleLabels.join(", ");
+}
+
+/**
+ * Who is signed in, at the top of the menu: the name, then the roles (ticket #4869). It is
+ * information only, outside the menu's items, so it takes no focus; the menu names it as its
+ * description so a screen reader reads it when the menu opens.
+ */
+function SignedInAs({ id, session }: { id: string; session: SessionInfo }) {
+  return (
+    <div className={styles.signedIn}>
+      <span id={`${id}-name`} className={styles.signedInName}>
+        {session.displayName}
+      </span>
+      <span id={`${id}-roles`} className={styles.signedInRoles}>
+        {rolesText(session)}
+      </span>
+    </div>
   );
 }
 

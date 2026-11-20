@@ -3,7 +3,7 @@
     {
       "release": null,
       "from": "2026-11-12",
-      "to": "2026-11-18",
+      "to": "2026-11-20",
       "impacts": [
         {
           "impact": "high",
@@ -191,6 +191,15 @@
         {
           "impact": "low",
           "entries": [
+            {
+              "id": "2026-11-20-user-menu-signed-in",
+              "date": "2026-11-20",
+              "type": "added",
+              "impact": "low",
+              "title": "The user menu shows who is signed in and their roles",
+              "summary": "The menu that opens from your name at the top right now starts with your name and your roles,\nsuch as Accessioner, Analyst, or **All roles** when you hold every role. It is information only,\nso you can check which account is signed in before you work.",
+              "notes": "`current_session` (`SessionInfo`) adds `roleLabels`: the short names of `roles`, in the same order."
+            },
             {
               "id": "2026-11-18-report-availability-colors",
               "date": "2026-11-18",

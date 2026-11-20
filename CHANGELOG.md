@@ -7,7 +7,7 @@ What changed in OpenBGA Toxicology LIMS, newest release first. Changes not yet i
 release are listed under Unreleased. Within a release, changes are ordered by impact, then
 newest first. The application shows the same list under **What's new**.
 
-## Unreleased (2026-11-12 to 2026-11-18)
+## Unreleased (2026-11-12 to 2026-11-20)
 
 ### High impact
 
@@ -98,6 +98,16 @@ newest first. The application shows the same list under **What's new**.
   The reason is computed when read and never stored, so there is no migration.
 
 ### Low impact
+
+- **Added:** The user menu shows who is signed in and their roles (2026-11-20)
+
+  The menu that opens from your name at the top right now starts with your name and your roles,
+  such as Accessioner, Analyst, or **All roles** when you hold every role. It is information only,
+  so you can check which account is signed in before you work.
+
+  Technical notes:
+
+  `current_session` (`SessionInfo`) adds `roleLabels`: the short names of `roles`, in the same order.
 
 - **Changed:** Report availability has its own color (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
 

@@ -62,6 +62,43 @@ describe("UserMenu", () => {
     await expectNoA11yViolations(container);
   });
 
+  it("names the person and their roles at the top of the menu, not as an item (#4869)", async () => {
+    mockCommands({
+      current_session: () => ({
+        ...TEST_SESSION,
+        roles: ["accessioner", "analyst"],
+        roleLabels: ["Accessioner", "Analyst"],
+      }),
+    });
+    const { user } = renderMenu();
+    await user.click(await screen.findByRole("button", { name: "Signed in as Test Analyst" }));
+    const menu = await screen.findByRole("menu", {
+      description: "Test Analyst Accessioner, Analyst",
+    });
+    expect(within(menu).queryByText("Accessioner, Analyst")).toBeNull();
+    expect(screen.getByText("Accessioner, Analyst")).toBeTruthy();
+    await expectNoA11yViolations(document.body);
+  });
+
+  it("says All roles when the person holds every role (#4869)", async () => {
+    const roles = [
+      "accessioner",
+      "analyst",
+      "technical_reviewer",
+      "releaser",
+      "quality_manager",
+      "billing",
+      "auditor",
+      "administrator",
+    ] as const;
+    mockCommands({
+      current_session: () => ({ ...TEST_SESSION, roles: [...roles], roleLabels: [...roles] }),
+    });
+    const { user } = renderMenu();
+    await user.click(await screen.findByRole("button", { name: "Signed in as Test Analyst" }));
+    expect(await screen.findByText("All roles")).toBeTruthy();
+  });
+
   it("offers the account actions and About this app in one menu, from the keyboard", async () => {
     mockCommands({ current_session: () => TEST_SESSION });
     const { user } = renderMenu();

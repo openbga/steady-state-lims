@@ -2,7 +2,7 @@
   "id": "users",
   "title": "Users and access",
   "summary": "Manage individual accounts and roles, and maintain your own security keys, optional unlock PIN and appearance from the signed-in menu.",
-  "reviewedOn": "2026-11-17",
+  "reviewedOn": "2026-11-20",
   "routes": ["/users"],
   "sections": [
     {
@@ -186,6 +186,12 @@
           "meaning": "Whether your account has enabled the optional PIN for resuming its current locked session.",
           "values": "Enabled or Disabled; disabled by default.",
           "rules": "Read-only in the Unlock PIN dialog. Changes require your password or registered security key. This setting is personal, not shared by the workstation."
+        },
+        {
+          "name": "Signed in as … (name and roles)",
+          "meaning": "Who is signed in on this window, shown at the top of the menu that opens from your name at the top right.",
+          "values": "Your name, then your roles as short names separated by commas, such as Accessioner, Analyst. All roles appears when you hold every role, and No roles when you hold none.",
+          "rules": "Information only: it is not a menu item and cannot be chosen. It shows the roles of your current session. Roles describe software access, not laboratory qualifications."
         },
         {
           "name": "Appearance",
