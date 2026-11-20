@@ -77,6 +77,7 @@ function SidebarControls({
             <Ellipsis aria-hidden="true" />
           </Button>
           <ActionMenu
+            placement="bottom start"
             selectedId={layout.preset}
             items={NAV_PRESETS.map((option) => ({
               id: option.id,

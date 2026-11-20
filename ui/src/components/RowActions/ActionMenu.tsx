@@ -25,13 +25,16 @@ export interface ActionItem {
 export function ActionMenu({
   items,
   selectedId,
+  placement = "bottom end",
 }: {
   items: readonly ActionItem[];
   selectedId?: string | null;
+  /** Where the menu opens from its button; the default lines its right edge up with the button. */
+  placement?: "bottom end" | "bottom start";
 }) {
   const choice = selectedId !== undefined;
   return (
-    <Popover placement="bottom end" className={styles.popover}>
+    <Popover placement={placement} className={styles.popover}>
       <Menu
         items={items}
         autoFocus="first"
