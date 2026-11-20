@@ -140,6 +140,7 @@ pub use queries::obligation::get_delivery_obligation;
 pub use queries::outbound::{
     RevisionOutbound, latest_revision_id, revision_delivery_paused, revision_outbound,
 };
+pub use queries::overview::ReportOverview;
 pub use queries::queues::{
     ReleaseQueue, ReleaseQueueItem, ReleaseReconciliation, RevisionQueueItem, impact_queue,
     partial_reports, release_queue, release_reconciliation, revisions_without_destination,

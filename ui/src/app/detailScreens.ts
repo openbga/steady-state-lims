@@ -120,6 +120,8 @@ export const detailScreens: readonly { path: string; page: PageLoader; tabbed?: 
   {
     path: "/reports/:reportId",
     page: () => import("@/features/reports/history/ReportPage").then((m) => m.ReportPage),
+    // A report's tabs: results, preview, delivery, revisions, exports, impact, incidents.
+    tabbed: true,
   },
   {
     path: "/billing/class-mappings/:versionId",

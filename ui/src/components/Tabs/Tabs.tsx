@@ -7,12 +7,14 @@ interface TabLink {
   id: string;
   label: string;
   href: string;
+  /** How many records the tab holds, shown after its label; omit for a tab that is no list. */
+  count?: number | undefined;
 }
 
 interface TabsProps {
   /** Names the tab list, such as "Backups" or "Method SYN-M1". */
   label: string;
-  /** At most 6, the main task first. */
+  /** At most 6, the main task first; a seventh only for an exception record (UI standards). */
   tabs: readonly TabLink[];
   /** The tab whose route is shown, taken from the URL. */
   selectedId: string;
@@ -50,6 +52,12 @@ export function Tabs({
             className={styles.tab}
           >
             {tab.label}
+            {tab.count !== undefined && (
+              <>
+                {" "}
+                <span className={styles.count}>{tab.count}</span>
+              </>
+            )}
           </Tab>
         ))}
       </TabList>

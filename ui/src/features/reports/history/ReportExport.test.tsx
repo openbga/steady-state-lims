@@ -5,7 +5,14 @@ import { chooseWithKeyboard } from "@/lib/test/keyboard";
 import { mockGridLayout } from "@/lib/test/layout";
 import { renderRoutes } from "@/lib/test/router";
 import type { ExportView, ReportDetail } from "../contract";
-import { DESTINATION, REPORT, REPORT_ID, REVISION, sessionWith } from "../testData";
+import {
+  DESTINATION,
+  REPORT,
+  REPORT_ID,
+  REVISION,
+  REVISION_DETAIL,
+  sessionWith,
+} from "../testData";
 import { ReportPage } from "./ReportPage";
 
 const SECOND_ID = "00000000-0000-7000-8000-00000000a002";
@@ -36,12 +43,13 @@ function renderPage(report: ReportDetail, commands: Record<string, (args: unknow
   mockCommands({
     current_session: () => sessionWith(["release_reports", "deliver_reports"]),
     get_report: () => report,
+    get_report_revision: () => REVISION_DETAIL,
     list_delivery_destinations: () => [DESTINATION],
     ...commands,
   });
   return renderRoutes(
-    [{ path: "/reports/:reportId", element: <ReportPage /> }],
-    `/reports/${REPORT_ID}`,
+    [{ path: "/reports/:reportId/:tab?", element: <ReportPage /> }],
+    `/reports/${REPORT_ID}/exports`,
   );
 }
 

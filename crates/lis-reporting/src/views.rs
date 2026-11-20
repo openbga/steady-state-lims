@@ -4,9 +4,9 @@
 
 use lis_core::{GateReason, UserId, UtcTimestamp};
 use lis_identity::{ClientId, ClientLocationId, SubjectSummary};
-use lis_orders::OrderComponentId;
+use lis_orders::{OrderComponentId, OrderId};
 use lis_report::tox_v2::ToxReportData;
-use lis_specimens::SpecimenId;
+use lis_specimens::{AccessionId, SpecimenId};
 use serde::Serialize;
 use ts_rs::TS;
 
@@ -18,6 +18,7 @@ use crate::model::{
     RevisionAvailability,
 };
 use crate::queries::destinations::DestinationState;
+use crate::queries::overview::ReportOverview;
 
 mod layouts;
 mod preservation;
@@ -161,6 +162,11 @@ pub struct ObligationDestinationView {
 pub struct DeliveryStatusView {
     pub code: ObligationStatus,
     pub label: String,
+    /// The status in a few words for a badge, such as "Handed off" or
+    /// "Blocked: destination not verified"; never "delivered".
+    pub short_label: String,
+    /// How the channel delivers, such as "Fax by staff".
+    pub method: String,
 }
 
 /// One attested attempt.
@@ -275,8 +281,15 @@ pub struct ReportDetail {
     /// The order's client, whose destinations the report may use.
     pub client_id: ClientId,
     pub subject: SubjectSummary,
+    /// The accession the report's specimen belongs to.
+    pub accession_id: AccessionId,
     pub accession_number: String,
+    /// The order the accession fulfils.
+    pub order_id: OrderId,
     pub availability: Option<RevisionAvailability>,
+    /// What the latest revision printed about the order and specimen;
+    /// `None` while its stored content is damaged.
+    pub overview: Option<ReportOverview>,
     pub revisions: Vec<RevisionSummary>,
     pub obligations: Vec<ObligationView>,
     pub exports: Vec<ExportView>,

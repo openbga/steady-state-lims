@@ -639,6 +639,18 @@ async fn assert_listed_and_audited(desk: &Desk) {
     }
 }
 
+/// The report page summary is what the released revision printed.
+fn assert_overview_is_printed(report: &ReportDetail, candidate: &CandidateView) {
+    let overview = report.overview.as_ref().unwrap();
+    let printed = &candidate.content;
+    assert_eq!(overview.client, printed.order.client);
+    assert_eq!(overview.practitioner_npi, printed.order.practitioner.npi);
+    assert_eq!(overview.specimen_type, printed.specimen.matrix);
+    assert_eq!(overview.container_labels, printed.specimen.container_labels);
+    assert_eq!(overview.collected, printed.specimen.collected);
+    assert!(!overview.tests.is_empty());
+}
+
 /// The release manifest, released lines, routing, exact content and access events.
 async fn assert_release_records(
     desk: &Desk,
@@ -669,6 +681,7 @@ async fn assert_release_records(
         report.obligations[0].status.label,
         "Fax by staff: awaiting delivery"
     );
+    assert_overview_is_printed(&report, candidate);
     desk.lab.sign_in(Role::Accessioner).await;
     let detail = desk
         .engine()

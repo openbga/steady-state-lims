@@ -74,8 +74,9 @@ Copyright (C) 2026 BGASoft Inc. and OpenBGA contributors.
 The project's own code, documentation, synthetic fixtures, website and original
 presentation assets are licensed under the [GNU Affero General Public License,
 version 3 only (AGPL-3.0-only)](LICENSE), unless otherwise identified. Third-party
-material retains its own terms. Use, modification and redistribution, including
-commercial sale, are permitted. Distributors must preserve the AGPL rights and
+material retains its own terms. Free here means there is no license fee or
+subscription, and anyone may use, study, change and share the software under that
+license, including commercial sale. Distributors must preserve the AGPL rights and
 provide the corresponding source as the license requires. If you modify the
 application and let people use your modified version over a network, AGPLv3
 section 13 requires offering them its corresponding source. Private internal

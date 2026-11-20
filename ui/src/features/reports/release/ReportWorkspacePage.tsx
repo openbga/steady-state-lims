@@ -22,7 +22,7 @@ import {
   type WorkspaceReport,
 } from "../contract";
 import { AVAILABILITY, COMPLETENESS, RELATIONSHIP, revisionText } from "../labels";
-import { candidatePath, reportPath, revisionPath, workspacePath } from "../paths";
+import { candidatePath, reportPath, reportTabPath, revisionPath, workspacePath } from "../paths";
 import { CandidateSummary } from "./CandidateSummary";
 import { PrepareCandidateDialog } from "./PrepareCandidateDialog";
 
@@ -117,7 +117,9 @@ function Workspace({ workspace }: { workspace: ReportWorkspace }) {
             preserved.
           </p>
           {report && canRead && (
-            <Link to={reportPath(report.reportId)}>View report and preservation incidents</Link>
+            <Link to={reportTabPath(report.reportId, "incidents")}>
+              View report and preservation incidents
+            </Link>
           )}
         </Section>
       )}
@@ -197,7 +199,9 @@ function UpToDate({ report, revision, canRead }: UpToDateProps) {
         {revision.revisionNo} was released. A new revision can be prepared once the results or
         report details change.
       </p>
-      {canRead && <Link to={reportPath(report.reportId)}>View report and delivery</Link>}
+      {canRead && (
+        <Link to={reportTabPath(report.reportId, "delivery")}>View report and delivery</Link>
+      )}
     </Alert>
   );
 }

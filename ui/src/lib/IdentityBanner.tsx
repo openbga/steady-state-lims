@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { Banner } from "@/components/Banner";
 import { ErrorState } from "@/components/ErrorState";
@@ -15,8 +16,12 @@ import styles from "./IdentityBanner.module.css";
 /** `get_subject({ input: { subjectId } }) → SubjectView`: an audited read of the patient. */
 const GET_SUBJECT = "get_subject" satisfies CommandName;
 
-/** The capability the patient page's command (`get_subject`) needs. */
+/** The capability the patient page's command (`get_subject`) needs; the order page's too. */
 const OPEN_PATIENTS = "enter_orders";
+
+/** Either capability opens the accession page (`get_accession`). */
+const OPEN_ACCESSIONS = "accession";
+const REVIEW_QUALITY = "manage_quality";
 
 /** The HL7 v2 identifier type code (table 0203) of a medical record number. */
 const MEDICAL_RECORD_NUMBER = "MR";
@@ -26,6 +31,10 @@ interface SpecimenIdentity {
   accessionNumber: string;
   /** The container's label code; `null` when it has none, left out when not relevant. */
   labelCode?: string | null;
+  /** Given, the accession number links to the accession page for sessions that may open it. */
+  accessionId?: string;
+  /** Given, a "View order" link opens the order for sessions that may enter orders. */
+  orderId?: string;
 }
 
 type IdentityBannerProps = (
@@ -149,11 +158,40 @@ function identifierItems(identifiers: readonly SubjectIdentifierView[]) {
 
 function specimenItems(specimen: SpecimenIdentity | undefined) {
   if (specimen === undefined) return [];
-  const items = [{ label: "Accession", value: specimen.accessionNumber }];
+  const items: { label: string; value: ReactNode }[] = [
+    { label: "Accession", value: <AccessionValue specimen={specimen} /> },
+  ];
   if (specimen.labelCode !== undefined) {
     items.push({ label: "Container", value: specimen.labelCode ?? "Not recorded" });
   }
   return items;
+}
+
+/**
+ * The accession number, linked to its page, and the order link, each only for sessions whose
+ * capabilities open that page (`get_accession`, `get_order`). Presentation only: the engine
+ * decides.
+ */
+function AccessionValue({ specimen }: { specimen: SpecimenIdentity }) {
+  const canOpenAccession = useHasCapability(OPEN_ACCESSIONS);
+  const canReviewQuality = useHasCapability(REVIEW_QUALITY);
+  const canOpenOrder = useHasCapability(OPEN_PATIENTS);
+  const { accessionId, accessionNumber, orderId } = specimen;
+  return (
+    <>
+      {accessionId !== undefined && (canOpenAccession || canReviewQuality) ? (
+        <Link to={`/accessions/${accessionId}`}>{accessionNumber}</Link>
+      ) : (
+        accessionNumber
+      )}
+      {orderId !== undefined && canOpenOrder && (
+        <>
+          {" "}
+          <Link to={`/orders/${orderId}`}>View order</Link>
+        </>
+      )}
+    </>
+  );
 }
 
 function bannerLabel(specimen: SpecimenIdentity | undefined): string {
