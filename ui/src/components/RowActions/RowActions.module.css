@@ -60,3 +60,9 @@
 .danger {
   color: var(--tone-danger-text);
 }
+
+/* A line above the item keeps a group, such as a destructive action, apart. */
+.separated {
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--color-border);
+}

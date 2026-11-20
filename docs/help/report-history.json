@@ -9,7 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "Open a report from Reports to see its revision history, delivery obligations and attempts, exports, and any impact assessment or preservation incident. Open a revision to inspect the content exactly as issued and its recorded provenance.",
-        "Prepare next revision returns to the specimen’s report workspace when permitted. Withdrawal and impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, open it and use its Export PDF. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
+        "Status chips under the title show availability, completeness, the revision and delivery; the Summary card under the patient banner shows the client, practitioner, specimen, tests, collection, release, last export and impact after release. Export PDF (revision N, current) is the main button; Prepare next revision, Add destination and Withdraw report are in More actions when permitted. Impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, open it and use its Export PDF. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
       ]
     },
     {
@@ -44,6 +44,9 @@
     "ui/src/features/reports/history/ReportsPage.tsx",
     "ui/src/features/reports/history/columns.tsx",
     "ui/src/features/reports/history/ReportPage.tsx",
+    "ui/src/features/reports/history/ReportHeader.tsx",
+    "ui/src/features/reports/history/ReportSummary.tsx",
+    "crates/lis-reporting/src/queries/overview.rs",
     "ui/src/features/reports/history/RevisionPage.tsx",
     "ui/src/features/reports/history/RevisionsSection.tsx",
     "ui/src/features/reports/history/ImpactSection.tsx",
@@ -73,6 +76,7 @@
     "crates/lis-reporting/src/snapshot/provenance.rs",
     "crates/lis-reporting/src/snapshot/sections.rs",
     "crates/lis-reporting/src/report_data.rs",
+    "ui/src/lib/IdentityBanner.tsx",
     "crates/lis-reporting/src/relationship.rs",
     "crates/lis-reporting/src/gates.rs",
     "crates/lis-report/templates/tox-report/v3.typ",
@@ -197,10 +201,52 @@
       "access": "Reading requires report-delivery or quality-management authority. Next revision and withdrawal require report-release authority. Impact/incident decisions require quality-management authority. Delivery actions require report-delivery authority. Opening the report is audited.",
       "fields": [
         {
-          "name": "Identity banner / Report availability",
-          "meaning": "Identifies the patient, accession and current report state.",
-          "values": "Linked identity; Current, Superseded, Withdrawn or Not released.",
+          "name": "Status chips under the title",
+          "meaning": "Summarizes the report’s state: availability, completeness of the latest revision, its number and kind, and delivery.",
+          "values": "Current, Superseded, Withdrawn or Not released; Final or Partial (Partial in warning tone); Revision N · Initial report, Supplement or Correction; Handed off X of Y.",
+          "rules": "Read-only. Handed off X of Y counts the delivery obligations still owed (every obligation except closed ones, such as a redirected one) and how many of them staff have attested as handed off. It is green when every owed obligation is handed off and in warning tone while any is awaiting, needs attention, is paused or blocked. It is not shown when no obligation is owed. Handed off is staff attestation, not proof of receipt, so the chip never says Delivered."
+        },
+        {
+          "name": "Identity banner",
+          "meaning": "Identifies the patient and the accession the report is about.",
+          "values": "Linked patient name, date of birth and age, active identifiers and accession.",
           "rules": "Read-only; supplied by the current record."
+        },
+        {
+          "name": "Identity banner: identifiers",
+          "meaning": "Shows each active patient identifier with its type and the authority that issued it.",
+          "values": "The type and issuer as recorded at registration, such as MRN (DEMO-CLINIC) DEMO-00001; a type recorded as MR is shown as MRN and its value in bold. None recorded when the patient has no active identifier.",
+          "rules": "Read-only. The type is free text recorded with the patient and is shown as entered, for example Identifier when that was typed. To show MRN, deactivate the identifier on the patient page and add it again with type MR."
+        },
+        {
+          "name": "Identity banner: Accession / View order",
+          "meaning": "Names the accession the report's specimen belongs to and leads to it and to its order.",
+          "values": "The accession number, a link to the Accession page when you hold accessioning or quality-management authority, otherwise plain text. View order opens the order page.",
+          "rules": "View order is shown only to people who can enter orders, the same rule as the Order link on the Accession page. The pages still check access when opened."
+        },
+        {
+          "name": "Summary: Client / Ordering practitioner",
+          "meaning": "Names who ordered the tests, as the latest revision printed them.",
+          "values": "Client name with its location after a dash when one was recorded; practitioner name with · NPI and the National Provider Identifier.",
+          "rules": "Read-only; taken from the latest released revision, not from the order as it is now. A later change to the order shows here only after a new revision. Not available: the stored report content is damaged when the revision’s stored content fails its check; see Preservation incidents."
+        },
+        {
+          "name": "Summary: Specimen / Tests / Collected",
+          "meaning": "Describes the material and the testing the report covers, as printed.",
+          "values": "Specimen type · container labels; the ordered tests the revision names, reported or not, each once; collection time as printed, or Not provided.",
+          "rules": "Read-only; taken from the latest released revision, with the same Not available message when its content is damaged."
+        },
+        {
+          "name": "Summary: Released / Last export",
+          "meaning": "Dates the latest release and the latest PDF export.",
+          "values": "Release date/time by the releasing person; export date/time · its purpose (For delivery to this destination, For the laboratory’s records or Internal use), or Not exported.",
+          "rules": "Read-only. An export is not a delivery; see PDF exports for every export."
+        },
+        {
+          "name": "Summary: Impact after release",
+          "meaning": "Shows at a glance whether changes after release wait for quality assessment.",
+          "values": "Nothing open (green); N open items or Correction due (warning); Not applicable when the report has no current revision or its stored content is damaged.",
+          "rules": "Read-only. The Impact after release section below is shown only when something is open, a correction is due or an assessment was recorded."
         },
         {
           "name": "Revisions: Revision / Kind",
@@ -224,7 +270,7 @@
           "name": "Impact after release: Open impact / Correction due",
           "meaning": "Shows changes needing quality assessment after issuance.",
           "values": "Explanatory change messages; Correction due when a quality decision requires a new revision.",
-          "rules": "Read-only. Open impact pauses delivery of the current report revision."
+          "rules": "Read-only. Open impact pauses delivery of the current report revision. The section is shown only when something is open, a correction is due or an assessment was recorded; otherwise the summary shows Nothing open."
         },
         {
           "name": "Impact history: Assessment / Reason / Assessed",
@@ -367,14 +413,20 @@
           "result": "Saves the exact issued PDF to Downloads, records the export in the audit trail and adds it to PDF exports. No attempt or delivery is recorded. To export a superseded or withdrawn revision, open that revision and use its Export PDF."
         },
         {
+          "name": "More actions",
+          "does": "Opens the menu of the report’s other actions: Prepare next revision, Add destination and, last and below a line in red text, Withdraw report.",
+          "availableWhen": "At least one of those actions is allowed to you for this report; otherwise the button is not shown.",
+          "result": "Choosing an item starts that action as described below. Each item is shown only when the engine allows it."
+        },
+        {
           "name": "Prepare next revision",
-          "does": "Opens the specimen’s current report workspace.",
+          "does": "From More actions, opens the specimen’s current report workspace.",
           "availableWhen": "Report-release authority, nonwithdrawn report and action offered.",
           "result": "Allows a reviewed supplement/correction candidate; the old report is preserved."
         },
         {
           "name": "Withdraw report",
-          "does": "Permanently withdraws every revision after fresh account confirmation and a reason.",
+          "does": "From More actions (the last item, in red text below a line), opens a confirmation that permanently withdraws every revision after fresh account confirmation and a reason.",
           "availableWhen": "Report-release authority, current report revision and required notice preparation succeed.",
           "result": "Prevents all future revisions of this report and creates withdrawal-notice obligations for destinations with prior obligations. This cannot be undone."
         },
@@ -392,7 +444,7 @@
         },
         {
           "name": "Add destination",
-          "does": "Creates an additional obligation for the current revision.",
+          "does": "From More actions, opens Add a destination, which creates an additional obligation for the current revision.",
           "availableWhen": "Report-delivery authority; current usable revision and a verified destination belonging to the ordering client.",
           "result": "Records the reason and adds delivery work; one obligation per revision, destination and kind is allowed."
         },
@@ -446,7 +498,7 @@
         "The current interface has no separate detail view for a closed delivery obligation. Its row remains in report history."
       ],
       "workflow": [
-        "Confirm identity and the current revision. Open earlier revisions when investigating a change.",
+        "Confirm identity and the current revision; use the accession link or View order in the banner to check the received material or the order as entered. Open earlier revisions when investigating a change.",
         "Review open impact, correction-due and preservation incidents before further report handling.",
         "Use a new revision for corrected content; document quality decisions with the specific changes they cover.",
         "For a records or internal copy of the current revision, choose Export PDF (revision N, current), select the purpose and check the Downloads confirmation and the new PDF exports row.",

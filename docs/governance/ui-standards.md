@@ -103,7 +103,7 @@ No action on one record ever requires ticking a box first, and no toolbar button
 
 **Where a record's actions live:**
 
-- **On the record view.** Every action on one record is in its side panel or page header. The main action is a primary button, up to two more are buttons, and the rest go in a "More" menu.
+- **On the record view.** Every action on one record is in its side panel or page header. The main action is a primary button, up to two more are buttons, and the rest go in a "More" menu. A page may keep only its main action as a button and name the menu "More actions", as the report page does. A destructive action in a menu is its last item, in `danger` text below a line (`ActionItem.isSeparated`).
 - **On the row, as a shortcut.** A grid may add a last column with a "⋯" button (`RowActions`, named "Actions for" plus the row's identifier). Its menu holds the same actions as the record view, from the same `allowedActions`. Right-clicking the row opens the same menu. A queue may also show one inline button for its usual next step, such as "Verify" on a destination waiting for verification. No action exists only on the row (ENG-167).
 - **Only what the engine allows.** Show the actions in the record's `allowedActions` and hide the rest. When the engine says why an action is blocked, such as gate reasons or holds, the record view shows that reason where the action would be. Do not show a disabled button without a reason (ENG-164).
 - **No usage hints.** A hint that explains how to use a grid ("Select a row to …") means the interaction is hidden, and these rules remove the need for it. Toolbar text is for counts and limits.
@@ -125,7 +125,7 @@ No action on one record ever requires ticking a box first, and no toolbar button
 | View | Use when | Rules |
 | --- | --- | --- |
 | Side panel (`DetailPanel`) | The record fits one column: up to about 12 facts and at most one short child list, and people move between records of one list (directories, workspaces) | See [Side panel](#side-panel). |
-| Record page | The record is a hub: several child lists, versions, long content, or a decision in several parts | Own route. Breadcrumb to the list it was opened from, keeping that list's find and filters. The `h1` is the identifier and name. Previous and Next when opened from a list or queue, in that list's order. |
+| Record page | The record is a hub: several child lists, versions, long content, or a decision in several parts | Own route. Breadcrumb to the list it was opened from, keeping that list's find and filters. The `h1` is the identifier and name; one status sits beside it, several sit as chips in a row under it (`PageHeader` `chips`). Previous and Next when opened from a list or queue, in that list's order. |
 | Dialog | A short task on one record: create with the required fields, one edit, one decision with its reason, or a confirmation | Never used to view a record. Titled with the action and the record. |
 
 Sources: ENG-161 to ENG-163, ENG-165 to ENG-167.

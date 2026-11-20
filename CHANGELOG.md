@@ -23,9 +23,17 @@ newest first. The application shows the same list under **What's new**.
 
 ### Medium impact
 
+- **Added:** A summary of the report on the report page (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
+
+  The report page has a **Summary** with the client, ordering practitioner, specimen, tests, collection time, release, last export and **Impact after release**, shown as **Nothing open** or the number of open items. The patient banner links to the accession and, for people who enter orders, to the order with **View order**.
+
 - **Changed:** Find a report by its accession number or any part of its number (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
 
   **Find** on **Reports** now matches the accession number and any part of the report number, in upper or lower case, not only the start of the report number.
+
+- **Changed:** The report page shows its status under the title and keeps one main button (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
+
+  Under a report's title, chips show its availability, **Final** or **Partial**, the revision and its type, and **Handed off X of Y** for delivery. **Export PDF** is the only main button; **Prepare next revision**, **Add destination** and **Withdraw report** are under **More actions**, with Withdraw report last.
 
 - **Changed:** Incomplete identity intake: required supplied text and readable labels (2026-11-17, [#106](https://github.com/openbga/toxicology-lims/pull/106))
 
