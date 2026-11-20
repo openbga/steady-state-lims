@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, type NavigateOptions, useParams } from "react-router";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Facts } from "@/components/Facts";
@@ -19,16 +19,19 @@ import { failureText } from "../resultLabels";
 import { failureFixFacts } from "./fixLinks";
 import { ImportFile } from "./ImportFile";
 import { ImportOutcomeBadge } from "./ImportOutcomeBadge";
+import { ImportRows } from "./ImportRows";
 import { QuarantineItems } from "./QuarantineItems";
 import { RetryImportDialog } from "./RetryImportDialog";
+import { importRowsPath } from "./rowOutcomes";
 import { SetAsideRows } from "./SetAsideRows";
 
 /**
- * One import attempt (REQ-ANA-003): its counts, the rows held in quarantine with why, and
- * a retry of the whole received message. A duplicate of an earlier message links to that
- * message's attempt instead. For a result file it also shows the file, the
- * template version used and, on a second tab, the rows set aside (result files brief §7). Opening it is recorded in the audit trail, since
- * quarantined rows carry sample labels and values. Opened from Result imports, it keeps the
+ * One import attempt (REQ-ANA-003): its counts, each opening the rows it counts, every row
+ * with what happened to it, the rows held in quarantine with why, and a retry of the whole
+ * received message. A duplicate of an earlier message links to that message's attempt
+ * instead. For a result file it also shows the file, the template version used and, on a
+ * third tab, the rows set aside (result files brief §7). Opening it is recorded in the audit
+ * trail, since rows carry sample labels and values. Opened from Result imports, it keeps the
  * list in its breadcrumb with Previous and Next in the list's order.
  */
 export function ImportAttemptPage() {
@@ -70,25 +73,19 @@ export function ImportAttemptPage() {
           ) : (
             <>
               <Section title="Outcome">
-                <Facts layout="compact" items={outcomeFacts(loaded)} />
+                <Facts layout="compact" items={outcomeFacts(loaded, keep)} />
               </Section>
               <ImportFile attempt={loaded} />
-              {loaded.file === null ? (
-                <QuarantineItems attempt={loaded} />
-              ) : (
-                <Tabs
-                  label="Rows of the file"
-                  tabs={tabs.map((each) => ({ ...each, label: tabLabel(each.id, loaded) }))}
-                  selectedId={tab}
-                  routerOptions={keep}
-                >
-                  {tab === "set-aside" ? (
-                    <SetAsideRows rows={loaded.setAside} />
-                  ) : (
-                    <QuarantineItems attempt={loaded} />
-                  )}
-                </Tabs>
-              )}
+              <Tabs
+                label={loaded.file === null ? "Rows of the message" : "Rows of the file"}
+                tabs={tabs
+                  .filter((each) => loaded.file !== null || each.id !== "set-aside")
+                  .map((each) => ({ ...each, label: tabLabel(each.id, loaded) }))}
+                selectedId={tab === "set-aside" && loaded.file === null ? "rows" : tab}
+                routerOptions={keep}
+              >
+                <TabContent tab={tab} attempt={loaded} />
+              </Tabs>
             </>
           )
         }
@@ -128,39 +125,78 @@ function DuplicateOutcome({ attempt }: { attempt: ImportAttemptDetail }) {
   );
 }
 
-/** A file attempt's rows: those needing a decision, and those listed only (F9, F17). */
+/**
+ * The attempt's rows: every row with what happened to it, those needing a decision, and for
+ * a file those listed only (F9, F17).
+ */
 const TABS = [
+  { id: "rows", label: "Rows" },
   { id: "quarantine", label: "Quarantined" },
   { id: "set-aside", label: "Set aside" },
 ] as const;
 
-function tabLabel(id: (typeof TABS)[number]["id"], attempt: ImportAttemptDetail): string {
-  return id === "set-aside"
-    ? `Set aside (${attempt.setAside.length})`
-    : `Quarantined (${attempt.rowsQuarantined})`;
+type TabId = (typeof TABS)[number]["id"];
+
+function tabLabel(id: TabId, attempt: ImportAttemptDetail): string {
+  switch (id) {
+    case "set-aside":
+      return `Set aside (${attempt.setAside.length})`;
+    case "quarantine":
+      return `Quarantined (${attempt.rowsQuarantined})`;
+    default:
+      return `Rows (${attempt.rows.length})`;
+  }
+}
+
+/** The selected tab; a message has no Set aside tab, so its address shows the rows. */
+function TabContent({ tab, attempt }: { tab: TabId; attempt: ImportAttemptDetail }) {
+  if (tab === "quarantine") return <QuarantineItems attempt={attempt} />;
+  if (tab === "set-aside" && attempt.file !== null) return <SetAsideRows rows={attempt.setAside} />;
+  return <ImportRows attempt={attempt} />;
+}
+
+/**
+ * A count that opens the rows it counts on the Rows or Set aside tab, keeping the list the
+ * page was opened from; a zero count, or one of rows not listed, is plain text.
+ */
+function countFact(label: string, count: number, to: string | null, keep: NavigateOptions) {
+  if (count === 0 || to === null) return { label, value: String(count) };
+  return {
+    label,
+    value: (
+      <Link to={to} state={keep.state} aria-label={`Show ${label.toLowerCase()}: ${count}`}>
+        {count}
+      </Link>
+    ),
+  };
 }
 
 /** The attempt's counts; a file attempt adds the rows it counted or kept without a result. */
-function outcomeFacts(attempt: ImportAttemptDetail) {
+function outcomeFacts(attempt: ImportAttemptDetail, keep: NavigateOptions) {
+  const id = attempt.importAttemptId;
+  const listed = attempt.rows.length > 0;
+  const rows = (outcome?: Parameters<typeof importRowsPath>[1]) =>
+    listed ? importRowsPath(id, outcome) : null;
   const facts = [
     {
       label: attempt.file === null ? "Message failure" : "File failure",
       value: failureText(attempt.failureCode),
     },
     ...failureFixFacts(attempt),
-    { label: "Rows", value: String(attempt.rowsTotal) },
-    { label: "New results", value: String(attempt.rowsNew) },
-    { label: "Duplicates", value: String(attempt.rowsDuplicate) },
-    { label: "Reprocessed", value: String(attempt.rowsReprocessed) },
-    { label: "QC rows", value: String(attempt.rowsQc) },
-    { label: "Quarantined", value: String(attempt.rowsQuarantined) },
+    countFact("Rows", attempt.rowsTotal, rows(), keep),
+    countFact("New results", attempt.rowsNew, rows("new"), keep),
+    countFact("Duplicates", attempt.rowsDuplicate, rows("duplicate"), keep),
+    countFact("Reprocessed", attempt.rowsReprocessed, rows("reprocessed"), keep),
+    countFact("QC rows", attempt.rowsQc, rows("qc"), keep),
+    countFact("Quarantined", attempt.rowsQuarantined, rows("quarantined"), keep),
   ];
   if (attempt.file === null) return facts;
+  const setAside = `${importAttemptPath(id)}/set-aside`;
   return [
     ...facts,
-    { label: "Not results", value: String(attempt.rowsNotResult) },
-    { label: "Set aside", value: String(attempt.rowsSetAside) },
-    { label: "Measured, not ordered (kept)", value: String(attempt.rowsRetained) },
+    countFact("Not results", attempt.rowsNotResult, null, keep),
+    countFact("Set aside", attempt.rowsSetAside, setAside, keep),
+    countFact("Measured, not ordered (kept)", attempt.rowsRetained, rows("retained"), keep),
   ];
 }
 

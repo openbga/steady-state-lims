@@ -13,8 +13,8 @@ import styles from "./receiving.module.css";
 type Decided = Exclude<SpecimenAcceptance, "received">;
 
 /** Bench › Worklist and Bench › Runs (`app/navigation.ts`). */
-const WORKLIST_PATH = "/bench/worklist";
-const RUNS_PATH = "/bench/runs";
+export const WORKLIST_PATH = "/bench/worklist";
+export const RUNS_PATH = "/bench/runs";
 
 /**
  * What a recorded decision means for the material. Acceptance finishes receipt, but it is not
@@ -31,7 +31,7 @@ const OUTCOMES: Record<Decided, { tone: "success" | "hold" | "info"; title: stri
   rejected: { tone: "info", title: "Receipt decision recorded: rejected." },
 };
 
-function outcomeText(acceptance: Decided, material: string): string {
+export function outcomeText(acceptance: Decided, material: string): string {
   if (acceptance === "held") return "Held specimens need review under laboratory policy.";
   if (acceptance === "rejected") {
     return "The specimen will not be tested. Its containers and the decision are kept.";
@@ -45,15 +45,13 @@ interface ReceiptOutcomeProps {
   decision?: ReceiptDecisionView | undefined;
   /** How the text names the material, such as "C00000001" or "its containers". */
   material: string;
-  /** Also offers Runs, where work already on a run continues. */
-  withRuns?: boolean;
 }
 
 /**
- * A recorded receipt decision and where work goes next. The Worklist and Runs buttons are
- * offered to people who may open them (`perform_analysis`).
+ * A recorded receipt decision and where work goes next. The Worklist button is offered
+ * to people who may open it (`perform_analysis`).
  */
-export function ReceiptOutcome({ acceptance, decision, material, withRuns }: ReceiptOutcomeProps) {
+export function ReceiptOutcome({ acceptance, decision, material }: ReceiptOutcomeProps) {
   const navigate = useNavigate();
   const person = usePersonText();
   const bench = useHasCapability("perform_analysis");
@@ -77,7 +75,6 @@ export function ReceiptOutcome({ acceptance, decision, material, withRuns }: Rec
             <Button variant="primary" onPress={() => navigate(WORKLIST_PATH)}>
               Go to Worklist
             </Button>
-            {withRuns && <Button onPress={() => navigate(RUNS_PATH)}>Runs</Button>}
           </Toolbar>
         </div>
       )}

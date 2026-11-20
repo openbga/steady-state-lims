@@ -153,6 +153,11 @@ impl Pdfs {
     }
 
     pub(super) async fn rows(&self) -> Vec<PartnerMessageRow> {
+        self.rows_of(None).await
+    }
+
+    /// The log's rows, of one report only when `report_id` names it (#4725).
+    async fn rows_of(&self, report_id: Option<String>) -> Vec<PartnerMessageRow> {
         self.bench.sign_in(Staff::Desk(Role::Admin)).await;
         let input = ListPartnerMessages {
             since: None,
@@ -161,6 +166,7 @@ impl Pdfs {
             search: None,
             hide_tests: false,
             row_ids: Vec::new(),
+            report_id,
         };
         let mut rows = self
             .bench
@@ -211,7 +217,7 @@ async fn a_report_pdf_is_written_and_its_correction_and_withdrawal_follow() {
     assert_eq!(rows[1].source_label.as_deref(), Some(number.as_str()));
     assert!(rows.iter().all(|row| row.outcome_unknown));
 
-    withdraw(&pdfs).await;
+    withdraw(&pdfs, 2).await;
     pdfs.deliver().await;
     assert!(pdfs.files().contains(&format!("{number}_r2-withdrawn.pdf")));
     let rows = pdfs.rows().await;
@@ -221,6 +227,28 @@ async fn a_report_pdf_is_written_and_its_correction_and_withdrawal_follow() {
         .unwrap();
     assert_eq!(notice.reason, Some(DeliveryReason::FollowUp));
     assert_eq!(notice.transport, TransportOutcome::Written);
+}
+
+/// #4725: a report's Delivery tab lists only that report's messages, its withdrawal notice
+/// included.
+#[tokio::test]
+async fn the_log_lists_one_reports_messages() {
+    let pdfs = Pdfs::start().await;
+    pdfs.release(None).await;
+    pdfs.deliver().await;
+    withdraw(&pdfs, 1).await;
+    let report = pdfs.report().await;
+    let rows = pdfs.rows_of(Some(report.report_id.to_string())).await;
+    assert_eq!(rows.len(), 2);
+    assert!(
+        rows.iter()
+            .all(|row| row.source_label.as_deref() == Some(report.report_number.as_str()))
+    );
+    assert!(
+        pdfs.rows_of(Some("SYN-NO-REPORT".to_owned()))
+            .await
+            .is_empty()
+    );
 }
 
 /// Changes the connection's rule so the report's client no longer matches.
@@ -256,14 +284,14 @@ async fn update(pdfs: &Pdfs, settings: PartnerConnectionSettings, reason: &str) 
         .unwrap();
 }
 
-async fn withdraw(pdfs: &Pdfs) {
+async fn withdraw(pdfs: &Pdfs, expected_revision_no: i64) {
     let report = pdfs.report().await;
     pdfs.bench
         .lab()
         .engine()
         .withdraw_report(WithdrawReportInput {
             report_id: report.report_id,
-            expected_revision_no: 2,
+            expected_revision_no,
             reason: "Synthetic wrong patient".to_owned(),
             password: secret(NEW_PASSWORD).into(),
         })

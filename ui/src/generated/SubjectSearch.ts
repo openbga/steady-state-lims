@@ -7,8 +7,9 @@ import type { IdentifierInput } from "./IdentifierInput";
 export type SubjectSearch = { 
 /**
  * Literal prefix of a family name, given names, full name (Given Family,
- * Family Given or Family, Given), or active identifier value. Names ignore
- * case and Unicode composition; identifier values are case-sensitive.
+ * Family Given or Family, Given), or active identifier value, or an exact
+ * birth date (`YYYY-MM-DD`). Names ignore case and Unicode composition;
+ * identifier values are case-sensitive.
  */
 query?: string | null, 
 /**

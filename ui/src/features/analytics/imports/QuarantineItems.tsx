@@ -14,18 +14,11 @@ import { quarantineReasonText, quarantineStatus } from "../resultLabels";
 import { QuarantinePanel } from "./QuarantinePanel";
 import { ResolveQuarantineDialog } from "./ResolveQuarantineDialog";
 import { RetryImportDialog } from "./RetryImportDialog";
+import { receivedColumns } from "./receivedColumns";
 
 /** Source text is shown as plain text, exactly as received. */
 const COLUMNS: readonly DataGridColumn<QuarantineItemView>[] = [
-  {
-    id: "record",
-    header: "Record",
-    identifier: true,
-    cell: (row) => <span className={styles.code}>{row.recordPath}</span>,
-    width: 120,
-  },
-  { id: "sample", header: "Sample label", cell: (row) => row.sampleLabel ?? "—", width: 140 },
-  { id: "code", header: "Test code", cell: (row) => row.testCode ?? "—", width: 110 },
+  ...receivedColumns<QuarantineItemView>(),
   { id: "value", header: "Value as received", cell: receivedValueText, width: 180, wrap: true },
   { id: "reason", header: "Why quarantined", cell: (row) => quarantineReasonText(row.reason) },
   {

@@ -165,6 +165,7 @@ const APP_COMMANDS: &[&str] = &[
     "register_order",
     "get_order",
     "list_orders",
+    "find_order_patients",
     "amend_order_evidence",
     "accept_order",
     "reject_order",

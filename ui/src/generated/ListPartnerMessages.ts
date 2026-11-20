@@ -22,4 +22,9 @@ hideTests?: boolean,
  * Only these rows, by their delivery's ID, or the message's ID for a row without a
  * delivery: the rows a person selected for Export. Every row when empty.
  */
-rowIds?: Array<string>, };
+rowIds?: Array<string>, 
+/**
+ * Only the outgoing messages of this report, its revisions and withdrawal notice: a
+ * report's Delivery tab (#4725). Received orders are left out.
+ */
+reportId?: string, };
