@@ -10,6 +10,7 @@ pub(crate) mod destinations;
 pub(crate) mod incidents;
 pub(crate) mod layouts;
 pub(crate) mod outbound;
+pub(crate) mod overview;
 pub(crate) mod queues;
 pub(crate) mod report;
 pub(crate) mod workspace;

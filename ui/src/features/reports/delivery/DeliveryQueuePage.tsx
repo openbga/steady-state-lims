@@ -120,7 +120,6 @@ export function DeliveryQueuePage() {
                 <ObligationGrid
                   obligations={rows}
                   rowActions={actions.rowActions}
-                  withReport
                   openId={record.openId}
                   onOrderChange={record.followOrder}
                   onOpen={(row, order) => record.open(row.obligationId, order)}

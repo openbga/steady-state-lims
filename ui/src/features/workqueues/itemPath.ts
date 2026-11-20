@@ -88,7 +88,7 @@ const TARGETS: Readonly<Record<WorkItemKind, (item: ItemRef) => ItemTarget>> = {
           : null;
     return {
       recordId: reportId,
-      path: `/reports/${encodeURIComponent(reportId)}${query ? `?${query}` : ""}`,
+      path: `/reports/${encodeURIComponent(reportId)}/incidents${query ? `?${query}` : ""}`,
     };
   },
   billing_derivation: page("/billing/derivations"),

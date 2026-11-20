@@ -7,25 +7,12 @@ import { renderRoutes } from "@/lib/test/router";
 import { expectNextKeepsFocus, renderFromList } from "@/lib/test/sequence";
 import type { RevisionDetail } from "../contract";
 import { revisionPath } from "../paths";
-import { CONTENT, REPORT, REVISION, REVISION_ID, sessionWith } from "../testData";
+import { REPORT, REVISION, REVISION_DETAIL, REVISION_ID, sessionWith } from "../testData";
 import { RevisionPage } from "./RevisionPage";
 
 const DETAIL: RevisionDetail = {
-  reportId: REPORT.reportId,
-  reportNumber: "A26000001-URN",
+  ...REVISION_DETAIL,
   summary: { ...REVISION, availability: "superseded" },
-  content: CONTENT,
-  provenance: {
-    layoutName: null,
-    templateId: "tox-report",
-    templateVersion: 2,
-    templateSha256: "b2".repeat(32),
-    rendererVersion: "synthetic-renderer 1.0",
-    contentSha256: "c3".repeat(32),
-    dataSha256: "d4".repeat(32),
-    artifactSha256: REVISION.artifactSha256,
-    fonts: ["Synthetic Sans"],
-  },
 };
 
 const PATH = `/reports/revisions/${REVISION_ID}`;

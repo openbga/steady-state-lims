@@ -11,6 +11,8 @@ export interface ActionItem {
   onAction: () => void;
   /** `danger` for destructive actions: red text, never a red fill. */
   variant?: "danger";
+  /** Starts a group below a line, such as a destructive action kept apart from the rest. */
+  isSeparated?: boolean;
 }
 
 /**
@@ -26,7 +28,13 @@ export function ActionMenu({ items }: { items: readonly ActionItem[] }) {
             id={item.id}
             textValue={item.label}
             onAction={item.onAction}
-            className={item.variant === "danger" ? `${styles.item} ${styles.danger}` : styles.item}
+            className={[
+              styles.item,
+              item.variant === "danger" && styles.danger,
+              item.isSeparated && styles.separated,
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
             {item.label}
           </MenuItem>
