@@ -62,6 +62,14 @@ If the download or installation fails, the running version is unchanged. A faile
 installation is recorded in the audit trail. A downloaded package is discarded when the app
 restarts.
 
+On Windows, the installer stops if the computer has more than one installation under an
+earlier product name (Vibe Tox LIS, OpenBGA Tox or Steady State LIMS) in different
+folders. Its message lists each installation with its version and folder and names the
+one to keep. Remove the others in Windows Settings › Apps › Installed apps, leaving
+**Delete the application data** unchecked so the laboratory data stays, then start the
+app that remains and update again. Nothing was installed or removed by the stopped
+installer.
+
 ## Before approving
 
 1. Obtain the release package through the laboratory's approved route. Review the change summary,

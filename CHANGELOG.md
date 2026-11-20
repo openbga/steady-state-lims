@@ -7,7 +7,7 @@ What changed in OpenBGA Toxicology LIMS, newest release first. Changes not yet i
 release are listed under Unreleased. Within a release, changes are ordered by impact, then
 newest first. The application shows the same list under **What's new**.
 
-## Unreleased (2026-11-12 to 2026-11-18)
+## Unreleased (2026-11-12 to 2026-11-20)
 
 ### High impact
 
@@ -22,6 +22,14 @@ newest first. The application shows the same list under **What's new**.
   - The documentation now describes AGPLv3 section 13 for network use, and the notice states that the product name, OpenBGA and their logos are trademarks of BGASoft Inc. that the license does not grant (section 7(e)).
 
 ### Medium impact
+
+- **Changed:** The Windows installer lists duplicate earlier installations (2026-11-20)
+
+  When a Windows computer has more than one installation under an earlier product name (Vibe Tox LIS, OpenBGA Tox or Steady State LIMS) in different folders, the installer still stops, but its message now lists each installation with its version and folder, names the one to keep and tells you to remove the others in Windows Settings › Apps › Installed apps. Leave **Delete the application data** unchecked when uninstalling; the laboratory data is then not removed. The installer does not uninstall anything itself.
+
+  Technical notes:
+
+  The NSIS pre-install hook collects every validated former registration and keeps the newest version (the most recent product name on equal versions). The downgrade check now runs once against the kept installation.
 
 - **Added:** A summary of the report on the report page (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
 
