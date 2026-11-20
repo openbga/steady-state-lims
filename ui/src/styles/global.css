@@ -100,3 +100,9 @@ select {
 a {
   color: var(--color-accent);
 }
+
+/* The card being worked in (`lib/activeCards.ts`) has the accent border. */
+[data-active-cards] section[data-active] {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}

@@ -1,5 +1,216 @@
+/* The step bar on its own line, then the form and the summary side by side. */
 .entry {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  align-items: flex-start;
+}
+
+.main {
+  flex: 1 1 36rem;
+  min-width: 0;
   container-type: inline-size;
+}
+
+.stepFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Tighter cards, so step 1 fits on one screen; the card being filled in gets the accent border. */
+.stepFields > section {
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.stepFields[hidden] {
+  display: none;
+}
+
+.steps {
+  display: grid;
+  flex-basis: 100%;
+  gap: var(--space-2);
+}
+
+/* Requisition on the left, Tests on the right, a line between them, as on the requisition. */
+.stepBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.step:not(:last-child) {
+  flex: 1;
+}
+
+.step:not(:last-child)::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  margin-inline-start: var(--space-2);
+  background: var(--color-border);
+}
+
+.stepNumber {
+  display: grid;
+  place-items: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.step[aria-current="step"] {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.step[aria-current="step"] .stepNumber {
+  border-color: var(--color-selected);
+  background: var(--color-selected);
+  color: var(--color-on-selected);
+}
+
+/* A finished step: green label, and a thicker green line on to the next step. */
+.step[data-done] {
+  color: var(--tone-success-text);
+}
+
+.step[data-done]:not(:last-child)::after {
+  height: 2px;
+  background: var(--tone-success-border);
+}
+
+.step[data-done] .stepNumber {
+  border-color: var(--tone-success-border);
+  color: var(--tone-success-text);
+}
+
+.stepTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-muted);
+}
+
+.summary {
+  position: sticky;
+  top: var(--space-4);
+  flex: 0 1 16rem;
+}
+
+.summaryList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summaryList li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  border-block-end: 1px solid var(--color-border);
+}
+
+.summaryList svg {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-text-muted);
+}
+
+.summaryList li[data-done] svg {
+  color: var(--tone-success-text);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Dashed pills: optional parts to open, not actions on the order. */
+.chips > button[data-variant] {
+  border: 1px dashed var(--color-border-control);
+  border-radius: var(--radius-full);
+}
+
+/*
+ * The sticky action row (Form's last element) keeps the section cards' inner padding on both
+ * sides: the tip or Back lines up with their content, and the last button keeps off the edge.
+ */
+.main form[data-sticky-actions] > div:last-child {
+  padding-inline: calc(var(--space-4) + 1px);
+}
+
+/* Pushes what follows to the end of the action row: the tip, or Back, stays at the start. */
+.actionsStart {
+  margin: 0 auto 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  align-self: center;
+}
+
+/* Client, Client location and Ordering practitioner side by side. */
+.threeColumns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/*
+ * Received as, Billing responsibility and Template use: each column as wide as its choices
+ * need, the rest of the row shared out, so the row has no empty end.
+ */
+.sourceChoices {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* As supplied, then Document reference taking the rest of the row. */
+.authority {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  align-items: flex-start;
+}
+
+.authority > :last-child {
+  flex: 1 1 16rem;
+}
+
+.optional {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+}
+
+.billingNote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .fields {
@@ -20,22 +231,58 @@
   align-items: start;
 }
 
+/* One chosen test's row: name, Sequence role, Reflex testing and ×, centred on one line. */
 .selectedFields {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
-  gap: var(--space-4);
-  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  align-items: center;
+}
+
+/* Remove sits at the end of the test's row. */
+.selectedFields > :last-child {
+  align-self: center;
+  margin-inline-start: auto;
+}
+
+/* A chosen test's name, at the start of its row: bold name and its code, up to two lines. */
+.testName {
+  flex: 0 0 18rem;
+  /* With the row gap, a wide space before Sequence role so the fields read apart from it. */
+  margin: 0 var(--space-10) 0 0;
+  overflow-wrap: anywhere;
 }
 
 .references {
-  padding-block-start: var(--space-3);
-  border-block-start: 1px solid var(--color-border);
+  padding: 0 var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
 }
 
+.references[open] {
+  padding-block-end: var(--space-3);
+}
+
+/* Our own arrow, so it keeps a space before the text in every engine. */
 .references summary {
   cursor: pointer;
   font-weight: var(--font-weight-semibold);
   padding-block: var(--space-2);
+  list-style: none;
+}
+
+.references summary::-webkit-details-marker {
+  display: none;
+}
+
+.references summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-inline-end: var(--space-2);
+}
+
+.references[open] summary::before {
+  content: "▾";
 }
 
 .references summary:focus-visible {
@@ -43,10 +290,46 @@
   outline-offset: var(--space-1);
 }
 
-@container (max-width: 40rem) {
-  .fields,
-  .catalogControls,
-  .selectedFields {
+@container (max-width: 60rem) {
+  .sourceChoices {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+@container (max-width: 40rem) {
+  .testName {
+    flex: 1 1 100%;
+    margin: 0;
+  }
+
+  .fields,
+  .threeColumns,
+  .catalogControls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* A test's reflex scope, under its row: titled like the fields beside it, without a frame. */
+.reflexScope {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.reflexScope fieldset {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.reflexScope legend,
+.reflexTitle {
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.reflexTitle + .hint {
+  margin: 0;
 }

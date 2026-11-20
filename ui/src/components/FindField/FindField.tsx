@@ -23,6 +23,8 @@ interface FindFieldProps {
   isLabelHidden?: boolean;
   /** A wider field, for a placeholder that names many searched fields. */
   isWide?: boolean;
+  /** Focused when shown, for a step whose first action is to search. */
+  autoFocus?: boolean;
   /** The find text in effect, usually from `?q=` (`useFindParam`). */
   value: string;
   /** Called after a short pause in typing, and at once on Enter, Escape or clear. */
@@ -49,6 +51,7 @@ export function FindField({
   placeholder = label,
   isLabelHidden,
   isWide,
+  autoFocus,
   value,
   onChange,
   count,
@@ -71,6 +74,7 @@ export function FindField({
         }}
         onSubmit={pause.now}
         onClear={() => pause.now("")}
+        autoFocus={autoFocus}
         className={styles.field}
         data-wide={isWide || undefined}
       >

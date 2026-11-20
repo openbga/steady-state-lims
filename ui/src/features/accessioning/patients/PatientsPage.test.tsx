@@ -18,7 +18,8 @@ function renderPage(searchSubjects: (args: unknown) => unknown) {
   return renderRoutes([{ path: "/patients", element: <PatientsPage /> }], "/patients");
 }
 
-const find = () => screen.getByRole("searchbox", { name: "Find by name or identifier" });
+const find = () =>
+  screen.getByRole("searchbox", { name: "Find by name, birth date or identifier" });
 
 describe("PatientsPage (REQ-IDN-001)", { timeout: WALKTHROUGH_TIMEOUT_MS }, () => {
   beforeEach(mockGridLayout);

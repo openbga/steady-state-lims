@@ -97,13 +97,14 @@ pub use lis_orders::{
     AcceptOrderInput, AmendOrderEvidenceInput, AuthorityEvidenceInput, AuthorityEvidenceKind,
     BillingResponsibility, BillingReviewElement, CancellationView, ClarificationDeficiency,
     ClarificationHoldView, CreateBillingReviewItemInput, DecideCancellationInput,
-    DecideFollowOnInput, Decision, DiagnosisInput, EvidenceInput, GetOrderInput, ItemKind,
-    ListOrdersInput, ListStandingOrdersInput, MedicationInput, MedicationSource, OrderDetail,
-    OrderEvidenceId, OrderFilter, OrderId, OrderItemId, OrderItemInput, OrderStatus, OrderSummary,
-    PlaceClarificationHoldInput, PointOfCareResultInput, RecordTriggerNotMetInput,
-    ReflexAuthorization, RegisterOrderInput, RegisterStandingOrderInput, RejectOrderInput,
-    RequestCancellationInput, RequestFollowOnInput, ResolveClarificationHoldInput, SequenceRole,
-    SourceKind, StandingOrderId, StandingOrderView, TemplateUseInput, TriggerSource,
+    DecideFollowOnInput, Decision, DiagnosisInput, EvidenceInput, FindOrderPatientsInput,
+    GetOrderInput, ItemKind, ListOrdersInput, ListStandingOrdersInput, MedicationInput,
+    MedicationSource, OrderDetail, OrderEvidenceId, OrderFilter, OrderId, OrderItemId,
+    OrderItemInput, OrderPatientChoices, OrderStatus, OrderSummary, PlaceClarificationHoldInput,
+    PointOfCareResultInput, RecordTriggerNotMetInput, ReflexAuthorization, RegisterOrderInput,
+    RegisterStandingOrderInput, RejectOrderInput, RequestCancellationInput, RequestFollowOnInput,
+    ResolveClarificationHoldInput, SequenceRole, SourceKind, StandingOrderId, StandingOrderView,
+    TemplateUseInput, TriggerSource,
 };
 // orders: end
 // specimens: begin

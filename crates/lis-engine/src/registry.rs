@@ -170,6 +170,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     crate::commands::orders::REGISTER_ORDER,
     crate::commands::orders::GET_ORDER,
     crate::commands::orders::LIST_ORDERS,
+    crate::commands::order_patients::FIND_ORDER_PATIENTS,
     crate::commands::orders::AMEND_ORDER_EVIDENCE,
     crate::commands::orders::ACCEPT_ORDER,
     crate::commands::orders::REJECT_ORDER,

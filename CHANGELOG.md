@@ -7,9 +7,21 @@ What changed in OpenBGA Toxicology LIMS, newest release first. Changes not yet i
 release are listed under Unreleased. Within a release, changes are ordered by impact, then
 newest first. The application shows the same list under **What's new**.
 
-## Unreleased (2026-11-12 to 2026-11-18)
+## Unreleased (2026-11-12 to 2026-11-19)
 
 ### High impact
+
+- **Changed:** Choose the patient of a new order from one search box (2026-11-18)
+
+  **New order** now starts with **Who is the order for?**: one box finds patients by name, birth date or identifier as you type, and each row shows the birth date with the age, sex, identifiers and the patient's last order. Click a row, or use the arrow keys and Enter, to go on to the order details. The patients you entered orders for recently are one click away, **Register patient** sits right under the results, and the exact searches are folded under **Exact search**. The patient find on **Patients** and the **Find** on **Orders** also match an exact birth date (YYYY-MM-DD).
+
+  Technical notes:
+
+  New audited query `find_order_patients` (order-entry authority; audit action `order.find_patients`, recording only whether find text was used and the counts). No database migration.
+
+- **Changed:** Enter a new order in two steps that follow the requisition (2026-11-18)
+
+  The **New order** form is split into two steps. **Requisition** holds the ordering source and the authority to test, with one **Next: Tests**; **Tests** holds the tests, with sequence role and reflex testing on one row and a link to apply the first test's choices to all, and small buttons with counts for diagnoses, medications, point-of-care results, standing authority and order billing. **Back: Requisition** keeps everything entered, an **Order summary** on the right shows what is still missing, and **Save order** works once it is complete. An empty order billing is a warning, not a block; **Add order billing** opens it on the saved order. Short choices such as **Received as**, **Billing responsibility** and **As supplied** are rows of buttons, with a **?** that explains the field, and **First-line test** now reads **First-line (screen)**. **Change patient** is a link in the patient box, and the trail at the top of New order, Receive specimens and Finish receipt shows its steps as pills: done in green with a check, the current one in blue. Tests are found with one search at the top of **Tests**, and each chosen test is a row with its name, its choices and **×**.
 
 - **Changed:** The project is licensed under AGPL-3.0-only (2026-11-17, [#112](https://github.com/openbga/toxicology-lims/pull/112))
 
@@ -22,6 +34,12 @@ newest first. The application shows the same list under **What's new**.
   - The documentation now describes AGPLv3 section 13 for network use, and the notice states that the product name, OpenBGA and their logos are trademarks of BGASoft Inc. that the license does not grant (section 7(e)).
 
 ### Medium impact
+
+- **Changed:** Receive specimens is simpler, and New order goes straight to it (2026-11-19)
+
+  In **New order**, **Accept order and receive specimens** saves the order, accepts it and opens **Receive specimens** on the same page. Pressing the button is the explicit acceptance; an order that cannot be accepted, or whose billing was asked for next, opens on its page as before.
+
+  **Receive specimens** now has one summary line (patient, order, client, ordering practitioner) and three numbered boxes. **Tests for this material** chooses the only waiting test for you. In **Collection**, the date and time start empty; **Time not on the requisition** and **Date not on the requisition** replace the old dropdown, and the laboratory's time zone is one press away. **Specimens received** has one row per specimen, filled in from the tests' specimen types, with mL to start and **Measured**, **Estimated** or **Unknown** for the volume. **Next** and **Order** sit beside the boxes. **Receive specimens** works once the line beside it says nothing is missing.
 
 - **Added:** A report's Delivery tab lists its messages sent through Interfaces (2026-11-18)
 
@@ -115,9 +133,17 @@ newest first. The application shows the same list under **What's new**.
 
 ### Low impact
 
+- **Changed:** Finish receiving shows each specimen's next step in one box (2026-11-19)
+
+  The accession page is now titled **Finish receiving** with the accession number. The patient strip also names the order (a link), the client and the tests. Each specimen card shows its status, the receipt progress and one box with the next step: the label to scan with **Record receipt decision** and **Print labels**, or, once decided, where work continues. **Collection** and **Order billing** move to a side column, where **Collection history** and **Open order billing** open in a dialog. **Check label status** is replaced by **Updated** with the time the page was read and **Refresh**, as on the order page.
+
 - **Changed:** Report availability has its own color (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
 
   **Availability** shows **Current** in green, **Superseded** in gray and **Withdrawn** in red, so a withdrawn report stands out in the list and on the report and revision pages.
+
+- **Changed:** Searchable form fields can be emptied with a clear button (2026-11-18)
+
+  A searchable choice in a form, such as **Client** or **Ordering practitioner** in **New order**, shows a clear button while it holds a value, like the other dropdowns in forms.
 
 - **Added:** Clear a chosen value in form dropdowns (2026-11-17, [#110](https://github.com/openbga/toxicology-lims/pull/110))
 
