@@ -110,7 +110,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     expect(receive()).toHaveProperty("disabled", true);
     expect(
       screen.getByText(
-        "Fill in the required fields: collection date, time, time zone and containers.",
+        "Fill in the required fields: collection date, time, time zone, containers and Volume is.",
       ),
     ).toBeTruthy();
     expect(screen.getByText("not set")).toBeTruthy();
@@ -158,6 +158,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     await user.click(screen.getByRole("button", { name: "Use a UTC offset" }));
     await typeInto(user, /^UTC offset/, "-05:00");
     await typeInto(user, /^Containers/, "1");
+    await user.click(screen.getByRole("radio", { name: /Unknown/ }));
     await user.click(receive());
     await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
     expect(create).toHaveBeenCalledWith({
@@ -181,6 +182,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     expect(screen.queryByText(/^Time zone:/)).toBeNull();
     await typeInto(user, /^Collection date/, "2026-10-12");
     await typeInto(user, /^Containers/, "1");
+    await user.click(screen.getByRole("radio", { name: /Unknown/ }));
     await user.click(receive());
     await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
     expect(create).toHaveBeenCalledWith({
@@ -203,6 +205,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     expect(noTime).toHaveProperty("disabled", true);
     expect(screen.getByText(/billing for this order will be held/)).toBeTruthy();
     await typeInto(user, /^Containers/, "1");
+    await user.click(screen.getByRole("radio", { name: /Unknown/ }));
     await user.click(receive());
     await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`);
     expect(create).toHaveBeenCalledWith({
@@ -214,15 +217,21 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     });
   });
 
-  it("asks whether a typed volume was measured or estimated (REQ-SPC-003)", async () => {
+  it("needs the volume when measured, and empties it when unknown (REQ-SPC-003)", async () => {
     const { user } = renderPage();
     await user.click(await screen.findByRole("checkbox", { name: "Date not on the requisition" }));
     await typeInto(user, /^Containers/, "1");
-    await typeInto(user, /^Volume$/, "30");
-    expect(screen.getByText("Fill in the required fields: Measured or Estimated.")).toBeTruthy();
-    expect(receive()).toHaveProperty("disabled", true);
     await user.click(screen.getByRole("radio", { name: /Measured/ }));
+    const volume = screen.getByRole("textbox", { name: /^Volume/ });
+    expect(volume.getAttribute("aria-required")).toBe("true");
+    expect(screen.getByText("Fill in the required fields: volume.")).toBeTruthy();
+    expect(receive()).toHaveProperty("disabled", true);
+    await typeInto(user, /^Volume/, "30");
     expect(receive()).toHaveProperty("disabled", false);
+    await user.click(screen.getByRole("radio", { name: /Unknown/ }));
+    expect(volume).toHaveProperty("disabled", true);
+    expect(volume).toHaveProperty("value", "");
+    expect(screen.getByText("All required fields are filled in.")).toBeTruthy();
   });
 
   it("lists several waiting tests unchosen, and a row for each specimen type they need", async () => {
@@ -233,7 +242,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     expect(screen.queryByText(/Selected: the only test/)).toBeNull();
     expect(
       screen.getByText(
-        "Fill in the required fields: a test, collection date, time, time zone, specimen type and containers.",
+        "Fill in the required fields: a test, collection date, time, time zone, specimen type, containers and Volume is.",
       ),
     ).toBeTruthy();
     await user.click(screenTest);
@@ -318,6 +327,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     });
     await user.click(await screen.findByRole("checkbox", { name: "Date not on the requisition" }));
     await typeInto(user, /^Containers/, "1");
+    await user.click(screen.getByRole("radio", { name: /Unknown/ }));
     await user.click(receive());
     expect(await screen.findByText(`Navigated to /accessions/${ACCESSION_ID}`)).toBeTruthy();
     expect(screen.queryByRole("alertdialog")).toBeNull();
@@ -353,6 +363,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
         await screen.findByRole("checkbox", { name: "Date not on the requisition" }),
       );
       await typeInto(user, /^Containers/, "1");
+      await user.click(screen.getByRole("radio", { name: /Unknown/ }));
       await user.click(receive());
       await screen.findByText("The saved order could not be refreshed.");
       expect(screen.getByRole("textbox", { name: /^Containers/ })).toHaveProperty("value", "1");
@@ -370,6 +381,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     await user.click(await screen.findByRole("checkbox", { name: "Time not on the requisition" }));
     await typeInto(user, /^Collection date/, "12/10/2026");
     await typeInto(user, /^Containers/, "0");
+    await user.click(screen.getByRole("radio", { name: /Unknown/ }));
     await user.click(receive());
     expect(await screen.findByText("Enter the date as YYYY-MM-DD.")).toBeTruthy();
     expect(screen.getByText("Enter a whole number of 1 or more.")).toBeTruthy();
@@ -383,6 +395,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     });
     await user.click(await screen.findByRole("checkbox", { name: "Date not on the requisition" }));
     await typeInto(user, /^Containers/, "1");
+    await user.click(screen.getByRole("radio", { name: /Unknown/ }));
     await user.click(receive());
     expect(await screen.findByText("A test on this order has an open hold.")).toBeTruthy();
     expect(screen.getByText(/corr-test-0001/)).toBeTruthy();
@@ -403,6 +416,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     await screen.findByRole("checkbox", { name: /SYN-SCR/ });
     await enterCollection(user, "Unknown/Zone");
     await typeInto(user, /^Containers/, "1");
+    await user.click(screen.getByRole("radio", { name: /Unknown/ }));
     await user.click(receive());
     expect(await screen.findByText(message)).toBeTruthy();
     const field = screen.getByRole("textbox", { name: /^Time zone/ });

@@ -21,8 +21,10 @@ export function missingEntries(values: AccessionFormValues): string[] {
     missing.push("specimen type");
   }
   if (specimens.some((specimen) => !filled(specimen.containerCount))) missing.push("containers");
-  if (specimens.some((specimen) => filled(specimen.volume) && specimen.volumeKind === null)) {
-    missing.push("Measured or Estimated");
+  if (specimens.some((specimen) => specimen.volumeKind === null)) missing.push("Volume is");
+  const measured = (how: string | null) => how === "measured" || how === "estimated";
+  if (specimens.some((specimen) => measured(specimen.volumeKind) && !filled(specimen.volume))) {
+    missing.push("volume");
   }
   return missing;
 }
