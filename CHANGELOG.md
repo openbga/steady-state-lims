@@ -23,6 +23,10 @@ newest first. The application shows the same list under **What's new**.
 
 ### Medium impact
 
+- **Changed:** Clearer outcomes for incoming order messages (2026-11-20)
+
+  In Interfaces › Logs a rejected order message names its reason, such as **Rejected – unknown test** or **Rejected – sender not accepted**, and shows a neutral **Resolved – rejected** once someone resolves it; resolved rejections no longer count under **Errors** on Connections. **Record** shows the placer order number for duplicates too, and opens the order that an **Order created** message made.
+
 - **Fixed:** Reject an incoming order held for review (2026-11-20)
 
   **Reject…** on an incoming order message that is **Held for review** in Interfaces › Logs now rejects it with the reason entered, as it does for one waiting for its patient. The row shows who rejected it and why, and no order is made from it.

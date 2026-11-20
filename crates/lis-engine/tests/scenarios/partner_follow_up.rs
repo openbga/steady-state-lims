@@ -216,6 +216,42 @@ async fn a_person_rejects_a_held_message_and_a_waiting_one() {
     );
 }
 
+/// #4887: a duplicate names the placer order number of the message it repeats, and a refused
+/// message counts under the connection's Errors only until a person resolves it.
+#[tokio::test]
+async fn a_duplicate_names_its_order_and_a_resolved_rejection_leaves_errors() {
+    let orders = Orders::start().await;
+    let input = orders.input.path();
+    fs::write(input.join("clinic_0001.hl7"), oml(SENDER, "MSG-1")).unwrap();
+    fs::write(input.join("other.hl7"), oml("OTHER-FAC", "MSG-9")).unwrap();
+    orders.read().await;
+    fs::write(input.join("clinic_0001_again.hl7"), oml(SENDER, "MSG-1")).unwrap();
+    orders.read().await;
+    let rows = log_rows(&orders).await;
+    let duplicate = row(&rows, ReceivedState::Duplicate);
+    assert_eq!(duplicate.source_label.as_deref(), Some("ORD-0001"));
+    let refused = row(&rows, ReceivedState::Rejected);
+    assert_eq!(refused.error_code.as_deref(), Some("not_accepted_sender"));
+
+    let engine = orders.bench.lab().engine();
+    assert_eq!(errors(&orders).await, 1);
+    engine
+        .resolve_partner_rejection(ResolvePartnerRejection {
+            received_id: Some(refused.message_id.cast()),
+            delivery_id: None,
+            note: "Synthetic: the clinic sent it again from its registered facility".to_owned(),
+        })
+        .await
+        .unwrap();
+    assert_eq!(errors(&orders).await, 0);
+}
+
+/// The connection's Errors column.
+async fn errors(orders: &Orders) -> u32 {
+    let engine = orders.bench.lab().engine();
+    engine.list_partner_connections().await.unwrap()[0].failing
+}
+
 async fn log_rows(orders: &Orders) -> Vec<PartnerMessageRow> {
     orders.bench.sign_in(Staff::Desk(Role::Admin)).await;
     let input = ListPartnerMessages {
