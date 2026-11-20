@@ -18,6 +18,7 @@ use super::model::{
 use super::received::ReceivedState;
 use super::received_queries::received_rows;
 use super::rejections::{RESOLUTION_COLUMNS, RejectionResolution, resolution_at};
+use crate::folder_path::shown_path;
 
 /// Rows the log returns at most, newest first.
 const LOG_LIMIT: usize = 500;
@@ -296,7 +297,7 @@ fn delivery_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<PartnerMessageRow> 
         superseded: state == DeliveryState::Superseded,
         next_attempt_at: row.get(12)?,
         error_code,
-        written_path: row.get(14)?,
+        written_path: shown_path(row.get(14)?),
         ack_code,
         ack_text: row.get(21)?,
         awaiting_ack,

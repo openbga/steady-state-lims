@@ -10,6 +10,7 @@ use super::message_queries::{ConnectionRef, PartnerMessageRow, TransportOutcome,
 use super::model::{MessageSource, PartnerConnectionId, PartnerMessageType};
 use super::received::{PartnerReceivedId, ReceivedState};
 use super::rejections::{RESOLUTION_COLUMNS, resolution_at};
+use crate::folder_path::shown_path;
 
 /// Received messages, newest first, from `since`, of one connection or all. The record is
 /// the placer order number of every message read, a duplicate's from the one it repeats
@@ -68,7 +69,7 @@ pub(crate) fn received_rows(
             superseded: false,
             next_attempt_at: None,
             error_code: row.get(8)?,
-            written_path: row.get(9)?,
+            written_path: shown_path(row.get(9)?),
             ack_code: row.get(10)?,
             ack_text: None,
             awaiting_ack: false,

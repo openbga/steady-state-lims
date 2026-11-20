@@ -111,6 +111,14 @@ newest first. The application shows the same list under **What's new**.
 
 ### Low impact
 
+- **Fixed:** Plain folder paths and client names on connections (2026-11-20)
+
+  On Windows, folder paths on Connections, a connection's page and Logs no longer start with `\\?\`, also for folders chosen earlier. The **Partner** of an HL7 Orders connection shows the client's name instead of its code.
+
+  Technical notes:
+
+  Stored folder paths are kept as they are, so destination checks stay valid; the prefix is removed where paths are shown.
+
 - **Changed:** Report availability has its own color (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
 
   **Availability** shows **Current** in green, **Superseded** in gray and **Withdrawn** in red, so a withdrawn report stands out in the list and on the report and revision pages.
