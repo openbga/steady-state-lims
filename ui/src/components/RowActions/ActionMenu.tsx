@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { Menu, MenuItem, Popover } from "react-aria-components";
 import styles from "./RowActions.module.css";
 
@@ -17,12 +18,28 @@ export interface ActionItem {
 
 /**
  * The popover menu shared by `RowActions` and `MoreActions`, placed inside a `MenuTrigger`.
- * The first item takes focus when it opens, so the keyboard can act at once.
+ * The first item takes focus when it opens, so the keyboard can act at once. With `selectedId`
+ * it is a choice of one, such as a width: the chosen item shows a check mark, and `null`
+ * checks none.
  */
-export function ActionMenu({ items }: { items: readonly ActionItem[] }) {
+export function ActionMenu({
+  items,
+  selectedId,
+}: {
+  items: readonly ActionItem[];
+  selectedId?: string | null;
+}) {
+  const choice = selectedId !== undefined;
   return (
     <Popover placement="bottom end" className={styles.popover}>
-      <Menu items={items} autoFocus="first" className={styles.menu}>
+      <Menu
+        items={items}
+        autoFocus="first"
+        className={styles.menu}
+        selectionMode={choice ? "single" : undefined}
+        disallowEmptySelection={choice}
+        selectedKeys={choice && selectedId !== null ? [selectedId] : []}
+      >
         {(item) => (
           <MenuItem
             id={item.id}
@@ -36,7 +53,18 @@ export function ActionMenu({ items }: { items: readonly ActionItem[] }) {
               .filter(Boolean)
               .join(" ")}
           >
-            {item.label}
+            {({ isSelected }) => (
+              <>
+                {choice && (
+                  <Check
+                    aria-hidden="true"
+                    className={styles.check}
+                    visibility={isSelected ? "visible" : "hidden"}
+                  />
+                )}
+                {item.label}
+              </>
+            )}
           </MenuItem>
         )}
       </Menu>

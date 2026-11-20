@@ -27,10 +27,10 @@ describe("Sidebar layout", () => {
     expect(collapse.getAttribute("aria-controls")).toBe(nav.id);
     expect(navigationWidth().getAttribute("aria-controls")).toBe(nav.id);
     expect(navigationWidth().getAttribute("aria-orientation")).toBe("vertical");
-    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("256");
+    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("288");
     expect(navigationWidth().getAttribute("aria-valuemin")).toBe("56");
     expect(navigationWidth().getAttribute("aria-valuemax")).toBe("360");
-    expect(navigationWidth().getAttribute("aria-valuetext")).toBe("256 pixels");
+    expect(navigationWidth().getAttribute("aria-valuetext")).toBe("288 pixels");
   });
 
   it("remembers the chosen width and collapsed state across app mounts", async () => {
@@ -38,11 +38,13 @@ describe("Sidebar layout", () => {
     await screen.findByRole("button", { name: "Collapse navigation" });
     await tabTo(first.user, navigationWidth());
     await first.user.keyboard("{ArrowRight}");
-    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("272");
+    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("304");
     await first.user.click(screen.getByRole("button", { name: "Collapse navigation" }));
     expect(navigationWidth().getAttribute("aria-valuenow")).toBe("56");
     expect(navigationWidth().getAttribute("aria-valuetext")).toBe("Collapsed");
-    expect(localStorage.getItem(LAYOUT_KEY)).toBe(JSON.stringify({ width: 272, collapsed: true }));
+    expect(localStorage.getItem(LAYOUT_KEY)).toBe(
+      JSON.stringify({ width: 304, collapsed: true, preset: null }),
+    );
     first.unmount();
 
     const second = renderApp("/", ["enter_orders"]);
@@ -50,8 +52,10 @@ describe("Sidebar layout", () => {
     expect(expand.getAttribute("aria-expanded")).toBe("false");
     expect(navigationWidth().getAttribute("aria-valuenow")).toBe("56");
     await second.user.click(expand);
-    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("272");
-    expect(localStorage.getItem(LAYOUT_KEY)).toBe(JSON.stringify({ width: 272, collapsed: false }));
+    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("304");
+    expect(localStorage.getItem(LAYOUT_KEY)).toBe(
+      JSON.stringify({ width: 304, collapsed: false, preset: null }),
+    );
   });
 
   it("supports keyboard bounds and restores the width after an Enter collapse", async () => {
@@ -59,7 +63,7 @@ describe("Sidebar layout", () => {
     await screen.findByRole("button", { name: "Collapse navigation" });
     await tabTo(user, navigationWidth());
     await user.keyboard("{ArrowLeft}");
-    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("240");
+    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("272");
     await user.keyboard("{Home}{ArrowLeft}");
     expect(navigationWidth().getAttribute("aria-valuenow")).toBe("224");
     await user.keyboard("{End}{ArrowRight}");
@@ -79,21 +83,55 @@ describe("Sidebar layout", () => {
     expect(document.activeElement).toBe(navigationWidth());
   });
 
-  it("offers narrower, wider and reset actions without dragging", async () => {
+  it("offers Compact, Default and Wide widths, checking the current one", async () => {
     const { user } = renderApp("/", []);
     const options = await screen.findByRole("button", { name: "Navigation width options" });
-    await user.click(options);
-    await user.click(await screen.findByRole("menuitem", { name: "Wider navigation" }));
-    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("272");
-    await user.click(options);
-    await user.click(await screen.findByRole("menuitem", { name: "Narrower navigation" }));
-    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("256");
-    await user.click(options);
-    await user.click(await screen.findByRole("menuitem", { name: "Narrower navigation" }));
+    const choose = async (name: string) => {
+      await user.click(options);
+      await user.click(await screen.findByRole("menuitemradio", { name }));
+    };
+    const checked = async () => {
+      await user.click(options);
+      const items = await screen.findAllByRole("menuitemradio");
+      const names = items.map((item) => [item.textContent, item.getAttribute("aria-checked")]);
+      await user.keyboard("{Escape}");
+      return names;
+    };
+    expect(await checked()).toEqual([
+      ["Compact", "false"],
+      ["Default", "true"],
+      ["Wide", "false"],
+    ]);
+    await choose("Wide");
+    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("360");
+    await choose("Compact");
+    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("224");
+    expect(localStorage.getItem(LAYOUT_KEY)).toBe(
+      JSON.stringify({ width: 224, collapsed: false, preset: "compact" }),
+    );
+    expect((await checked()).find(([, state]) => state === "true")?.[0]).toBe("Compact");
+
+    await tabTo(user, navigationWidth());
+    await user.keyboard("{ArrowRight}");
     expect(navigationWidth().getAttribute("aria-valuenow")).toBe("240");
+    expect((await checked()).every(([, state]) => state === "false")).toBe(true);
+    await choose("Default");
+    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("288");
+  });
+
+  it.each([
+    [{ width: 360, collapsed: false, preset: "wide" }, "360", "Wide"],
+    [{ width: 256, collapsed: false }, "288", "Default"],
+    [{ width: 300, collapsed: false, preset: null }, "300", undefined],
+  ])("restores a saved width and its option: %j", async (stored, width, option) => {
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify(stored));
+    const { user } = renderApp("/", []);
+    const options = await screen.findByRole("button", { name: "Navigation width options" });
+    expect(navigationWidth().getAttribute("aria-valuenow")).toBe(width);
     await user.click(options);
-    await user.click(await screen.findByRole("menuitem", { name: "Reset navigation width" }));
-    expect(navigationWidth().getAttribute("aria-valuenow")).toBe("256");
+    const items = await screen.findAllByRole("menuitemradio");
+    const checked = items.find((item) => item.getAttribute("aria-checked") === "true");
+    expect(checked?.textContent).toBe(option);
   });
 
   it("preserves open work-area choices when the whole sidebar collapses and expands", async () => {
@@ -182,7 +220,7 @@ describe("Sidebar layout", () => {
       localStorage.setItem(LAYOUT_KEY, stored);
       renderApp("/", []);
       await screen.findByRole("button", { name: "Collapse navigation" });
-      expect(navigationWidth().getAttribute("aria-valuenow")).toBe("256");
+      expect(navigationWidth().getAttribute("aria-valuenow")).toBe("288");
     },
   );
 

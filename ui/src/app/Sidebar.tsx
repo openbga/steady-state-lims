@@ -4,7 +4,7 @@ import { Button, MenuTrigger, Tooltip, TooltipTrigger } from "react-aria-compone
 import { ActionMenu } from "@/components/RowActions/ActionMenu";
 import styles from "./Sidebar.module.css";
 import { SideNav, useNavState } from "./SideNav";
-import { NAV_DEFAULT, NAV_MAX, NAV_RAIL, NAV_STEP, useSidebarLayout } from "./useSidebarLayout";
+import { NAV_MAX, NAV_PRESETS, NAV_RAIL, useSidebarLayout } from "./useSidebarLayout";
 
 /** The navigation frame keeps its controls fixed while the work-area list scrolls. */
 export function Sidebar({ capabilities }: { capabilities: readonly string[] }) {
@@ -77,23 +77,12 @@ function SidebarControls({
             <Ellipsis aria-hidden="true" />
           </Button>
           <ActionMenu
-            items={[
-              {
-                id: "narrower",
-                label: "Narrower navigation",
-                onAction: () => layout.resize(layout.width - NAV_STEP),
-              },
-              {
-                id: "wider",
-                label: "Wider navigation",
-                onAction: () => layout.resize(layout.width + NAV_STEP),
-              },
-              {
-                id: "reset",
-                label: "Reset navigation width",
-                onAction: () => layout.resize(NAV_DEFAULT),
-              },
-            ]}
+            selectedId={layout.preset}
+            items={NAV_PRESETS.map((option) => ({
+              id: option.id,
+              label: option.label,
+              onAction: () => layout.choose(option.id),
+            }))}
           />
         </MenuTrigger>
       )}
