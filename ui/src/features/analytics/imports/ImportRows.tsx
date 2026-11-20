@@ -36,13 +36,7 @@ const COLUMNS: readonly DataGridColumn<ImportRowView>[] = [
     header: "What happened",
     cell: (row) => {
       const status = rowOutcomeStatus(row.outcome);
-      // Inside a span the badge keeps its label's width: the column is wide enough for the
-      // longest label, which would stretch a badge alone in its cell (DataGrid) across it.
-      return (
-        <span>
-          <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
-        </span>
-      );
+      return <StatusBadge tone={status.tone}>{status.label}</StatusBadge>;
     },
     width: 230,
   },
