@@ -152,12 +152,13 @@ pub use commands::results::{
 pub use lis_orders::TriggerAssessmentView;
 pub use lis_results::{
     AddOnComponentView, ImportAttemptDetail, ImportAttemptId, ImportAttemptSummary, ImportFileView,
-    MeasuredNotOrderedView, MeasurementForm, MeasurementId, QuarantineItemId, QuarantineResolution,
-    RecordReflexDecisionInput, RecordResultDispositionInput, RecordValidityAssessmentInput,
-    ReflexDecision, ReflexTriggerView, ResolveQuarantineItemInput, ResultId, ResultOutcome,
-    ResultRevisionId, ResultRevisionView, RetryImportInput, ReviewQueueEntry, ReviewQueueFilter,
-    ReviewQueuePage, ReviewView, SelectResultEvidenceInput, SetAsideKind, SetAsideRowView,
-    SpecimenResults, SubmitTechnicalReviewInput, UseMeasuredResultInput, ValidityAssessmentView,
+    ImportRowOutcome, ImportRowView, MeasuredNotOrderedView, MeasurementForm, MeasurementId,
+    QuarantineItemId, QuarantineResolution, RecordReflexDecisionInput,
+    RecordResultDispositionInput, RecordValidityAssessmentInput, ReflexDecision, ReflexTriggerView,
+    ResolveQuarantineItemInput, ResultId, ResultOutcome, ResultRevisionId, ResultRevisionView,
+    RetryImportInput, ReviewQueueEntry, ReviewQueueFilter, ReviewQueuePage, ReviewView,
+    SelectResultEvidenceInput, SetAsideKind, SetAsideRowView, SpecimenResults,
+    SubmitTechnicalReviewInput, UseMeasuredResultInput, ValidityAssessmentView,
 };
 // results: end
 // reporting: begin

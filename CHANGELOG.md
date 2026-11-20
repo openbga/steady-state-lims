@@ -41,6 +41,14 @@ newest first. The application shows the same list under **What's new**.
 
   **Receive specimens** now has one summary line (patient, order, client, ordering practitioner) and three numbered boxes. **Tests for this material** chooses the only waiting test for you. In **Collection**, the date and time start empty; **Time not on the requisition** and **Date not on the requisition** replace the old dropdown, and the laboratory's time zone is one press away. **Specimens received** has one row per specimen, filled in from the tests' specimen types, with mL to start and **Measured**, **Estimated** or **Unknown** for the volume. **Next** and **Order** sit beside the boxes. **Receive specimens** works once the line beside it says nothing is missing.
 
+- **Added:** A report's Delivery tab lists its messages sent through Interfaces (2026-11-18)
+
+  The **Delivery** tab of a report now also lists the report's messages through Interfaces: HL7 results sent over MLLP, files written to a folder, and unrouted messages with the decision recorded in **Unrouted messages**. Each row shows the connection, the revision, the status as Interfaces records it, such as **Accepted (AA)**, **Written** or **Delivery recorded another way**, and the time, and opens the message in **Interfaces › Logs**. The section is shown to people who can open Interfaces, and its rows are not counted as handed off.
+
+  Technical notes:
+
+  `list_partner_messages` takes an optional `reportId`: only the outgoing messages of that report, its revisions and withdrawal notice, unrouted ones included. It needs configuration authority, as before.
+
 - **Added:** A summary of the report on the report page (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
 
   The report page has a **Summary** with the client, ordering practitioner, specimen, tests, collection time, release, last export and **Impact after release**, shown as **Nothing open** or the number of open items. The patient banner links to the accession and, for people who enter orders, to the order with **View order**.
@@ -56,6 +64,14 @@ newest first. The application shows the same list under **What's new**.
 - **Changed:** Report delivery shows each destination's status as a badge (2026-11-18, [#126](https://github.com/openbga/toxicology-lims/pull/126))
 
   The **Delivery** tab lists each destination with its method, status, time and person. The status is a colored badge, and a blocked destination shows its reason. The tab also shows how many destinations are handed off, with **Open in Delivery** and **Add destination**.
+
+- **Added:** See every row of an import attempt and what happened to it (2026-11-18)
+
+  An import attempt in **Result imports** now opens on a **Rows** tab listing each row as received: record, sample label, test code, analyte, value and what happened to it (New result, Duplicate, Reprocessed, QC row, Quarantined or Measured, not ordered (kept)). A patient row links to its results in **Result review** and a QC row to its run's QC review. Filter the rows with **What happened**, or click a count under **Outcome** to show just those rows.
+
+  Technical notes:
+
+  Results migration 10 adds the append-only table `res_import_rows`, written by each new import attempt. Attempts imported before this version list no rows; their counts are unchanged. `get_import_attempt` returns the rows in a new `rows` field.
 
 - **Changed:** The report page shows its status under the title and keeps one main button (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
 

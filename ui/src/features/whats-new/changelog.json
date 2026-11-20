@@ -53,6 +53,16 @@
               "summary": "In **New order**, **Accept order and receive specimens** saves the order, accepts it and opens **Receive specimens** on the same page. Pressing the button is the explicit acceptance; an order that cannot be accepted, or whose billing was asked for next, opens on its page as before.\n\n**Receive specimens** now has one summary line (patient, order, client, ordering practitioner) and three numbered boxes. **Tests for this material** chooses the only waiting test for you. In **Collection**, the date and time start empty; **Time not on the requisition** and **Date not on the requisition** replace the old dropdown, and the laboratory's time zone is one press away. **Specimens received** has one row per specimen, filled in from the tests' specimen types, with mL to start and **Measured**, **Estimated** or **Unknown** for the volume. **Next** and **Order** sit beside the boxes. **Receive specimens** works once the line beside it says nothing is missing."
             },
             {
+              "id": "2026-11-18-report-interface-messages",
+              "date": "2026-11-18",
+              "type": "added",
+              "impact": "medium",
+              "title": "A report's Delivery tab lists its messages sent through Interfaces",
+              "area": "Reports",
+              "summary": "The **Delivery** tab of a report now also lists the report's messages through Interfaces: HL7 results sent over MLLP, files written to a folder, and unrouted messages with the decision recorded in **Unrouted messages**. Each row shows the connection, the revision, the status as Interfaces records it, such as **Accepted (AA)**, **Written** or **Delivery recorded another way**, and the time, and opens the message in **Interfaces › Logs**. The section is shown to people who can open Interfaces, and its rows are not counted as handed off.",
+              "notes": "`list_partner_messages` takes an optional `reportId`: only the outgoing messages of that report, its revisions and withdrawal notice, unrouted ones included. It needs configuration authority, as before."
+            },
+            {
               "id": "2026-11-18-report-summary-card",
               "date": "2026-11-18",
               "type": "added",
@@ -92,6 +102,17 @@
               "area": "Reports",
               "pr": 126,
               "summary": "The **Delivery** tab lists each destination with its method, status, time and person. The status is a colored badge, and a blocked destination shows its reason. The tab also shows how many destinations are handed off, with **Open in Delivery** and **Add destination**."
+            },
+            {
+              "id": "2026-11-18-import-attempt-rows",
+              "date": "2026-11-18",
+              "type": "added",
+              "impact": "medium",
+              "title": "See every row of an import attempt and what happened to it",
+              "area": "Review",
+              "link": "/review/imports",
+              "summary": "An import attempt in **Result imports** now opens on a **Rows** tab listing each row as received: record, sample label, test code, analyte, value and what happened to it (New result, Duplicate, Reprocessed, QC row, Quarantined or Measured, not ordered (kept)). A patient row links to its results in **Result review** and a QC row to its run's QC review. Filter the rows with **What happened**, or click a count under **Outcome** to show just those rows.",
+              "notes": "Results migration 10 adds the append-only table `res_import_rows`, written by each new import attempt. Attempts imported before this version list no rows; their counts are unchanged. `get_import_attempt` returns the rows in a new `rows` field."
             },
             {
               "id": "2026-11-18-report-page-header",
