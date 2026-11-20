@@ -43,7 +43,13 @@ export function IncidentsSection({ incidents, revisions }: IncidentsSectionProps
     }
   }, [targetRequested, selected]);
   const [closing, setClosing] = useState<PreservationIncidentView | null>(null);
-  if (incidents.length === 0 && !targetRequested) return null;
+  if (incidents.length === 0 && !targetRequested) {
+    return (
+      <Section title="Preservation incidents">
+        <p className={styles.hint}>No preservation incidents.</p>
+      </Section>
+    );
+  }
   const subject = (incident: PreservationIncidentView) => {
     if (incident.withdrawalNotice) return "Withdrawal notice";
     const revision = revisions.find((each) => each.revisionId === incident.revisionId);

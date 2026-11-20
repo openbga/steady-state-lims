@@ -8,7 +8,16 @@ function lastAttempt(row: ObligationView) {
   return last ? <Timestamp value={last.observedAt} /> : "None";
 }
 
-const BASE_COLUMNS: readonly DataGridColumn<ObligationView>[] = [
+const COLUMNS: readonly DataGridColumn<ObligationView>[] = [
+  // The queue lists several reports, so the report, the rows' identifier, comes first.
+  {
+    id: "report",
+    header: "Report",
+    cell: (row) => row.reportNumber,
+    sortValue: (row) => row.reportNumber,
+    width: 140,
+    identifier: true,
+  },
   // REQ-RPT-011: the engine's label names the channel and the evidence level, and its length
   // varies (an attestation names who and when), so it wraps rather than being cut.
   { id: "status", header: "Delivery status", cell: (row) => row.status.label, wrap: true },
@@ -25,18 +34,6 @@ const BASE_COLUMNS: readonly DataGridColumn<ObligationView>[] = [
   { id: "last", header: "Last attempt", cell: lastAttempt, width: 150, wrap: true },
 ];
 
-const WITH_REPORT: readonly DataGridColumn<ObligationView>[] = [
-  {
-    id: "report",
-    header: "Report",
-    cell: (row) => row.reportNumber,
-    sortValue: (row) => row.reportNumber,
-    width: 140,
-    identifier: true,
-  },
-  ...BASE_COLUMNS,
-];
-
 const obligationId = (row: ObligationView) => row.obligationId;
 
 interface ObligationGridProps {
@@ -49,24 +46,20 @@ interface ObligationGridProps {
   openId?: string | null;
   /** The panel's `followOrder`, so its Previous and Next follow a sort. */
   onOrderChange?: (order: readonly string[]) => void;
-  /**
-   * The delivery queue lists several reports, so the report column, the rows' identifier,
-   * comes first. A report's own page lists only its obligations, without it.
-   */
-  withReport?: boolean;
   /** The grid takes the remaining height of the page (the main grid of a list page). */
   fill?: boolean;
 }
 
 /**
- * Delivery obligations (REQ-RPT-003, REQ-RPT-011): each status as the engine words it,
- * naming the channel and the evidence, with each row's allowed actions in its menu.
+ * The delivery queue's obligations (REQ-RPT-003, REQ-RPT-011): each status as the engine
+ * words it in full, naming the channel and the evidence, with each row's allowed actions in
+ * its menu. A report's own page shows its obligations in `DeliverySection`.
  */
-export function ObligationGrid({ obligations, withReport, onOpen, ...props }: ObligationGridProps) {
+export function ObligationGrid({ obligations, onOpen, ...props }: ObligationGridProps) {
   return (
     <DataGrid
       label="Delivery obligations"
-      columns={withReport ? WITH_REPORT : BASE_COLUMNS}
+      columns={COLUMNS}
       rows={obligations}
       getRowId={obligationId}
       onRowAction={onOpen}

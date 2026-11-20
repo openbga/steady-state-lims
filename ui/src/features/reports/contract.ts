@@ -103,6 +103,7 @@ export type { ImpactView } from "@/generated/ImpactView";
 export type { IncidentResolution } from "@/generated/IncidentResolution";
 export type { LineDisposition } from "@/generated/LineDisposition";
 export type { ObligationOrigin } from "@/generated/ObligationOrigin";
+export type { ObligationStatus } from "@/generated/ObligationStatus";
 export type { PreservationIncidentKind } from "@/generated/PreservationIncidentKind";
 export type { PreservationIncidentView } from "@/generated/PreservationIncidentView";
 export type { RecordDeliveryAttemptInput } from "@/generated/RecordDeliveryAttemptInput";

@@ -7,6 +7,7 @@ import type {
   ObligationView,
   ReportDetail,
   ReportWorkspace,
+  RevisionDetail,
   RevisionSummary,
 } from "./contract";
 
@@ -16,6 +17,8 @@ export const SPECIMEN_ID = "00000000-0000-7000-8000-000000006001";
 export const CANDIDATE_ID = "00000000-0000-7000-8000-00000000c001";
 export const REPORT_ID = "00000000-0000-7000-8000-00000000r001";
 export const REVISION_ID = "00000000-0000-7000-8000-00000000e001";
+export const ACCESSION_ID = "00000000-0000-7000-8000-00000000a001";
+export const ORDER_ID = "00000000-0000-7000-8000-00000000o001";
 
 export function sessionWith(capabilities: string[]): SessionInfo {
   return {
@@ -106,6 +109,7 @@ export const CONTENT: ToxReportData = {
           units: "ng/mL",
           limits: "Cutoff 50 ng/mL; LOQ 5 ng/mL",
           comparison: "Meets cutoff",
+          comparisonCode: "meets_cutoff",
           recordedAt: "2026-10-12 08:30 CDT",
           firstReportedAt: null,
           referenceInterval: null,
@@ -117,6 +121,7 @@ export const CONTENT: ToxReportData = {
           units: "ng/mL",
           limits: "Cutoff 50 ng/mL; LOQ 5 ng/mL",
           comparison: "Does not meet cutoff",
+          comparisonCode: "does_not_meet_cutoff",
           recordedAt: "2026-10-12 08:30 CDT",
           firstReportedAt: null,
           referenceInterval: null,
@@ -181,6 +186,25 @@ export const REVISION: RevisionSummary = {
   artifactSha256: "a1".repeat(32),
 };
 
+/** Revision 1 as `get_report_revision` reads it: its printed content and provenance. */
+export const REVISION_DETAIL: RevisionDetail = {
+  reportId: REPORT_ID,
+  reportNumber: "A26000001-URN",
+  summary: REVISION,
+  content: CONTENT,
+  provenance: {
+    layoutName: null,
+    templateId: "tox-report",
+    templateVersion: 2,
+    templateSha256: "b2".repeat(32),
+    rendererVersion: "synthetic-renderer 1.0",
+    contentSha256: "c3".repeat(32),
+    dataSha256: "d4".repeat(32),
+    artifactSha256: REVISION.artifactSha256,
+    fonts: ["Synthetic Sans"],
+  },
+};
+
 export const WORKSPACE: ReportWorkspace = {
   unavailableCandidateId: null,
   conditionReviewSource: { sourceSha256: "0".repeat(64), latestDecisionId: null, conditions: [] },
@@ -216,7 +240,12 @@ export const OBLIGATION: ObligationView = {
     label: "Synthetic Clinic fax",
     verified: true,
   },
-  status: { code: "awaiting", label: "Fax by staff: awaiting delivery" },
+  status: {
+    code: "awaiting",
+    label: "Fax by staff: awaiting delivery",
+    shortLabel: "Awaiting",
+    method: "Fax by staff",
+  },
   attempts: [],
   origin: "release",
   originReason: null,
@@ -230,8 +259,20 @@ export const REPORT: ReportDetail = {
   specimenId: SPECIMEN_ID,
   clientId: CLIENT_ID,
   subject: SUBJECT,
+  accessionId: ACCESSION_ID,
   accessionNumber: "A26000001",
+  orderId: ORDER_ID,
   availability: "current",
+  overview: {
+    client: "Synthetic Clinic",
+    clientLocation: "Main Office",
+    practitioner: "TESTDOC, Ordering",
+    practitionerNpi: "1999999992",
+    specimenType: "Urine",
+    containerLabels: ["C00000001"],
+    tests: ["Synthetic confirmation panel"],
+    collected: "2026-10-12 07:00 CDT",
+  },
   revisions: [REVISION],
   obligations: [OBLIGATION],
   exports: [],

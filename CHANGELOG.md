@@ -41,9 +41,29 @@ newest first. The application shows the same list under **What's new**.
 
   **Receive specimens** now has one summary line (patient, order, client, ordering practitioner) and three numbered boxes. **Tests for this material** chooses the only waiting test for you. In **Collection**, the date and time start empty; **Time not on the requisition** and **Date not on the requisition** replace the old dropdown, and the laboratory's time zone is one press away. **Specimens received** has one row per specimen, filled in from the tests' specimen types, with mL to start and **Measured**, **Estimated** or **Unknown** for the volume. **Next** and **Order** sit beside the boxes. **Receive specimens** works once the line beside it says nothing is missing.
 
+- **Added:** A summary of the report on the report page (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
+
+  The report page has a **Summary** with the client, ordering practitioner, specimen, tests, collection time, release, last export and **Impact after release**, shown as **Nothing open** or the number of open items. The patient banner links to the accession and, for people who enter orders, to the order with **View order**.
+
 - **Changed:** Find a report by its accession number or any part of its number (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
 
   **Find** on **Reports** now matches the accession number and any part of the report number, in upper or lower case, not only the start of the report number.
+
+- **Added:** Preview any revision of a report and export an earlier one (2026-11-18, [#126](https://github.com/openbga/toxicology-lims/pull/126))
+
+  The **Preview** tab shows the report content without exporting it. Pick an earlier revision to see it marked **Superseded** and export it with **Export revision N**; **Export PDF** at the top always exports the current revision.
+
+- **Changed:** Report delivery shows each destination's status as a badge (2026-11-18, [#126](https://github.com/openbga/toxicology-lims/pull/126))
+
+  The **Delivery** tab lists each destination with its method, status, time and person. The status is a colored badge, and a blocked destination shows its reason. The tab also shows how many destinations are handed off, with **Open in Delivery** and **Add destination**.
+
+- **Changed:** The report page shows its status under the title and keeps one main button (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
+
+  Under a report's title, chips show its availability, **Final** or **Partial**, the revision and its type, and **Handed off X of Y** for delivery. **Export PDF** is the only main button; **Prepare next revision**, **Add destination** and **Withdraw report** are under **More actions**, with Withdraw report last.
+
+- **Changed:** The report page shows the results and arranges its sections in tabs (2026-11-18, [#126](https://github.com/openbga/toxicology-lims/pull/126))
+
+  A report opens on **Results**, which lists each analyte with its result, units, limits and comparison. **Preview**, **Delivery**, **Revisions**, **PDF exports** and **Impact** are tabs with a count, and **Incidents** appears when the report has one.
 
 - **Changed:** Incomplete identity intake: required supplied text and readable labels (2026-11-17, [#106](https://github.com/openbga/toxicology-lims/pull/106))
 

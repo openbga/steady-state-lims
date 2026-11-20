@@ -1,7 +1,9 @@
 //! Exact obligation details retain full attempt evidence; callers audit sensitive access.
 use super::candidate::user_view;
 use super::delivery::{DeliveryContext, status};
-use crate::delivery::labels::delivery_status_label;
+use crate::delivery::labels::{
+    delivery_method_label, delivery_status_label, delivery_status_short_label,
+};
 use crate::error::ReportingError;
 use crate::model::{ObligationId, ObligationStatus};
 use crate::repo::delivery::{self, ObligationRow};
@@ -71,6 +73,8 @@ pub(crate) fn obligation_view(
         status: DeliveryStatusView {
             code,
             label: delivery_status_label(destination.channel, &status),
+            short_label: delivery_status_short_label(&status),
+            method: delivery_method_label(destination.channel).to_owned(),
         },
         attempts: attempts
             .iter()

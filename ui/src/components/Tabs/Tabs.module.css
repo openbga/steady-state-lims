@@ -28,6 +28,18 @@
   outline: none;
 }
 
+/* A quiet pill after the label, read as part of the tab's name ("Results 3"). */
+.count {
+  margin-left: var(--space-1);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  line-height: 20px;
+}
+
 .tab[data-hovered] {
   color: var(--color-text);
   background: var(--color-surface-hover);

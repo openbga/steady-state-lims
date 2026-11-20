@@ -3,6 +3,7 @@ import type { ExportView } from "./ExportView";
 import type { ImpactView } from "./ImpactView";
 import type { ObligationView } from "./ObligationView";
 import type { PreservationIncidentView } from "./PreservationIncidentView";
+import type { ReportOverview } from "./ReportOverview";
 import type { RevisionAvailability } from "./RevisionAvailability";
 import type { RevisionSummary } from "./RevisionSummary";
 import type { SubjectSummary } from "./SubjectSummary";
@@ -15,7 +16,20 @@ export type ReportDetail = { reportId: string, reportNumber: string, specimenId:
 /**
  * The order's client, whose destinations the report may use.
  */
-clientId: string, subject: SubjectSummary, accessionNumber: string, availability: RevisionAvailability | null, revisions: Array<RevisionSummary>, obligations: Array<ObligationView>, exports: Array<ExportView>, 
+clientId: string, subject: SubjectSummary, 
+/**
+ * The accession the report's specimen belongs to.
+ */
+accessionId: string, accessionNumber: string, 
+/**
+ * The order the accession fulfils.
+ */
+orderId: string, availability: RevisionAvailability | null, 
+/**
+ * What the latest revision printed about the order and specimen;
+ * `None` while its stored content is damaged.
+ */
+overview: ReportOverview | null, revisions: Array<RevisionSummary>, obligations: Array<ObligationView>, exports: Array<ExportView>, 
 /**
  * `None` when not current, or while its stored content is damaged.
  */
