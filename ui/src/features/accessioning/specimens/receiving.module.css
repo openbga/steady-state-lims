@@ -191,3 +191,12 @@
   gap: var(--space-3);
   margin-inline-start: auto;
 }
+
+/* Finish receiving: the intake steps, and Refresh at the far right of the same row. */
+.stepsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}

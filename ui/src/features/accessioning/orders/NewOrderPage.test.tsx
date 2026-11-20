@@ -17,6 +17,7 @@ import { mockGridLayout } from "@/lib/test/layout";
 import { pickRecord } from "@/lib/test/picker";
 import { renderRoutes } from "@/lib/test/router";
 import {
+  ACCESSION_CONTEXT,
   CLIENTS,
   LARGE_CATALOG,
   LONG_CATALOG,
@@ -587,7 +588,67 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     expect(await screen.findByText("The app could not load this.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
   });
-  it("saves once before the explicit review-and-receive checkpoint", async () => {
+  it("accepts the saved order and receives its specimens on the same page", async () => {
+    const register = vi.fn(() => ORDER);
+    const accept = vi.fn(() => ({ ...ORDER, status: "accepted", revision: 2 }));
+    const { user, router } = renderPage({
+      register_order: register,
+      accept_order: accept,
+      get_order: () => ({ ...ORDER, status: "accepted", revision: 2 }),
+      get_order_accession_context: () => ACCESSION_CONTEXT,
+      list_practitioners: () => PRACTITIONERS,
+      list_specimen_types: () => [
+        { id: "st-1", code: "urine", name: "Urine", versionInEffect: null, draftVersion: null },
+      ],
+    });
+    await fillRequisition(user);
+    await addTest(user, "SYN-SCR");
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not stated");
+    await user.click(screen.getByRole("button", { name: "Accept order and receive specimens" }));
+    expect(
+      await screen.findByRole("heading", { name: "1 · Tests for this material" }),
+    ).toBeTruthy();
+    expect(register).toHaveBeenCalledTimes(1);
+    // The press is the explicit acceptance, of the revision just saved.
+    expect(accept).toHaveBeenCalledWith({
+      input: { orderId: ORDER_ID, expectedRevision: ORDER.revision },
+    });
+    expect(screen.queryByRole("link", { name: "Change patient" })).toBeNull();
+    const intake = screen.getByRole("list", { name: "Intake progress" });
+    expect(within(intake).getByText("Receive specimens").closest("[aria-current]")).toBeTruthy();
+    // The same Receive specimens as its own page: the only waiting test chosen, Next beside it.
+    expect(screen.getByRole("checkbox", { name: /SYN-SCR/ })).toHaveProperty("checked", true);
+    expect(screen.getByRole("complementary", { name: "Receiving" })).toBeTruthy();
+    expect(screen.queryByRole("complementary", { name: "Order summary" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(router.state.location.pathname).toBe(`/orders/${ORDER_ID}`);
+  });
+
+  it("says when the catalog has no other test to authorize as a reflex", async () => {
+    const { user } = renderPage({ list_active_orderables: () => [SCREEN] });
+    await fillRequisition(user);
+    await addTest(user, "SYN-SCR");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Authorized");
+    expect(
+      screen.getByText("No other tests or panels in the catalog to authorize as reflex tests."),
+    ).toBeTruthy();
+    expect(screen.queryByRole("group", { name: /Reflex tests authorized/ })).toBeNull();
+  });
+
+  it("opens the saved order when the engine leaves it received", async () => {
+    const accept = vi.fn(() => ORDER);
+    const { user } = renderPage({ register_order: () => ORDER, accept_order: accept });
+    await fillRequisition(user);
+    await addTest(user, "SYN-SCR");
+    await chooseSegment(user, /Sequence role for SYN-SCR/, "First-line (screen)");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Not stated");
+    await user.click(screen.getByRole("button", { name: "Accept order and receive specimens" }));
+    expect(await screen.findByText(`Navigated to /orders/${ORDER_ID}?next=receive`)).toBeTruthy();
+    expect(screen.getByText("Order received, not accepted")).toBeTruthy();
+  });
+
+  it("saves once and opens order billing, without accepting, when billing comes next", async () => {
     const register = vi.fn(() => ORDER);
     const accept = vi.fn();
     const { user } = renderPage({ register_order: register, accept_order: accept });
@@ -599,7 +660,7 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     expect(screen.getByRole("alert").textContent).toContain("Order billing is empty.");
     await user.click(screen.getByRole("button", { name: "Add order billing" }));
     expect(screen.getByRole("button", { name: "Order billing", pressed: true })).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Review and receive specimens" }));
+    await user.click(screen.getByRole("button", { name: "Accept order and receive specimens" }));
     expect(
       await screen.findByText(`Navigated to /orders/${ORDER_ID}?next=receive&billing=open`),
     ).toBeTruthy();

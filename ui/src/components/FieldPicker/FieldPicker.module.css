@@ -161,14 +161,21 @@
   gap: var(--space-2);
 }
 
+/*
+ * Room on the right for the scrollbar, which some systems draw over the content: the hours and
+ * minutes stay centred and fully visible beside it.
+ */
 .column {
   max-height: 14rem;
   overflow-y: auto;
+  padding-inline-end: var(--space-3);
+  scrollbar-gutter: stable;
   outline: none;
 }
 
 .option {
   padding: var(--space-1) var(--space-3);
+  text-align: center;
   border-radius: var(--radius-md);
   cursor: pointer;
   outline: none;

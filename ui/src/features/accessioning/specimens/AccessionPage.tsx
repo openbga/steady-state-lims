@@ -6,6 +6,7 @@ import type { AccessionDetail } from "@/generated/AccessionDetail";
 import type { AccessionSpecimenView } from "@/generated/AccessionSpecimenView";
 import type { ClientView } from "@/generated/ClientView";
 import type { OrderDetail } from "@/generated/OrderDetail";
+import { activeCards, useClearActiveCardOutside } from "@/lib/activeCards";
 import { useCommandQuery, useHasCapability } from "@/lib/commands";
 import { IdentityBanner } from "@/lib/IdentityBanner";
 import { useRecordSequence } from "@/lib/recordSequence";
@@ -53,8 +54,11 @@ export function AccessionPage() {
         ]}
         sequence={sequence}
       />
-      <RefreshControl query={accession} />
-      <IntakeSteps current="finish" complete={data !== undefined && allDecided(data.specimens)} />
+      {/* Refresh at the end of the steps' row: the page reads the accession on request. */}
+      <div className={styles.stepsRow}>
+        <IntakeSteps current="finish" complete={data !== undefined && allDecided(data.specimens)} />
+        <RefreshControl query={accession} />
+      </div>
       <QueryContent query={accession} what="accession">
         {(loaded) => <AccessionRecord accession={loaded} />}
       </QueryContent>
@@ -65,11 +69,12 @@ export function AccessionPage() {
 function AccessionRecord({ accession }: { accession: AccessionDetail }) {
   const { accessionNumber, specimens } = accession;
   const single = specimens.length === 1;
+  useClearActiveCardOutside();
   const progress = <AccessionProgress specimens={specimens} />;
   return (
     <>
       <AccessionBanner accession={accession} />
-      <div className={styles.receivingLayout}>
+      <div className={styles.receivingLayout} {...activeCards}>
         <div className={styles.specimens}>
           {!single && progress}
           {waitingFirst(specimens).map(({ specimen, index }) => (
