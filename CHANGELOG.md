@@ -99,6 +99,13 @@ newest first. The application shows the same list under **What's new**.
 
 ### Low impact
 
+- **Changed:** The user menu groups account security and puts Lock now and Sign out last (2026-11-20)
+
+  In the menu that opens from your name, Change password, Security keys and **Unlock PIN settings**
+  (formerly Unlock PIN) now sit under an **Account security** heading, each with its own icon.
+  Appearance, About this app and the version follow, and **Lock now** and **Sign out** are at the
+  bottom, after a line, with Sign out last.
+
 - **Added:** The user menu shows who is signed in and their roles (2026-11-20)
 
   The menu that opens from your name at the top right now starts with your name and your roles,

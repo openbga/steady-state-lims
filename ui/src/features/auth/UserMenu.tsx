@@ -1,4 +1,15 @@
-import { Check, ChevronDown, Copy, Info, KeyRound, Lock, LogOut, UserRound } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Copy,
+  Info,
+  Key,
+  Lock,
+  LogOut,
+  RectangleEllipsis,
+  Usb,
+  UserRound,
+} from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import {
   Header,
@@ -29,11 +40,12 @@ import { UnlockPinDialog } from "./UnlockPinDialog";
 import styles from "./UserMenu.module.css";
 
 /**
- * The signed-in person's menu: change password, lock, sign out, Appearance (light, dark or the
- * system's setting, applied at once), "About this app" (the app and web engine versions) and, last, the
- * running version, which copies itself (tickets #4584, #4745). Lock and sign-out clear every cached engine result, so nothing
- * from this session is shown to the next person (REQ-IDN-004). Sign out asks first while a page form has
- * unsaved input (ticket #4585).
+ * The signed-in person's menu, top to bottom: who is signed in (ticket #4869); Account security
+ * (change password, security keys, unlock PIN settings); Appearance (light, dark or the system's
+ * setting, applied at once); "About this app" and the running version, which copies itself
+ * (tickets #4584, #4745); then, after a line, Lock now and Sign out, last (ticket #4868). Lock and
+ * sign-out clear every cached engine result, so nothing from this session is shown to the next
+ * person (REQ-IDN-004). Sign out asks first while a page form has unsaved input (ticket #4585).
  */
 export function UserMenu({ session }: { session: SessionInfo }) {
   const toast = useToast();
@@ -43,8 +55,6 @@ export function UserMenu({ session }: { session: SessionInfo }) {
   const [managingPin, setManagingPin] = useState(false);
   const [leavingForms, setLeavingForms] = useState<string[]>([]);
   const signedInId = useId();
-  const [appearance, chooseAppearance] = useAppearance(session.userId);
-  const authentication = useCommandQuery<AuthenticationStatus>("get_authentication_status");
   const lock = useCommandMutation<null>("lock_session", { invalidates: "all" });
   const signOut = useCommandMutation<null>("sign_out", { invalidates: "all" });
   const onError = (error: CommandError) =>
@@ -70,83 +80,13 @@ export function UserMenu({ session }: { session: SessionInfo }) {
         <Popover placement="bottom end" className={styles.popover}>
           <SignedInAs id={signedInId} session={session} />
           <Menu className={styles.menu} aria-describedby={`${signedInId}-name ${signedInId}-roles`}>
-            {authentication.data?.method === "password_totp" && (
-              <MenuItem
-                className={styles.item}
-                textValue="Change password"
-                onAction={() => setChangingPassword(true)}
-              >
-                <KeyRound aria-hidden="true" className={styles.icon} />
-                Change password
-              </MenuItem>
-            )}
-            <MenuItem
-              className={styles.item}
-              textValue="Security keys"
-              onAction={() => setManagingKeys(true)}
-            >
-              <KeyRound aria-hidden="true" className={styles.icon} />
-              Security keys
-            </MenuItem>
-            <MenuItem
-              className={styles.item}
-              textValue="Unlock PIN"
-              onAction={() => setManagingPin(true)}
-            >
-              <Lock aria-hidden="true" className={styles.icon} />
-              Unlock PIN
-            </MenuItem>
-            <MenuItem
-              className={styles.item}
-              textValue="Lock now"
-              onAction={() => lock.mutate({}, { onError })}
-            >
-              <Lock aria-hidden="true" className={styles.icon} />
-              Lock now
-            </MenuItem>
-            <MenuItem
-              className={styles.item}
-              textValue="Sign out"
-              onAction={() => {
-                const forms = unsavedFormNames();
-                if (forms.length > 0) setLeavingForms(forms);
-                else signOutNow();
-              }}
-            >
-              <LogOut aria-hidden="true" className={styles.icon} />
-              Sign out
-            </MenuItem>
+            <AccountSecuritySection
+              onChangePassword={() => setChangingPassword(true)}
+              onSecurityKeys={() => setManagingKeys(true)}
+              onUnlockPin={() => setManagingPin(true)}
+            />
             <Separator className={styles.separator} />
-            <MenuSection
-              selectionMode="single"
-              disallowEmptySelection
-              selectedKeys={[appearance]}
-              onSelectionChange={(keys) => {
-                const [key] = keys === "all" ? [] : keys;
-                if (key !== undefined) chooseAppearance(key as Appearance);
-              }}
-            >
-              <Header className={styles.header}>Appearance</Header>
-              {APPEARANCES.map((option) => (
-                <MenuItem
-                  key={option.id}
-                  id={option.id}
-                  className={styles.item}
-                  textValue={option.label}
-                >
-                  {({ isSelected }) => (
-                    <>
-                      <Check
-                        aria-hidden="true"
-                        className={styles.icon}
-                        visibility={isSelected ? "visible" : "hidden"}
-                      />
-                      {option.label}
-                    </>
-                  )}
-                </MenuItem>
-              ))}
-            </MenuSection>
+            <AppearanceSection userId={session.userId} />
             <Separator className={styles.separator} />
             <MenuItem
               className={styles.item}
@@ -157,6 +97,14 @@ export function UserMenu({ session }: { session: SessionInfo }) {
               About this app
             </MenuItem>
             <VersionItem />
+            <SessionItems
+              onLock={() => lock.mutate({}, { onError })}
+              onSignOut={() => {
+                const forms = unsavedFormNames();
+                if (forms.length > 0) setLeavingForms(forms);
+                else signOutNow();
+              }}
+            />
           </Menu>
         </Popover>
       </MenuTrigger>
@@ -165,21 +113,123 @@ export function UserMenu({ session }: { session: SessionInfo }) {
         <SecurityKeysDialog session={session} onClose={() => setManagingKeys(false)} />
       )}
       {managingPin && <UnlockPinDialog onClose={() => setManagingPin(false)} />}
-      <ConfirmDialog
-        title="Leave without saving?"
-        isOpen={leavingForms.length > 0}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) setLeavingForms([]);
-        }}
-        confirmLabel="Sign out without saving"
+      <LeaveWithoutSavingDialog
+        forms={leavingForms}
+        onCancel={() => setLeavingForms([])}
         onConfirm={signOutNow}
-      >
-        <p>
-          You have unsaved changes in {leavingForms.join(", ")}. If you sign out, what you typed is
-          lost.
-        </p>
-      </ConfirmDialog>
+      />
     </>
+  );
+}
+
+/** Sign out asks first while a page form has unsaved input; Cancel is the default (ticket #4585). */
+function LeaveWithoutSavingDialog({
+  forms,
+  onCancel,
+  onConfirm,
+}: {
+  forms: string[];
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <ConfirmDialog
+      title="Leave without saving?"
+      isOpen={forms.length > 0}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onCancel();
+      }}
+      confirmLabel="Sign out without saving"
+      onConfirm={onConfirm}
+    >
+      <p>
+        You have unsaved changes in {forms.join(", ")}. If you sign out, what you typed is lost.
+      </p>
+    </ConfirmDialog>
+  );
+}
+
+/**
+ * Account security (ticket #4868): Change password (password accounts only), Security keys and
+ * Unlock PIN settings, each with its own icon.
+ */
+function AccountSecuritySection({
+  onChangePassword,
+  onSecurityKeys,
+  onUnlockPin,
+}: {
+  onChangePassword: () => void;
+  onSecurityKeys: () => void;
+  onUnlockPin: () => void;
+}) {
+  const authentication = useCommandQuery<AuthenticationStatus>("get_authentication_status");
+  return (
+    <MenuSection>
+      <Header className={styles.header}>Account security</Header>
+      {authentication.data?.method === "password_totp" && (
+        <MenuItem className={styles.item} textValue="Change password" onAction={onChangePassword}>
+          <Key aria-hidden="true" className={styles.icon} />
+          Change password
+        </MenuItem>
+      )}
+      <MenuItem className={styles.item} textValue="Security keys" onAction={onSecurityKeys}>
+        <Usb aria-hidden="true" className={styles.icon} />
+        Security keys
+      </MenuItem>
+      <MenuItem className={styles.item} textValue="Unlock PIN settings" onAction={onUnlockPin}>
+        <RectangleEllipsis aria-hidden="true" className={styles.icon} />
+        Unlock PIN settings
+      </MenuItem>
+    </MenuSection>
+  );
+}
+
+/** The session actions, at the bottom after a line; Sign out is the last item (ticket #4868). */
+function SessionItems({ onLock, onSignOut }: { onLock: () => void; onSignOut: () => void }) {
+  return (
+    <>
+      <Separator className={styles.separator} />
+      <MenuItem className={styles.item} textValue="Lock now" onAction={onLock}>
+        <Lock aria-hidden="true" className={styles.icon} />
+        Lock now
+      </MenuItem>
+      <MenuItem className={styles.item} textValue="Sign out" onAction={onSignOut}>
+        <LogOut aria-hidden="true" className={styles.icon} />
+        Sign out
+      </MenuItem>
+    </>
+  );
+}
+
+/** Light, Dark or System, applied at once and remembered for this account on this computer. */
+function AppearanceSection({ userId }: { userId: string }) {
+  const [appearance, chooseAppearance] = useAppearance(userId);
+  return (
+    <MenuSection
+      selectionMode="single"
+      disallowEmptySelection
+      selectedKeys={[appearance]}
+      onSelectionChange={(keys) => {
+        const [key] = keys === "all" ? [] : keys;
+        if (key !== undefined) chooseAppearance(key as Appearance);
+      }}
+    >
+      <Header className={styles.header}>Appearance</Header>
+      {APPEARANCES.map((option) => (
+        <MenuItem key={option.id} id={option.id} className={styles.item} textValue={option.label}>
+          {({ isSelected }) => (
+            <>
+              <Check
+                aria-hidden="true"
+                className={styles.icon}
+                visibility={isSelected ? "visible" : "hidden"}
+              />
+              {option.label}
+            </>
+          )}
+        </MenuItem>
+      ))}
+    </MenuSection>
   );
 }
 
@@ -223,7 +273,7 @@ function SignedInAs({ id, session }: { id: string; session: SessionInfo }) {
 const COPY_RESULT_SHOWN_MS = 2000;
 
 /**
- * The running version, from the same `app_info` query as About this app. A menu holds only items,
+ * The running version, after About this app and from the same `app_info` query. A menu holds only items,
  * so the whole row copies the version; a small copy icon right after the version, in the same
  * text style, is the hint (ticket #4745). The menu stays open to show "Copied" briefly.
  */
