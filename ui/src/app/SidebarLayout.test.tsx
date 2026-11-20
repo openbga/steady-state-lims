@@ -113,6 +113,26 @@ describe("Sidebar layout", () => {
     expect(screen.getByRole("list", { name: "Laboratory setup" })).toBeTruthy();
   });
 
+  it("collapses every open area at once and keeps the current area marked", async () => {
+    const { user } = renderApp("/orders", ["enter_orders", "manage_configuration"], {
+      list_orders: () => [],
+    });
+    const frontDesk = await screen.findByRole("button", { name: "Front desk" });
+    expect(frontDesk.getAttribute("aria-expanded")).toBe("true");
+    await user.click(screen.getByRole("button", { name: "Laboratory setup" }));
+    await user.click(screen.getByRole("button", { name: "Collapse all sections" }));
+    expect(screen.queryByRole("list", { name: "Front desk" })).toBeNull();
+    expect(screen.queryByRole("list", { name: "Laboratory setup" })).toBeNull();
+    expect(frontDesk.getAttribute("data-current")).toBe("true");
+    expect(screen.queryByRole("button", { name: "Collapse all sections" })).toBeNull();
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "Navigation width options" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Laboratory setup" }));
+    expect(screen.getByRole("list", { name: "Laboratory setup" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Collapse all sections" })).toBeTruthy();
+  });
+
   // NFR-09 and REQ-OPS-004: compact navigation retains ordinary links and engine counts.
   it("opens compact work areas by keyboard, restores focus and closes on navigation", async () => {
     const { user, router, container } = renderApp("/", ["enter_orders"], {

@@ -3,7 +3,7 @@
     {
       "release": null,
       "from": "2026-11-12",
-      "to": "2026-11-18",
+      "to": "2026-11-20",
       "impacts": [
         {
           "impact": "high",
@@ -191,6 +191,14 @@
         {
           "impact": "low",
           "entries": [
+            {
+              "id": "2026-11-20-navigation-collapse-all",
+              "date": "2026-11-20",
+              "type": "added",
+              "impact": "low",
+              "title": "Collapse all navigation areas with one button",
+              "summary": "A Collapse all sections button beside … at the top of the navigation closes every open area at once, including the current page’s, which stays highlighted. It shows only while an area is open."
+            },
             {
               "id": "2026-11-18-report-availability-colors",
               "date": "2026-11-18",

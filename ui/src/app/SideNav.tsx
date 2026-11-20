@@ -12,26 +12,33 @@ const COUNT_POLL_MS = 60_000;
 
 type OpenSections = Record<string, boolean>;
 
+export type NavState = ReturnType<typeof useNavState>;
+
 /**
- * The side navigation: the work areas the session's capabilities open, each collapsible, with
- * the engine's queue counts beside the entries. This is presentation only: the engine refuses
- * every command the person lacks the capability for. It scrolls on its own, so the top bar
- * stays in place however many entries an administrator sees.
+ * The visible work areas, the current screen and which areas are open. The sidebar holds it so
+ * its header can close every area; the current area stays marked while closed.
  */
-export function SideNav({
-  capabilities,
-  collapsed,
-}: {
-  capabilities: readonly string[];
-  collapsed: boolean;
-}) {
+export function useNavState(capabilities: readonly string[]) {
   const { pathname } = useLocation();
   const sections = visibleSections(capabilities);
   const current = currentScreen(sections, pathname);
   const active = sections.find(
     (section) => current !== undefined && section.screens.includes(current),
   );
-  const [open, toggle] = useOpenSections(active);
+  const [open, toggle, collapseAll] = useOpenSections(active);
+  const anyOpen = sections.some(open);
+  return { sections, current, active, open, toggle, anyOpen, collapseAll };
+}
+
+/**
+ * The side navigation: the work areas the session's capabilities open, each collapsible, with
+ * the engine's queue counts beside the entries. This is presentation only: the engine refuses
+ * every command the person lacks the capability for. It scrolls on its own, so the top bar
+ * stays in place however many entries an administrator sees.
+ */
+export function SideNav({ nav, collapsed }: { nav: NavState; collapsed: boolean }) {
+  const { pathname } = useLocation();
+  const { sections, current, active, open, toggle } = nav;
   const count = useQueueCounts();
   const items = (screens: readonly Screen[], onNavigate?: () => void) =>
     screens.map((screen) => (
@@ -108,11 +115,10 @@ function currentKind(screen: Screen, pathname: string): "page" | "true" {
 /**
  * Which work areas are open: the person's choice for this sign-in, else closed, so each sign-in
  * starts from a short list. Nothing is stored: signing out or locking unmounts the navigation
- * and forgets it. Going to a screen opens its area.
+ * and forgets it. Going to a screen opens its area; closing every area afterwards keeps it
+ * closed until the person goes to a screen in another area.
  */
-function useOpenSections(
-  active: NavSection | undefined,
-): [(section: NavSection) => boolean, (section: NavSection) => void] {
+function useOpenSections(active: NavSection | undefined) {
   const [prefs, setPrefs] = useState<OpenSections>({});
   // Sections are rebuilt each render, so the active one is tracked by its heading.
   const [shownFor, setShownFor] = useState<string | undefined>();
@@ -125,7 +131,7 @@ function useOpenSections(
   }
   const toggle = (section: NavSection) =>
     setPrefs((last) => ({ ...last, [section.heading ?? ""]: !isOpen(section) }));
-  return [isOpen, toggle];
+  return [isOpen, toggle, () => setPrefs({})] as const;
 }
 
 /** Counts only from `list_work_queues`; none while it is loading or failed, never a guess. */
