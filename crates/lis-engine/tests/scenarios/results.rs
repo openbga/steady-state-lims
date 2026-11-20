@@ -14,7 +14,8 @@ use lis_engine::{
     RetryImportInput, ReviewQueueFilter, SelectResultEvidenceInput, SubmitTechnicalReviewInput,
 };
 use lis_results::{
-    ImportOutcome, QuarantineReason, ReleaseReviewStatus, ResultCause, ReviewStatus,
+    ImportOutcome, ImportRowOutcome, QuarantineReason, ReleaseReviewStatus, ResultCause,
+    ReviewStatus,
 };
 use lis_specimens::ContainerHoldKind;
 
@@ -177,6 +178,25 @@ async fn changed_qc_row_is_owned_only_by_the_analytical_conflict_queue() {
         .await
         .unwrap();
     assert!(imported.quarantine.is_empty());
+    // The QC row is listed as received, with its run for QC review (REQ-ANA-003).
+    let [row] = imported.rows.as_slice() else {
+        panic!("one row expected")
+    };
+    assert_eq!(
+        (
+            row.outcome,
+            row.sample_label.as_deref(),
+            row.value_text.as_deref(),
+            row.run_id
+        ),
+        (
+            ImportRowOutcome::Qc,
+            Some("QC-LOW-SYN"),
+            Some("37.9"),
+            Some(lab.run)
+        )
+    );
+    assert_eq!(row.specimen_id, None);
     lab.sign_in(Role::Quality).await;
     let qc = lab
         .engine()
@@ -697,6 +717,34 @@ async fn conflict_items(lab: &Lab, import_attempt_id: ImportAttemptId) -> [Quara
         .get_import_attempt(GetImportAttemptInput { import_attempt_id })
         .await
         .unwrap();
+    // Every row is listed in received order with what happened to it (REQ-ANA-003).
+    use ImportRowOutcome::{Duplicate, New, Quarantined, Reprocessed};
+    let outcomes: Vec<_> = detail.rows.iter().map(|row| row.outcome).collect();
+    assert_eq!(
+        outcomes,
+        [
+            New,
+            Duplicate,
+            New,
+            Quarantined,
+            New,
+            Reprocessed,
+            New,
+            Quarantined,
+            New,
+            Quarantined
+        ]
+    );
+    let corrected = &detail.rows[5];
+    assert_eq!(
+        (
+            corrected.sample_label.as_deref(),
+            corrected.value_text.as_deref(),
+            corrected.analyte_code.as_deref()
+        ),
+        (Some("C00000003"), Some("90"), Some("SYN-MOR"))
+    );
+    assert!(corrected.specimen_id.is_some());
     let conflict_for = |label: &str| {
         detail
             .quarantine

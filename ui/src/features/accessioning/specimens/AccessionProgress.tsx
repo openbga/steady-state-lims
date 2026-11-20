@@ -1,74 +1,39 @@
-import { Link } from "react-router";
-import { Facts } from "@/components/Facts";
-import { QueryContent } from "@/components/QueryContent";
-import { Section } from "@/components/Section";
-import type { AccessionDetail } from "@/generated/AccessionDetail";
-import type { OrderDetail } from "@/generated/OrderDetail";
-import { useCommandQuery, useHasCapability } from "@/lib/commands";
-import { GET_ORDER } from "../orders/contract";
+import type { AccessionSpecimenView } from "@/generated/AccessionSpecimenView";
 import styles from "./receiving.module.css";
 
-/** Tracks receipt decisions without equating their completion with readiness for testing. */
-export function AccessionProgress({ accession }: { accession: AccessionDetail }) {
-  const canOpenOrder = useHasCapability("enter_orders");
-  const order = useCommandQuery<OrderDetail>(
-    GET_ORDER,
-    { input: { orderId: accession.orderId } },
-    { enabled: canOpenOrder },
-  );
-  const pending = accession.specimens.filter(
-    (specimen) => specimen.acceptance === "received",
-  ).length;
-  const held = accession.specimens.filter((specimen) => specimen.acceptance === "held").length;
-  const rejected = accession.specimens.filter(
-    (specimen) => specimen.acceptance === "rejected",
-  ).length;
-  return (
-    <Section title={pending > 0 ? "Finish receiving" : "Receipt decisions recorded"}>
-      <Facts
-        layout="compact"
-        items={[
-          {
-            label: "Receipt decisions",
-            value: `${accession.specimens.length - pending} of ${accession.specimens.length} recorded`,
-          },
-          { label: "Held", value: held },
-          { label: "Rejected", value: rejected },
-        ]}
-      />
-      {pending > 0 ? (
-        <p>
-          <strong>{decisionsNeeded(pending)}</strong> Print the labels you need, then check each
-          container label and record its specimen's receipt decision below.
-        </p>
-      ) : (
-        <p>Every specimen has a receipt decision. Each one below says where its work continues.</p>
-      )}
-      {canOpenOrder && (
-        <QueryContent query={order} what="order summary">
-          {(loaded) => (
-            <>
-              <Link to={`/orders/${loaded.orderId}`}>
-                Order {loaded.placerOrderId ?? loaded.orderId}
-              </Link>
-              <ul className={styles.list} aria-label="Tests in this accession">
-                {accession.orderItemIds.map((id) => {
-                  const item = loaded.items.find((each) => each.itemId === id);
-                  return (
-                    <li key={id}>{item ? `${item.orderableCode} ${item.orderableName}` : id}</li>
-                  );
-                })}
-              </ul>
-            </>
-          )}
-        </QueryContent>
-      )}
-    </Section>
-  );
-}
+/** Whether every specimen of the accession has a receipt decision. */
+export const allDecided = (specimens: readonly AccessionSpecimenView[]) =>
+  specimens.every((specimen) => specimen.acceptance !== "received");
 
-function decisionsNeeded(pending: number): string {
-  return pending === 1
-    ? "1 receipt decision still needed."
-    : `${pending} receipt decisions still needed.`;
+/**
+ * How many of the accession's specimens have a receipt decision, with the held and rejected
+ * counts: a bar and one line. Recorded decisions finish receipt; they do not mean the material
+ * is ready for testing.
+ */
+export function AccessionProgress({ specimens }: { specimens: readonly AccessionSpecimenView[] }) {
+  const count = (acceptance: AccessionSpecimenView["acceptance"]) =>
+    specimens.filter((specimen) => specimen.acceptance === acceptance).length;
+  const recorded = specimens.length - count("received");
+  return (
+    <div className={styles.progress}>
+      <span className={styles.progressLabel}>Receipt decisions</span>
+      <div
+        role="progressbar"
+        aria-label="Receipt decisions recorded"
+        aria-valuemin={0}
+        aria-valuemax={specimens.length}
+        aria-valuenow={recorded}
+        className={styles.progressBar}
+      >
+        <span
+          className={styles.progressFill}
+          style={{ width: `${(100 * recorded) / Math.max(specimens.length, 1)}%` }}
+        />
+      </div>
+      <strong>{`${recorded} of ${specimens.length} recorded`}</strong>
+      <span className={styles.progressCounts}>
+        {`· Held ${count("held")} · Rejected ${count("rejected")}`}
+      </span>
+    </div>
+  );
 }

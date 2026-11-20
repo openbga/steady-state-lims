@@ -97,13 +97,14 @@ pub use lis_orders::{
     AcceptOrderInput, AmendOrderEvidenceInput, AuthorityEvidenceInput, AuthorityEvidenceKind,
     BillingResponsibility, BillingReviewElement, CancellationView, ClarificationDeficiency,
     ClarificationHoldView, CreateBillingReviewItemInput, DecideCancellationInput,
-    DecideFollowOnInput, Decision, DiagnosisInput, EvidenceInput, GetOrderInput, ItemKind,
-    ListOrdersInput, ListStandingOrdersInput, MedicationInput, MedicationSource, OrderDetail,
-    OrderEvidenceId, OrderFilter, OrderId, OrderItemId, OrderItemInput, OrderStatus, OrderSummary,
-    PlaceClarificationHoldInput, PointOfCareResultInput, RecordTriggerNotMetInput,
-    ReflexAuthorization, RegisterOrderInput, RegisterStandingOrderInput, RejectOrderInput,
-    RequestCancellationInput, RequestFollowOnInput, ResolveClarificationHoldInput, SequenceRole,
-    SourceKind, StandingOrderId, StandingOrderView, TemplateUseInput, TriggerSource,
+    DecideFollowOnInput, Decision, DiagnosisInput, EvidenceInput, FindOrderPatientsInput,
+    GetOrderInput, ItemKind, ListOrdersInput, ListStandingOrdersInput, MedicationInput,
+    MedicationSource, OrderDetail, OrderEvidenceId, OrderFilter, OrderId, OrderItemId,
+    OrderItemInput, OrderPatientChoices, OrderStatus, OrderSummary, PlaceClarificationHoldInput,
+    PointOfCareResultInput, RecordTriggerNotMetInput, ReflexAuthorization, RegisterOrderInput,
+    RegisterStandingOrderInput, RejectOrderInput, RequestCancellationInput, RequestFollowOnInput,
+    ResolveClarificationHoldInput, SequenceRole, SourceKind, StandingOrderId, StandingOrderView,
+    TemplateUseInput, TriggerSource,
 };
 // orders: end
 // specimens: begin
@@ -151,12 +152,13 @@ pub use commands::results::{
 pub use lis_orders::TriggerAssessmentView;
 pub use lis_results::{
     AddOnComponentView, ImportAttemptDetail, ImportAttemptId, ImportAttemptSummary, ImportFileView,
-    MeasuredNotOrderedView, MeasurementForm, MeasurementId, QuarantineItemId, QuarantineResolution,
-    RecordReflexDecisionInput, RecordResultDispositionInput, RecordValidityAssessmentInput,
-    ReflexDecision, ReflexTriggerView, ResolveQuarantineItemInput, ResultId, ResultOutcome,
-    ResultRevisionId, ResultRevisionView, RetryImportInput, ReviewQueueEntry, ReviewQueueFilter,
-    ReviewQueuePage, ReviewView, SelectResultEvidenceInput, SetAsideKind, SetAsideRowView,
-    SpecimenResults, SubmitTechnicalReviewInput, UseMeasuredResultInput, ValidityAssessmentView,
+    ImportRowOutcome, ImportRowView, MeasuredNotOrderedView, MeasurementForm, MeasurementId,
+    QuarantineItemId, QuarantineResolution, RecordReflexDecisionInput,
+    RecordResultDispositionInput, RecordValidityAssessmentInput, ReflexDecision, ReflexTriggerView,
+    ResolveQuarantineItemInput, ResultId, ResultOutcome, ResultRevisionId, ResultRevisionView,
+    RetryImportInput, ReviewQueueEntry, ReviewQueueFilter, ReviewQueuePage, ReviewView,
+    SelectResultEvidenceInput, SetAsideKind, SetAsideRowView, SpecimenResults,
+    SubmitTechnicalReviewInput, UseMeasuredResultInput, ValidityAssessmentView,
 };
 // results: end
 // reporting: begin

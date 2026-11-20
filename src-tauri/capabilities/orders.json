@@ -7,6 +7,7 @@
     "allow-register-order",
     "allow-get-order",
     "allow-list-orders",
+    "allow-find-order-patients",
     "allow-amend-order-evidence",
     "allow-accept-order",
     "allow-reject-order",

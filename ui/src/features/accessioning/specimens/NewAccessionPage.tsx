@@ -1,71 +1,43 @@
-import type { ReactNode } from "react";
 import { useParams } from "react-router";
-import { EmptyState } from "@/components/EmptyState";
-import { ErrorState } from "@/components/ErrorState";
-import { LoadingState } from "@/components/LoadingState";
 import { Page, PageHeader } from "@/components/Page";
 import type { OrderDetail } from "@/generated/OrderDetail";
-import type { SpecimenTypeView } from "@/generated/SpecimenTypeView";
+import type { SubjectView } from "@/generated/SubjectView";
 import { useCommandQuery } from "@/lib/commands";
-import { IdentityBanner } from "@/lib/IdentityBanner";
+import { subjectSummary } from "@/lib/IdentityBanner";
 import { IntakeSteps } from "../IntakeSteps";
 import { GET_ORDER } from "../orders/contract";
-import { useOrderAccessionContext } from "../useOrderAccessionContext";
-import { AccessionForm } from "./AccessionForm";
-import { LIST_SPECIMEN_TYPES } from "./contract";
+import { ReceiveSpecimens } from "./ReceiveSpecimens";
 
 /** Receive material for an existing order, then verify receipt (REQ-SPC-001/002, WF-02). */
 export function NewAccessionPage() {
   const { orderId = "" } = useParams();
   const order = useCommandQuery<OrderDetail>(GET_ORDER, { input: { orderId } });
-  const context = useOrderAccessionContext(orderId);
-  const specimenTypes = useCommandQuery<SpecimenTypeView[]>(LIST_SPECIMEN_TYPES);
-  const failed = [order, context, specimenTypes].find((query) => query.isError);
-  let content: ReactNode = failed ? null : <LoadingState label="Preparing specimen receipt…" />;
-  // A failed background refresh must not unmount entered values or the pending save's
-  // completion callback. Keep the loaded form and show the read failure alongside it.
-  if (order.data && context.data && specimenTypes.data) {
-    if (specimenTypes.data.length === 0) {
-      content = (
-        <EmptyState
-          title="No specimen types are set up"
-          description="An administrator adds specimen types to the catalog first."
-        />
-      );
-    } else {
-      content = (
-        <AccessionForm
-          order={order.data}
-          context={context.data}
-          specimenTypes={specimenTypes.data}
-        />
-      );
-    }
-  }
+  const name = usePatientName(order.data?.subjectId);
   return (
     <Page>
       <PageHeader
-        title="Receive specimens"
+        title={name ? `Receive specimens · ${name}` : "Receive specimens"}
         breadcrumbs={[
-          { label: "Order", href: `/orders/${orderId}` },
+          { label: "Orders", href: "/orders" },
+          { label: name ? `Order · ${name}` : "Order", href: `/orders/${orderId}` },
           { label: "Receive specimens", href: `/orders/${orderId}/accession` },
         ]}
-        description="Register the material that arrived. Check labels and record acceptance next."
+        description="Register the material that arrived. Labels and the receipt decision come next."
       />
       <IntakeSteps current="receive" />
-      {order.data && <IdentityBanner subjectId={order.data.subjectId} />}
-      {failed?.error && (
-        <ErrorState
-          title={
-            order.data && context.data
-              ? "Specimen receipt could not be refreshed"
-              : "Specimen receipt could not be prepared"
-          }
-          error={failed.error}
-          onRetry={() => void failed.refetch()}
-        />
-      )}
-      {content}
+      <ReceiveSpecimens orderId={orderId} />
     </Page>
   );
+}
+
+/** "Patient, Test": the patient read the strip below also shows (the same audited read). */
+function usePatientName(subjectId: string | undefined): string | null {
+  const subject = useCommandQuery<SubjectView>(
+    "get_subject",
+    { input: { subjectId } },
+    { enabled: subjectId !== undefined },
+  );
+  if (!subject.data) return null;
+  const { familyName, givenNames } = subjectSummary(subject.data);
+  return givenNames ? `${familyName}, ${givenNames}` : familyName;
 }

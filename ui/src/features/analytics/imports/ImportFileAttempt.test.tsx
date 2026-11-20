@@ -59,6 +59,7 @@ const FILE_ATTEMPT: ImportAttemptDetail = {
       matchingRuns: [],
     },
   ],
+  rows: [],
   setAside: [
     {
       rowId: "row-1",
@@ -113,7 +114,8 @@ describe("Import attempt of a result file (result files brief §7)", {
     );
     expect(within(facts).getByText("Set aside").nextSibling?.textContent).toBe("2");
     expect(within(facts).getByText("Not results").nextSibling?.textContent).toBe("1");
-    expect(await screen.findByRole("grid", { name: "Quarantined rows" })).toBeTruthy();
+    // Every row is listed first; this attempt predates the row list.
+    expect(await screen.findByRole("tab", { name: "Rows (0)", selected: true })).toBeTruthy();
     await expectNoA11yViolations(container);
     await user.click(await screen.findByRole("link", { name: "Synthetic Quant 12.1" }));
     expect(router.state.location.pathname).toBe(
@@ -194,7 +196,7 @@ describe("Import attempt of a result file (result files brief §7)", {
     expect(within(grid).getByRole("gridcell", { name: "Analyzer message" })).toBeTruthy();
   });
 
-  it("keeps an analyzer message's attempt without file facts or tabs", async () => {
+  it("keeps an analyzer message's attempt without file facts or a Set aside tab", async () => {
     renderPage(`/review/imports/${ATTEMPT_ID}`, {
       ...FILE_ATTEMPT,
       file: null,
@@ -202,7 +204,10 @@ describe("Import attempt of a result file (result files brief §7)", {
       setAside: [],
     });
     expect(await screen.findByText("Message failure")).toBeTruthy();
-    expect(screen.queryByRole("tab")).toBeNull();
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Rows (0)",
+      `Quarantined (${FILE_ATTEMPT.rowsQuarantined})`,
+    ]);
     expect(screen.queryByText("Set aside")).toBeNull();
   });
 });

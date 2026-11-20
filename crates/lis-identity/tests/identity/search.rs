@@ -248,6 +248,10 @@ fn simple_search_matches_name_forms_and_literal_active_identifier_prefixes() {
     }
     assert_eq!(search(&t, directory("GARCÍA", 0, 10)).unwrap(), [c]);
     assert_eq!(search(&t, directory("Garci\u{301}a", 0, 10)).unwrap(), [c]);
+    // One box also finds an exact birth date, never a partial one.
+    assert_eq!(search(&t, directory("1990-01-01", 0, 10)).unwrap(), [c, a]);
+    assert_eq!(search(&t, directory("1991-02-02", 0, 10)).unwrap(), [b]);
+    assert!(search(&t, directory("1990-01", 0, 10)).unwrap().is_empty());
     assert_eq!(search(&t, directory("test", 0, 1)).unwrap(), [a]);
     assert_eq!(search(&t, directory("test", 1, 1)).unwrap(), [b]);
     // Identifier search is literal and case-sensitive, never an identity link.

@@ -53,6 +53,7 @@ const DETAIL: ImportAttemptDetail = {
   registrationId: null,
   file: null,
   setAside: [],
+  rows: [],
   quarantine: [
     ROW,
     {
@@ -86,8 +87,8 @@ function renderAttempt(detail: ImportAttemptDetail, retry = vi.fn(() => 2)) {
     retry_import: retry,
   });
   const rendered = renderRoutes(
-    [{ path: "/review/imports/:importAttemptId", element: <ImportAttemptPage /> }],
-    `/review/imports/${ATTEMPT_ID}`,
+    [{ path: "/review/imports/:importAttemptId/:tab?", element: <ImportAttemptPage /> }],
+    `/review/imports/${ATTEMPT_ID}/quarantine`,
   );
   return { ...rendered, retry };
 }
