@@ -125,6 +125,7 @@ fn held_for(
             search: None,
             hide_tests: false,
             row_ids: Vec::new(),
+            report_id: None,
         },
     )?;
     let mut held: Vec<Missing> = Vec::new();
