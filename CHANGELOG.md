@@ -7,7 +7,7 @@ What changed in OpenBGA Toxicology LIMS, newest release first. Changes not yet i
 release are listed under Unreleased. Within a release, changes are ordered by impact, then
 newest first. The application shows the same list under **What's new**.
 
-## Unreleased (2026-11-12 to 2026-11-18)
+## Unreleased (2026-11-12 to 2026-11-20)
 
 ### High impact
 
@@ -98,6 +98,12 @@ newest first. The application shows the same list under **What's new**.
   The reason is computed when read and never stored, so there is no migration.
 
 ### Low impact
+
+- **Changed:** One clear quit warning for unsaved input (2026-11-20)
+
+  Closing the app while a page has unsaved input now always asks **Quit OpenBGA Toxicology LIMS?**,
+  says what you typed will be lost and offers **Quit without saving**, whether or not analyzers are
+  listening. Work still in progress is listed below, as before.
 
 - **Changed:** Report availability has its own color (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
 

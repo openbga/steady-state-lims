@@ -3,7 +3,7 @@
     {
       "release": null,
       "from": "2026-11-12",
-      "to": "2026-11-18",
+      "to": "2026-11-20",
       "impacts": [
         {
           "impact": "high",
@@ -191,6 +191,15 @@
         {
           "impact": "low",
           "entries": [
+            {
+              "id": "2026-11-20-quit-warning-wording",
+              "date": "2026-11-20",
+              "type": "changed",
+              "impact": "low",
+              "title": "One clear quit warning for unsaved input",
+              "area": "System",
+              "summary": "Closing the app while a page has unsaved input now always asks **Quit OpenBGA Toxicology LIMS?**,\nsays what you typed will be lost and offers **Quit without saving**, whether or not analyzers are\nlistening. Work still in progress is listed below, as before."
+            },
             {
               "id": "2026-11-18-report-availability-colors",
               "date": "2026-11-18",
