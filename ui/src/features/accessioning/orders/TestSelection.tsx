@@ -204,15 +204,28 @@ function ReflexScope({ index, title, others }: ReflexFieldsProps) {
   });
   const engineError = useContext(FormValidationContext)[field.name];
   const engineMessage = Array.isArray(engineError) ? engineError.join(" ") : engineError;
+  if (others.length === 0) {
+    // Nothing to tick: say so rather than show an empty list. The authorization still saves.
+    return (
+      <div className={formStyles.reflexScope}>
+        <p className={formStyles.reflexTitle}>Reflex tests authorized</p>
+        <p className={formStyles.hint}>
+          No other tests or panels in the catalog to authorize as reflex tests.
+        </p>
+      </div>
+    );
+  }
   return (
-    <TestChecklist
-      legend="Reflex tests authorized"
-      name={`reflex tests for ${title}`}
-      orderables={others}
-      idOf={orderableId}
-      chosen={field.value}
-      onChange={field.onChange}
-      errorMessage={fieldState.error?.message ?? engineMessage}
-    />
+    <div className={formStyles.reflexScope}>
+      <TestChecklist
+        legend="Reflex tests authorized"
+        name={`reflex tests for ${title}`}
+        orderables={others}
+        idOf={orderableId}
+        chosen={field.value}
+        onChange={field.onChange}
+        errorMessage={fieldState.error?.message ?? engineMessage}
+      />
+    </div>
   );
 }

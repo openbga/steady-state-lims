@@ -308,3 +308,28 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* A test's reflex scope, under its row: titled like the fields beside it, without a frame. */
+.reflexScope {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.reflexScope fieldset {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.reflexScope legend,
+.reflexTitle {
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.reflexTitle + .hint {
+  margin: 0;
+}

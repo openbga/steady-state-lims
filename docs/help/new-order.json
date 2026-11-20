@@ -214,7 +214,7 @@
           "name": "Reflex tests authorized",
           "meaning": "The explicitly permitted scope of reflex testing.",
           "values": "Other currently approved configured tests or panels; short lists use checkboxes and long lists use Find reflex tests for … with the Show filter.",
-          "rules": "Shown only when reflex testing is Authorized. Choose only the supplied permitted scope. Selected scope stays visible when searched or filtered and can be removed individually. This records permission; it does not order or perform those reflex tests immediately."
+          "rules": "Shown only when reflex testing is Authorized. When the catalog has no other approved test or panel, it reads No other tests or panels in the catalog to authorize as reflex tests, and the authorization saves without a scope. Choose only the supplied permitted scope. Selected scope stays visible when searched or filtered and can be removed individually. This records permission; it does not order or perform those reflex tests immediately."
         },
         {
           "name": "Authority to test: As supplied",

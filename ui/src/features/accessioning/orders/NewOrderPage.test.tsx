@@ -625,6 +625,17 @@ describe("NewOrderPage (REQ-ORD-001, REQ-ORD-005, REQ-ORD-007)", {
     expect(router.state.location.pathname).toBe(`/orders/${ORDER_ID}`);
   });
 
+  it("says when the catalog has no other test to authorize as a reflex", async () => {
+    const { user } = renderPage({ list_active_orderables: () => [SCREEN] });
+    await fillRequisition(user);
+    await addTest(user, "SYN-SCR");
+    await chooseSegment(user, /Reflex testing for SYN-SCR/, "Authorized");
+    expect(
+      screen.getByText("No other tests or panels in the catalog to authorize as reflex tests."),
+    ).toBeTruthy();
+    expect(screen.queryByRole("group", { name: /Reflex tests authorized/ })).toBeNull();
+  });
+
   it("opens the saved order when the engine leaves it received", async () => {
     const accept = vi.fn(() => ORDER);
     const { user } = renderPage({ register_order: () => ORDER, accept_order: accept });
