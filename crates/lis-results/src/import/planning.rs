@@ -146,6 +146,8 @@ fn plan_row(
                 source_test_code: row.test_code.clone().unwrap_or_default(),
                 row: source_row,
             },
+            analyte_id: mapped_analyte(planner.registration, &row),
+            sample_label: row.sample_label,
         })));
     }
     if let Err(gates) = lis_analytical::patient_intake_gate(ctx.tx(), position.position_id)? {

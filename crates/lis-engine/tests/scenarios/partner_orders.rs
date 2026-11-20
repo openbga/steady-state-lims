@@ -305,6 +305,7 @@ async fn logs_show_it_waiting(orders: &Orders) {
             search: None,
             hide_tests: false,
             row_ids: Vec::new(),
+            report_id: None,
         })
         .await
         .unwrap();

@@ -129,6 +129,7 @@ mod tests {
             search: search.map(str::to_owned),
             hide_tests,
             row_ids: Vec::new(),
+            report_id: None,
         }
     }
 

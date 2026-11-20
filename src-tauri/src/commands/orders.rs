@@ -3,11 +3,11 @@
 use lis_core::CommandError;
 use lis_engine::{
     AcceptOrderInput, AmendOrderEvidenceInput, CreateBillingReviewItemInput,
-    DecideCancellationInput, DecideFollowOnInput, Engine, GetOrderInput, ListOrdersInput,
-    ListStandingOrdersInput, OrderDetail, OrderSummary, PlaceClarificationHoldInput,
-    RecordTriggerNotMetInput, RegisterOrderInput, RegisterStandingOrderInput, RejectOrderInput,
-    RequestCancellationInput, RequestFollowOnInput, ResolveClarificationHoldInput,
-    StandingOrderView, TriggerSource,
+    DecideCancellationInput, DecideFollowOnInput, Engine, FindOrderPatientsInput, GetOrderInput,
+    ListOrdersInput, ListStandingOrdersInput, OrderDetail, OrderPatientChoices, OrderSummary,
+    PlaceClarificationHoldInput, RecordTriggerNotMetInput, RegisterOrderInput,
+    RegisterStandingOrderInput, RejectOrderInput, RequestCancellationInput, RequestFollowOnInput,
+    ResolveClarificationHoldInput, StandingOrderView, TriggerSource,
 };
 use serde::Deserialize;
 use tauri::State;
@@ -100,6 +100,14 @@ pub(crate) async fn list_orders(
     input: ListOrdersInput,
 ) -> Result<Vec<OrderSummary>, CommandError> {
     engine.list_orders(input).await
+}
+
+#[tauri::command]
+pub(crate) async fn find_order_patients(
+    engine: State<'_, Engine>,
+    input: FindOrderPatientsInput,
+) -> Result<OrderPatientChoices, CommandError> {
+    engine.find_order_patients(input).await
 }
 
 #[tauri::command]

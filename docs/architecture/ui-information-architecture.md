@@ -69,7 +69,7 @@ Versioned record pages show the version in effect and any open draft in the head
 | Deviation | Work item or related record → `/quality/deviations/:deviationId` | Exact audited read independent of run scope |
 | Specimen results | Review › Result review → page | Result lines form the technical-review workspace |
 | Import attempt | Review › Result imports → page | Quarantine decisions operate on the selected retained attempt/item |
-| Report and revision | Reports or Release queue → page | Frozen candidate, release and revision history remain distinct |
+| Report and revision | Reports or Release queue → page | Frozen candidate, release and revision history remain distinct; the Delivery tab lists staff destinations and, for people with configuration authority, the report's interface messages as Interfaces records them, each linked to Logs and never counted as handed off |
 | Delivery obligation | Reports › Delivery → panel | Attempts and their channel/evidence level belong to the exact obligation |
 | Billing evidence | Billing › Billing follow-up or order billing context | Financial evidence does not authorize clinical work |
 | Billing derivation and handoff | Billing work → derivation or handoff page; Billing handoffs → handoff page | Bulk handoff selection is explicit; individual outcomes belong to the handoff item. A handoff whose items are all acknowledged leaves Billing work and is found in Billing handoffs |

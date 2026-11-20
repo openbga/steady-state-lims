@@ -29,6 +29,22 @@ export const EMPTY_SPECIMEN: AccessionFormValues["specimens"][number] = {
   volumeKind: null,
 };
 
+/**
+ * Receive specimens starts at a date and a time in a named time zone, all empty: the two
+ * checkboxes for a time or date not on the requisition switch to Date only or Unknown. Each
+ * specimen's unit starts at mL, used only once a volume is typed.
+ */
+export const EMPTY_RECEIPT: AccessionFormValues = {
+  orderItemIds: [],
+  timeKind: "zoned",
+  collectedDate: "",
+  collectedTime: "",
+  utcOffset: "",
+  timeZone: "",
+  collector: "",
+  specimens: [{ ...EMPTY_SPECIMEN, volumeUnit: "mL" }],
+};
+
 export const EMPTY_ACCESSION: AccessionFormValues = {
   orderItemIds: [],
   timeKind: null,
@@ -53,14 +69,19 @@ export function toCreateAccessionInput(
       collector: omittedIfBlank(values.collector),
       observations: [],
     },
-    specimens: values.specimens.map((specimen) => ({
-      specimenTypeCode: checked(specimen.specimenTypeCode),
-      containerCount: Number.parseInt(specimen.containerCount, 10),
-      // A clinical quantity: sent exactly as typed, never as a number.
-      volume: omittedIfBlank(specimen.volume),
-      volumeUnit: omittedIfBlank(specimen.volumeUnit),
-      volumeKind: checked(choiceOf(VOLUME_KINDS, specimen.volumeKind)),
-    })),
+    specimens: values.specimens.map((specimen) => {
+      // A clinical quantity: sent exactly as typed, never as a number. Without one, the volume
+      // is unknown, whatever unit or kind the row still shows.
+      const volume = omittedIfBlank(specimen.volume);
+      return {
+        specimenTypeCode: checked(specimen.specimenTypeCode),
+        containerCount: Number.parseInt(specimen.containerCount, 10),
+        volume,
+        volumeUnit: volume === undefined ? undefined : omittedIfBlank(specimen.volumeUnit),
+        volumeKind:
+          volume === undefined ? "unknown" : checked(choiceOf(VOLUME_KINDS, specimen.volumeKind)),
+      };
+    }),
   };
 }
 

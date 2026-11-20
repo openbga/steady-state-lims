@@ -9,10 +9,7 @@ use super::{
 use tauri::{Runtime, ipc::Invoke};
 
 /// The single list of app commands registered with the window.
-#[expect(
-    clippy::too_many_lines,
-    reason = "Tauri takes exactly one handler list; NFR-31 checks it against the registry"
-)]
+#[expect(clippy::too_many_lines, reason = "one Tauri handler list (NFR-31)")]
 pub(crate) fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
         identity::list_laboratory_profiles,
@@ -176,6 +173,7 @@ pub(crate) fn handler<R: Runtime>() -> impl Fn(Invoke<R>) -> bool + Send + Sync 
         orders::register_order,
         orders::get_order,
         orders::list_orders,
+        orders::find_order_patients,
         orders::amend_order_evidence,
         orders::accept_order,
         orders::reject_order,

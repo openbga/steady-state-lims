@@ -1,67 +1,64 @@
 import { Link, useParams } from "react-router";
-import { Button } from "@/components/Button";
-import { Facts } from "@/components/Facts";
 import { Page, PageHeader } from "@/components/Page";
 import { QueryContent } from "@/components/QueryContent";
-import { Section } from "@/components/Section";
+import { RefreshControl } from "@/components/RefreshControl";
 import type { AccessionDetail } from "@/generated/AccessionDetail";
+import type { AccessionSpecimenView } from "@/generated/AccessionSpecimenView";
+import type { ClientView } from "@/generated/ClientView";
+import type { OrderDetail } from "@/generated/OrderDetail";
+import { activeCards, useClearActiveCardOutside } from "@/lib/activeCards";
 import { useCommandQuery, useHasCapability } from "@/lib/commands";
-import { useFormatTime } from "@/lib/format";
 import { IdentityBanner } from "@/lib/IdentityBanner";
 import { useRecordSequence } from "@/lib/recordSequence";
-import { CollectionHistorySection } from "../billing/CollectionHistorySection";
-import { OrderBillingSection } from "../billing/OrderBillingSection";
 import { IntakeSteps } from "../IntakeSteps";
-import { orNotRecorded } from "../subjects";
-import { AccessionProgress } from "./AccessionProgress";
+import { GET_ORDER, LIST_CLIENTS } from "../orders/contract";
+import { AccessionProgress, allDecided } from "./AccessionProgress";
+import { AccessionSide } from "./AccessionSide";
 import { GET_ACCESSION } from "./contract";
-import { collectionTimeText, specimenTitle } from "./labels";
+import { specimenTitle } from "./labels";
+import styles from "./receiving.module.css";
 import { SpecimenPanel } from "./SpecimenPanel";
 
-/** Accessions have no list of their own; they are found by scanning a container. */
+/**
+ * Accessions have no list of their own: people who enter orders come from Orders, others find
+ * one by scanning a container.
+ */
+const ORDERS = { label: "Orders", href: "/orders" };
 const CONTAINER_LOOKUP = { label: "Container lookup", href: "/containers" };
 
 const accessionPath = (accessionId: string) => `/accessions/${accessionId}`;
 
 /**
- * One accession: collection, specimens, containers and labels (REQ-SPC-001 to REQ-SPC-003).
- * Viewing it is an audited access, so label outcomes are refreshed on request, not polled.
- * The header stays in place while another accession loads, so focus stays on Previous or
- * Next.
+ * Finish receiving: one accession's collection, specimens, containers and labels
+ * (REQ-SPC-001 to REQ-SPC-003). Viewing it is an audited access, so label outcomes are
+ * refreshed on request (Refresh), not polled. The header stays in place while another accession loads,
+ * so focus stays on Previous or Next.
  */
 export function AccessionPage() {
   const { accessionId = "" } = useParams();
   const canOpenOrder = useHasCapability("enter_orders");
   const accession = useCommandQuery<AccessionDetail>(GET_ACCESSION, { input: { accessionId } });
-  const { list, sequence } = useRecordSequence(accessionId, CONTAINER_LOOKUP, accessionPath);
+  const home = canOpenOrder ? ORDERS : CONTAINER_LOOKUP;
+  const { list, sequence } = useRecordSequence(accessionId, home, accessionPath);
   const data = accession.data;
-  const title = data ? `Accession ${data.accessionNumber}` : "Accession";
   return (
     <Page>
       <PageHeader
-        title={title}
+        title={data ? `Finish receiving · ${data.accessionNumber}` : "Finish receiving"}
         breadcrumbs={[
           list,
-          ...(data && canOpenOrder ? [{ label: "Order", href: `/orders/${data.orderId}` }] : []),
-          { label: title, href: accessionPath(accessionId) },
+          ...(data && canOpenOrder
+            ? [{ label: data.accessionNumber, href: `/orders/${data.orderId}` }]
+            : []),
+          { label: "Finish receiving", href: accessionPath(accessionId) },
         ]}
         sequence={sequence}
-        description="Collection, received material and receipt decisions for this accession."
-        actions={
-          data && (
-            <Button isPending={accession.isFetching} onPress={() => void accession.refetch()}>
-              Check label status
-            </Button>
-          )
-        }
       />
-      <IntakeSteps current="finish" />
-      {data && (
-        <IdentityBanner
-          subjectId={data.subjectId}
-          specimen={{ accessionNumber: data.accessionNumber }}
-        />
-      )}
+      {/* Refresh at the end of the steps' row: the page reads the accession on request. */}
+      <div className={styles.stepsRow}>
+        <IntakeSteps current="finish" complete={data !== undefined && allDecided(data.specimens)} />
+        <RefreshControl query={accession} />
+      </div>
       <QueryContent query={accession} what="accession">
         {(loaded) => <AccessionRecord accession={loaded} />}
       </QueryContent>
@@ -70,45 +67,73 @@ export function AccessionPage() {
 }
 
 function AccessionRecord({ accession }: { accession: AccessionDetail }) {
-  const formatTime = useFormatTime();
-  const orders = useHasCapability("enter_orders");
-  const billing = useHasCapability("billing");
-  const { accessionNumber, collection, specimens } = accession;
+  const { accessionNumber, specimens } = accession;
+  const single = specimens.length === 1;
+  useClearActiveCardOutside();
+  const progress = <AccessionProgress specimens={specimens} />;
   return (
     <>
-      <AccessionProgress accession={accession} />
-      <Section
-        title="Collection"
-        actions={
-          <Link to={`/accessions/${accession.accessionId}/collection-review`}>
-            Collection timing review
-          </Link>
-        }
-      >
-        <Facts
-          layout="compact"
-          items={[
-            { label: "Collected", value: collectionTimeText(collection, formatTime) },
-            { label: "Collected by", value: orNotRecorded(collection.collector) },
-          ]}
-        />
-        <CollectionHistorySection key={accession.accessionId} accessionId={accession.accessionId} />
-      </Section>
-      {(orders || billing) && (
-        <OrderBillingSection
-          key={accession.orderId}
-          orderId={accession.orderId}
-          subjectId={accession.subjectId}
-        />
-      )}
-      {specimens.map((specimen, index) => (
-        <SpecimenPanel
-          key={specimen.specimenId}
-          specimen={specimen}
-          title={specimenTitle(specimen, index)}
-          accessionNumber={accessionNumber}
-        />
-      ))}
+      <AccessionBanner accession={accession} />
+      <div className={styles.receivingLayout} {...activeCards}>
+        <div className={styles.specimens}>
+          {!single && progress}
+          {waitingFirst(specimens).map(({ specimen, index }) => (
+            <SpecimenPanel
+              key={specimen.specimenId}
+              specimen={specimen}
+              title={specimenTitle(specimen, index)}
+              accessionNumber={accessionNumber}
+              progress={single ? progress : undefined}
+            />
+          ))}
+        </div>
+        <AccessionSide accession={accession} />
+      </div>
     </>
   );
+}
+
+/** Specimens still waiting for a decision first; each keeps its number from the accession. */
+function waitingFirst(specimens: readonly AccessionSpecimenView[]) {
+  const numbered = specimens.map((specimen, index) => ({ specimen, index }));
+  const waiting = (each: (typeof numbered)[number]) => each.specimen.acceptance === "received";
+  return [...numbered.filter(waiting), ...numbered.filter((each) => !waiting(each))];
+}
+
+/**
+ * The patient strip with the order, its client and the accession's tests. The order and the
+ * client's name need `enter_orders`; without it the strip names the accession only.
+ */
+function AccessionBanner({ accession }: { accession: AccessionDetail }) {
+  const canOpenOrder = useHasCapability("enter_orders");
+  const order = useCommandQuery<OrderDetail>(
+    GET_ORDER,
+    { input: { orderId: accession.orderId } },
+    { enabled: canOpenOrder },
+  );
+  const clients = useCommandQuery<ClientView[]>(LIST_CLIENTS, undefined, {
+    enabled: canOpenOrder,
+  });
+  const client = clients.data?.find((each) => each.id === order.data?.clientId);
+  const tests = order.data?.items
+    .filter((item) => accession.orderItemIds.includes(item.itemId))
+    .map((item) => `${item.orderableCode} ${item.orderableName}`)
+    .join(", ");
+  if (!canOpenOrder) {
+    return (
+      <IdentityBanner
+        subjectId={accession.subjectId}
+        specimen={{ accessionNumber: accession.accessionNumber }}
+      />
+    );
+  }
+  const details = [
+    {
+      label: "Order",
+      value: <Link to={`/orders/${accession.orderId}`}>{accession.accessionNumber}</Link>,
+    },
+    ...(client ? [{ label: "Client", value: client.name }] : []),
+    ...(tests ? [{ label: "Tests", value: tests }] : []),
+  ];
+  return <IdentityBanner subjectId={accession.subjectId} details={details} />;
 }

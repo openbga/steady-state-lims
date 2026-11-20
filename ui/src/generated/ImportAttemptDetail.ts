@@ -2,12 +2,13 @@
 import type { ImportFailureCode } from "./ImportFailureCode";
 import type { ImportFileView } from "./ImportFileView";
 import type { ImportOutcome } from "./ImportOutcome";
+import type { ImportRowView } from "./ImportRowView";
 import type { QuarantineItemView } from "./QuarantineItemView";
 import type { ResultFileOrigin } from "./ResultFileOrigin";
 import type { SetAsideRowView } from "./SetAsideRowView";
 
 /**
- * An import attempt with its quarantined and set-aside clinical rows.
+ * An import attempt with its rows, and its quarantined and set-aside clinical rows.
  */
 export type ImportAttemptDetail = { 
 /**
@@ -17,7 +18,12 @@ registrationId: string | null,
 /**
  * The file read, for a result-file receipt.
  */
-file: ImportFileView | null, quarantine: Array<QuarantineItemView>, setAside: Array<SetAsideRowView>, importAttemptId: string, receiptId: string, attemptNo: number, instrumentId: string, outcome: ImportOutcome, failureCode: ImportFailureCode | null, rowsTotal: number, rowsNew: number, rowsDuplicate: number, rowsReprocessed: number, rowsQc: number, rowsQuarantined: number, 
+file: ImportFileView | null, quarantine: Array<QuarantineItemView>, setAside: Array<SetAsideRowView>, 
+/**
+ * Every placed row and what happened to it, in received order; empty for
+ * an attempt imported before rows were recorded.
+ */
+rows: Array<ImportRowView>, importAttemptId: string, receiptId: string, attemptNo: number, instrumentId: string, outcome: ImportOutcome, failureCode: ImportFailureCode | null, rowsTotal: number, rowsNew: number, rowsDuplicate: number, rowsReprocessed: number, rowsQc: number, rowsQuarantined: number, 
 /**
  * File rows whose analyte is on the not-a-result list (result files brief F10).
  */
