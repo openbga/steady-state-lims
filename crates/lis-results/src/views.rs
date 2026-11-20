@@ -19,8 +19,10 @@ use crate::model::{
 };
 
 mod files;
+mod import_rows;
 
 pub use files::{AddOnComponentView, ImportFileView, MeasuredNotOrderedView, SetAsideRowView};
+pub use import_rows::ImportRowView;
 
 /// Counts and outcome of one semantic import attempt.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, TS)]
@@ -103,7 +105,7 @@ pub struct MatchingRunView {
     pub created_at: UtcTimestamp,
 }
 
-/// An import attempt with its quarantined and set-aside clinical rows.
+/// An import attempt with its rows, and its quarantined and set-aside clinical rows.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
@@ -116,6 +118,9 @@ pub struct ImportAttemptDetail {
     pub file: Option<ImportFileView>,
     pub quarantine: Vec<QuarantineItemView>,
     pub set_aside: Vec<SetAsideRowView>,
+    /// Every placed row and what happened to it, in received order; empty for
+    /// an attempt imported before rows were recorded.
+    pub rows: Vec<ImportRowView>,
 }
 
 /// One immutable patient measurement.

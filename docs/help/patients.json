@@ -2,7 +2,7 @@
   "id": "patients",
   "title": "Patients and registration",
   "summary": "Find a patient, review identifying details and check possible matches before registration.",
-  "reviewedOn": "2026-11-16",
+  "reviewedOn": "2026-11-18",
   "routes": ["/patients", "/patients/register", "/patients/:subjectId"],
   "sections": [
     {
@@ -83,9 +83,9 @@
       "access": "Order-entry or quality-management authority permits audited patient browsing, matching and identity reads. Quality-management authority permits demographic correction, identifier deactivation and identity-hold resolution. Register patient, Add identifier, Orders, New order and standing-order actions require order-entry authority. Patient billing is available only with order-entry or billing authority. The engine checks each action separately.",
       "fields": [
         {
-          "name": "Find by name or identifier",
+          "name": "Find by name, birth date or identifier",
           "meaning": "Narrows the patient directory to records to compare.",
-          "values": "Literal name or active-identifier prefix, up to 402 characters. Names ignore case; identifiers are case-sensitive.",
+          "values": "Literal name or active-identifier prefix, or an exact birth date as YYYY-MM-DD, up to 402 characters. Names ignore case; identifiers are case-sensitive; a partial birth date matches nothing.",
           "rules": "Optional; clearing it browses all patients. Searches also include former names, while result rows show current demographics. Search text stays in this session rather than being stored in a patient record."
         },
         {

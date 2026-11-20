@@ -20,8 +20,9 @@ use crate::views::SubjectSummary;
 #[ts(export)]
 pub struct SubjectSearch {
     /// Literal prefix of a family name, given names, full name (Given Family,
-    /// Family Given or Family, Given), or active identifier value. Names ignore
-    /// case and Unicode composition; identifier values are case-sensitive.
+    /// Family Given or Family, Given), or active identifier value, or an exact
+    /// birth date (`YYYY-MM-DD`). Names ignore case and Unicode composition;
+    /// identifier values are case-sensitive.
     #[serde(default)]
     #[ts(optional = nullable)]
     pub query: Option<Phi<String>>,
@@ -100,7 +101,7 @@ pub fn search_subjects(
 }
 
 /// Every patient whose current or former name, or an active identifier value, starts
-/// with `text`, as the `query` of [`search_subjects`] matches, for finding their orders
+/// with `text`, or whose birth date is `text`, as the `query` of [`search_subjects`] matches, for finding their orders
 /// (REQ-ORD-001). Unbounded: the caller bounds what it lists. PHI: audited by the engine.
 pub fn subjects_matching(
     conn: &Connection,

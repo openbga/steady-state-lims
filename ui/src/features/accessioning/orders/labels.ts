@@ -39,7 +39,7 @@ export const REFLEX_AUTHORIZATIONS: readonly Choice<ReflexAuthorization>[] = [
 
 /** The testing sequence role the requisition states; never inferred from the test (REQ-RES-002). */
 export const SEQUENCE_ROLES: readonly Choice<SequenceRole>[] = [
-  { id: "first_line", label: "First-line test" },
+  { id: "first_line", label: "First-line (screen)" },
   { id: "confirmation", label: "Confirmation" },
 ];
 

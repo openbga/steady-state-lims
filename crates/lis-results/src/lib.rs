@@ -63,8 +63,8 @@ pub use commands::{
 pub use error::ResultError;
 pub use import::{ImportReceiptInput, ImportSource, import_receipt};
 pub use model::{
-    ImportAttemptId, ImportFailureCode, ImportOutcome, MeasurementForm, MeasurementId,
-    ProcessingRevisionId, QuarantineItemId, QuarantineReason, QuarantineResolution,
+    ImportAttemptId, ImportFailureCode, ImportOutcome, ImportRowOutcome, MeasurementForm,
+    MeasurementId, ProcessingRevisionId, QuarantineItemId, QuarantineReason, QuarantineResolution,
     QuarantineState, ResultCause, ResultId, ResultOutcome, ResultRevisionId, ReviewDecision,
     ReviewId, ReviewQueueFilter, SetAsideKind, SetAsideRowId, TechnicalReviewId,
     ValidityAssessmentId,
@@ -82,9 +82,10 @@ pub use queries::{
 pub use value::{MalformedValue, SourceValue, parse_value};
 pub use views::{
     AddOnComponentView, CurrentValidity, ImportAttemptDetail, ImportAttemptSummary, ImportFileView,
-    MatchingRunView, MeasuredNotOrderedView, MeasurementView, OutOfScopeDetection, ReleaseLine,
-    ReleaseReviewStatus, ReleaseRevision, ResultLineView, ResultRevisionView, ReviewQueueEntry,
-    ReviewStatus, ReviewView, SetAsideRowView, SpecimenResults, ValidityAssessmentView,
+    ImportRowView, MatchingRunView, MeasuredNotOrderedView, MeasurementView, OutOfScopeDetection,
+    ReleaseLine, ReleaseReviewStatus, ReleaseRevision, ResultLineView, ResultRevisionView,
+    ReviewQueueEntry, ReviewStatus, ReviewView, SetAsideRowView, SpecimenResults,
+    ValidityAssessmentView,
 };
 
 /// Forward-only migrations, numbered from `0001` (coding standards).
@@ -133,6 +134,11 @@ pub const MIGRATIONS: &[Migration] = &[
         version: 9,
         name: "duplicate_imports",
         sql: include_str!("../migrations/0009_duplicate_imports.sql"),
+    },
+    Migration {
+        version: 10,
+        name: "import_rows",
+        sql: include_str!("../migrations/0010_import_rows.sql"),
     },
 ];
 

@@ -63,6 +63,10 @@
     "ui/src/features/reports/content/ResultGroups.tsx",
     "ui/src/features/reports/delivery/DeliverySection.tsx",
     "ui/src/features/reports/delivery/deliveryCount.ts",
+    "ui/src/features/reports/delivery/InterfaceDeliveries.tsx",
+    "ui/src/features/reports/delivery/interfaceStatus.ts",
+    "crates/lis-interfaces/src/partner/message_queries.rs",
+    "crates/lis-interfaces/src/partner/unrouted_queries.rs",
     "crates/lis-reporting/src/delivery/labels.rs",
     "ui/src/features/reports/delivery/ObligationDialog.tsx",
     "ui/src/features/reports/delivery/ObligationGrid.tsx",
@@ -204,7 +208,7 @@
       "title": "Report history",
       "routes": ["/reports/:reportId/:tab?"],
       "purpose": "Inspect preserved revisions, delivery work, exports and quality follow-up for one report.",
-      "access": "Reading requires report-delivery or quality-management authority. Next revision and withdrawal require report-release authority. Impact/incident decisions require quality-management authority. Delivery actions require report-delivery authority. Opening the report is audited.",
+      "access": "Reading requires report-delivery or quality-management authority. Next revision and withdrawal require report-release authority. Impact/incident decisions require quality-management authority. Delivery actions require report-delivery authority. The Interfaces section of the Delivery tab requires configuration authority, as Interfaces › Logs does. Opening the report is audited.",
       "fields": [
         {
           "name": "Status chips under the title",
@@ -387,6 +391,36 @@
           "rules": "Read-only. For Handed off, these are when and by whom the hand-off was attested; for Failed or Outcome unknown, the failed or uncertain attempt."
         },
         {
+          "name": "Delivery: Interfaces",
+          "meaning": "Lists the report's messages sent through Interfaces, below the staff destinations: HL7 results over MLLP, files written to a folder or uploaded to an SFTP server, and Report PDF or HL7 messages that matched no connection, with the decision recorded in Unrouted messages.",
+          "values": "One row per message and connection, newest first; No messages through Interfaces for this report when there are none. Synthetic test messages are left out.",
+          "rules": "Shown only to people with configuration authority, who may open Interfaces › Logs; others see the staff destinations only. These rows are not counted in X of Y handed off, nor in the tab's count: a written file or an acknowledgement is what the interface records, not proof that the partner processed the report."
+        },
+        {
+          "name": "Interfaces: Connection",
+          "meaning": "The interface connection the message went to, linked to the message in Interfaces › Logs.",
+          "values": "The connection's name, such as TEST MLLP Results; None matched for a message no connection rule matched.",
+          "rules": "Read-only."
+        },
+        {
+          "name": "Interfaces: Revision",
+          "meaning": "Which part of the report the message carries.",
+          "values": "Revision N, or Withdrawal notice.",
+          "rules": "Read-only. A correction goes first to every connection that had an earlier revision."
+        },
+        {
+          "name": "Interfaces: Status",
+          "meaning": "Where the message stands, as Interfaces records it.",
+          "values": "Accepted (AA) (green) or Rejected (AE) / Rejected (AR) (red), the MLLP partner's acknowledgement; Awaiting application ACK (warning); Written, Uploaded or Sent (grey), what a folder, SFTP server or MLLP connection can prove; Failed (red); Waiting (grey), not sent yet; Replaced by a newer revision (grey), never sent; for an unrouted message, Waiting in Unrouted messages (warning) or the decision: Delivery recorded another way, Sent once to a connection, Routed again by the rules or Dismissed (grey).",
+          "rules": "Read-only. Written means the file is in the folder; a folder never says whether the partner used it. Delivery recorded another way is a person's record that the report went outside the LIS. Open the row in Logs for the reason of a failure, a wait or a rejection, and to send it again."
+        },
+        {
+          "name": "Interfaces: When",
+          "meaning": "When the message was written or sent, last tried, or made.",
+          "values": "Date and time in the laboratory's time zone.",
+          "rules": "Read-only; newest first."
+        },
+        {
           "name": "Attempts",
           "meaning": "Preserves every attempt in order; the obligation's panel in Delivery shows them.",
           "values": "Handed off, Failed or Outcome unknown; failure cause, observed time, recorder and note.",
@@ -489,6 +523,12 @@
           "does": "Opens the matching obligation in Delivery. Open in Delivery, beside the count on the Delivery tab, opens the first obligation not yet closed.",
           "availableWhen": "The obligation is not closed.",
           "result": "Shows loaded open-obligation details; closed obligations currently have only their history row here."
+        },
+        {
+          "name": "Open interface message",
+          "does": "Selecting an Interfaces row, or its connection link, opens Interfaces › Logs over all time: a sent message found by its control ID and open in the side panel, an unrouted one found by the report number.",
+          "availableWhen": "Configuration authority; the Interfaces section is shown.",
+          "result": "Shows the message's transport and application outcomes, details and actions such as Send again in Logs."
         },
         {
           "name": "Record attempt",
