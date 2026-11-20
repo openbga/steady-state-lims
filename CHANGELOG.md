@@ -23,6 +23,17 @@ newest first. The application shows the same list under **What's new**.
 
 ### Medium impact
 
+- **Changed:** The app window opens as you left it (2026-11-20)
+
+  The application opens maximized the first time. After that it opens as you closed it: maximized,
+  or with the same size and position. If that position is on a monitor that is no longer
+  connected, the window opens on the main monitor instead.
+
+  Technical notes:
+
+  The window state is kept per computer in `<identifier>.window.json` beside the data folder,
+  outside the data folder, backups and exports. It holds only window geometry.
+
 - **Added:** A summary of the report on the report page (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
 
   The report page has a **Summary** with the client, ordering practitioner, specimen, tests, collection time, release, last export and **Impact after release**, shown as **Nothing open** or the number of open items. The patient banner links to the accession and, for people who enter orders, to the order with **View order**.

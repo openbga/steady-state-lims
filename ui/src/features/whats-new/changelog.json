@@ -24,6 +24,15 @@
           "impact": "medium",
           "entries": [
             {
+              "id": "2026-11-20-window-size-remembered",
+              "date": "2026-11-20",
+              "type": "changed",
+              "impact": "medium",
+              "title": "The app window opens as you left it",
+              "summary": "The application opens maximized the first time. After that it opens as you closed it: maximized,\nor with the same size and position. If that position is on a monitor that is no longer\nconnected, the window opens on the main monitor instead.",
+              "notes": "The window state is kept per computer in `<identifier>.window.json` beside the data folder,\noutside the data folder, backups and exports. It holds only window geometry."
+            },
+            {
               "id": "2026-11-18-report-summary-card",
               "date": "2026-11-18",
               "type": "added",
