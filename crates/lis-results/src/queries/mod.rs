@@ -24,6 +24,7 @@ use crate::views::{
 pub(crate) mod awaiting;
 mod exception_queues;
 mod import_list;
+mod import_rows;
 mod imports;
 mod invalidations;
 mod measured;

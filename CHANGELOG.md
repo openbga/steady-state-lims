@@ -39,6 +39,14 @@ newest first. The application shows the same list under **What's new**.
 
   The **Delivery** tab lists each destination with its method, status, time and person. The status is a colored badge, and a blocked destination shows its reason. The tab also shows how many destinations are handed off, with **Open in Delivery** and **Add destination**.
 
+- **Added:** See every row of an import attempt and what happened to it (2026-11-18)
+
+  An import attempt in **Result imports** now opens on a **Rows** tab listing each row as received: record, sample label, test code, analyte, value and what happened to it (New result, Duplicate, Reprocessed, QC row, Quarantined or Measured, not ordered (kept)). A patient row links to its results in **Result review** and a QC row to its run's QC review. Filter the rows with **What happened**, or click a count under **Outcome** to show just those rows.
+
+  Technical notes:
+
+  Results migration 10 adds the append-only table `res_import_rows`, written by each new import attempt. Attempts imported before this version list no rows; their counts are unchanged. `get_import_attempt` returns the rows in a new `rows` field.
+
 - **Changed:** The report page shows its status under the title and keeps one main button (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
 
   Under a report's title, chips show its availability, **Final** or **Partial**, the revision and its type, and **Handed off X of Y** for delivery. **Export PDF** is the only main button; **Prepare next revision**, **Add destination** and **Withdraw report** are under **More actions**, with Withdraw report last.
