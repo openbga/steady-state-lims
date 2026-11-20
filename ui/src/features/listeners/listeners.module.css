@@ -1,13 +1,7 @@
 /* The sign-in and lock screens' card under the form (ticket #4885). */
 .card {
-  display: flex;
-  flex-direction: column;
+  composes: section from "../../components/Section/Section.module.css";
   align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
 }
 
 /* The one summary line: the counts, then that results arrive without anyone signed in. */
