@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/Button";
+import { Dialog } from "@/components/Dialog";
 import { QueryContent } from "@/components/QueryContent";
 import { Section } from "@/components/Section";
 import type { OrderBillingView } from "@/generated/OrderBillingView";
@@ -17,11 +18,14 @@ import { ReviewItems } from "./ReviewItems";
 export function OrderBillingSection({
   orderId,
   subjectId,
+  initiallyOpen = false,
 }: {
   orderId: string;
   subjectId: string;
+  /** Opened at once, as when New order saved the order to add its billing next. */
+  initiallyOpen?: boolean;
 }) {
-  const [opened, setOpened] = useState(false);
+  const [opened, setOpened] = useState(initiallyOpen);
   return (
     <Section title="Order billing">
       {opened ? (
@@ -35,6 +39,29 @@ export function OrderBillingSection({
         </>
       )}
     </Section>
+  );
+}
+
+/** The order's billing in a dialog, opened from Finish receiving's Order billing card. */
+export function OrderBillingDialog({
+  orderId,
+  subjectId,
+  onClose,
+}: {
+  orderId: string;
+  subjectId: string;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog
+      title="Order billing"
+      size="wide"
+      isOpen
+      onOpenChange={(open) => !open && onClose()}
+      actions={<Button onPress={onClose}>Close</Button>}
+    >
+      <OrderBillingQuery orderId={orderId} subjectId={subjectId} />
+    </Dialog>
   );
 }
 

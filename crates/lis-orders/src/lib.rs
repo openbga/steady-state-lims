@@ -17,6 +17,7 @@ mod error;
 mod inputs;
 mod model;
 mod order_list;
+mod order_patients;
 mod parties;
 pub mod queries;
 mod query_detail;
@@ -65,6 +66,10 @@ pub use model::{
     StandingOrderId, TriggerAssessmentId, TriggerSource,
 };
 pub use order_list::{OrderMatches, list_orders, order_search};
+pub use order_patients::{
+    FindOrderPatientsInput, LastOrderView, OrderPatientChoice, OrderPatientChoices,
+    recent_order_subjects, with_last_orders,
+};
 pub use parties::{OrderParties, Party};
 pub use queries::{
     ComponentForTesting, ItemReadyForAccession, components_for_order, get_order,

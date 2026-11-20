@@ -1,5 +1,6 @@
+import { X } from "lucide-react";
 import { useContext, useRef } from "react";
-import { FormValidationContext } from "react-aria-components";
+import { FormValidationContext, VisuallyHidden } from "react-aria-components";
 import {
   useController,
   useFieldArray,
@@ -8,7 +9,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { Button } from "@/components/Button";
-import { ChoiceInput } from "@/components/FormFields";
+import { SegmentedInput } from "@/components/FormFields";
 import { Inset } from "@/components/Inset";
 import { Section } from "@/components/Section";
 import type { OrderableVersionView } from "@/generated/OrderableVersionView";
@@ -49,7 +50,7 @@ export function TestSelection({ orderables }: { orderables: readonly OrderableVe
   }
 
   return (
-    <Section title="Tests and panels">
+    <Section title="Tests">
       <div ref={selection} className={styles.group}>
         <TestChecklist
           legend="Tests ordered"
@@ -62,14 +63,18 @@ export function TestSelection({ orderables }: { orderables: readonly OrderableVe
           errorMessage={errors.items?.root?.message}
         >
           <ul className={styles.list} aria-label="Chosen tests">
-            {items.fields.length === 0 && <li className={styles.hint}>No tests chosen yet.</li>}
+            {items.fields.length === 0 && (
+              <li className={styles.hint}>
+                No tests chosen yet. Search above for each test or panel marked on the requisition.
+              </li>
+            )}
             {items.fields.map((field, index) => {
               const orderable = orderables.find((each) => each.id === field.orderableVersionId);
               return (
                 <li key={field.id}>
                   <ReflexFields
                     index={index}
-                    title={orderable ? orderableLabel(orderable) : "Test"}
+                    orderable={orderable}
                     others={orderables.filter((each) => each.id !== field.orderableVersionId)}
                     onRemove={() => {
                       items.remove(index);
@@ -80,9 +85,34 @@ export function TestSelection({ orderables }: { orderables: readonly OrderableVe
               );
             })}
           </ul>
+          {items.fields.length > 1 && <ApplyToAll count={items.fields.length} />}
         </TestChecklist>
       </div>
     </Section>
+  );
+}
+
+/**
+ * Copies the first test's sequence role and reflex testing to the other tests, for a
+ * requisition that states them once for all. Each test's reflex scope stays its own.
+ */
+function ApplyToAll({ count }: { count: number }) {
+  const { getValues, setValue } = useFormContext<OrderFormValues>();
+  function apply() {
+    const [first] = getValues("items");
+    for (let index = 1; index < count; index += 1) {
+      for (const name of ["sequenceRole", "reflexAuthorization"] as const) {
+        setValue(`items.${index}.${name}`, first?.[name] ?? null, { shouldDirty: true });
+      }
+    }
+  }
+  return (
+    <p className={formStyles.hint}>
+      With more than one test:{" "}
+      <Button variant="quiet" onPress={apply}>
+        Apply the first test's choices to all tests
+      </Button>
+    </p>
   );
 }
 
@@ -102,34 +132,54 @@ interface ReflexFieldsProps {
   others: readonly OrderableVersionView[];
 }
 
-function ReflexFields({
-  index,
-  title,
-  others,
-  onRemove,
-}: ReflexFieldsProps & { onRemove: () => void }) {
+interface TestRowProps extends Omit<ReflexFieldsProps, "title"> {
+  /** `undefined` for a version no longer in the active catalog. */
+  orderable: OrderableVersionView | undefined;
+  onRemove: () => void;
+}
+
+/** One chosen test: its name, then its sequence role, reflex testing and × on the same row. */
+function ReflexFields({ index, orderable, others, onRemove }: TestRowProps) {
   const { control } = useFormContext<OrderFormValues>();
   const authorization = useWatch({ control, name: `items.${index}.reflexAuthorization` });
+  const title = orderable ? orderableLabel(orderable) : "Test";
   return (
     <Inset as="fieldset">
-      <legend className={styles.legend}>{title}</legend>
+      {/* The legend names the group for screen readers; the row shows the name beside the choices. */}
+      <VisuallyHidden elementType="legend">{title}</VisuallyHidden>
       <div className={formStyles.selectedFields}>
-        <ChoiceInput
+        <p className={formStyles.testName} aria-hidden="true">
+          {orderable ? (
+            <>
+              <strong>{orderable.name}</strong>{" "}
+              <span className={formStyles.hint}>{orderable.code}</span>
+            </>
+          ) : (
+            title
+          )}
+        </p>
+        <SegmentedInput
           name={`items.${index}.sequenceRole`}
-          label={`Testing sequence role for ${title}`}
+          label="Sequence role"
+          hiddenSuffix={` for ${title}`}
           options={SEQUENCE_ROLES}
-          description="As the requisition states it."
+          tip={
+            <p>
+              The test's place in the testing sequence, as the requisition states it. Never inferred
+              from the test or the panel name.
+            </p>
+          }
           isRequired
         />
-        <ChoiceInput
+        <SegmentedInput
           name={`items.${index}.reflexAuthorization`}
-          label={`Reflex testing for ${title}`}
+          label="Reflex testing"
+          hiddenSuffix={` for ${title}`}
           options={REFLEX_AUTHORIZATIONS}
-          description="As the requisition states it."
           isRequired
         />
         <Button variant="quiet" aria-label={`Remove ${title}`} onPress={onRemove}>
-          Remove
+          <X aria-hidden="true" />
         </Button>
       </div>
       {authorization === "authorized" && (
@@ -154,15 +204,28 @@ function ReflexScope({ index, title, others }: ReflexFieldsProps) {
   });
   const engineError = useContext(FormValidationContext)[field.name];
   const engineMessage = Array.isArray(engineError) ? engineError.join(" ") : engineError;
+  if (others.length === 0) {
+    // Nothing to tick: say so rather than show an empty list. The authorization still saves.
+    return (
+      <div className={formStyles.reflexScope}>
+        <p className={formStyles.reflexTitle}>Reflex tests authorized</p>
+        <p className={formStyles.hint}>
+          No other tests or panels in the catalog to authorize as reflex tests.
+        </p>
+      </div>
+    );
+  }
   return (
-    <TestChecklist
-      legend="Reflex tests authorized"
-      name={`reflex tests for ${title}`}
-      orderables={others}
-      idOf={orderableId}
-      chosen={field.value}
-      onChange={field.onChange}
-      errorMessage={fieldState.error?.message ?? engineMessage}
-    />
+    <div className={formStyles.reflexScope}>
+      <TestChecklist
+        legend="Reflex tests authorized"
+        name={`reflex tests for ${title}`}
+        orderables={others}
+        idOf={orderableId}
+        chosen={field.value}
+        onChange={field.onChange}
+        errorMessage={fieldState.error?.message ?? engineMessage}
+      />
+    </div>
   );
 }

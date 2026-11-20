@@ -1,7 +1,7 @@
 import { useContext, useMemo } from "react";
 import { FormValidationContext } from "react-aria-components";
 import { useFormContext, useWatch } from "react-hook-form";
-import { ChoiceInput, RecordPickerInput, TextInput } from "@/components/FormFields";
+import { ChoiceInput, RecordPickerInput, SegmentedInput, TextInput } from "@/components/FormFields";
 import { Section } from "@/components/Section";
 import type { ClientView } from "@/generated/ClientView";
 import type { PractitionerView } from "@/generated/PractitionerView";
@@ -45,12 +45,16 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
     ? (clients.find((client) => client.id === clientId)?.locations ?? [])
     : null;
   return (
-    <Section title="Ordering source">
-      <div className={styles.fields}>
+    <Section
+      title="Ordering source"
+      description="From the top of the requisition: who sent it and who pays."
+    >
+      <div className={styles.threeColumns}>
         <RecordPickerInput
           name="clientId"
           label="Client"
           options={clientOptions}
+          placeholder="Select…"
           onChange={() => setValue("clientLocationId", null)}
           isRequired
         />
@@ -59,27 +63,50 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
           name="practitionerId"
           label="Ordering practitioner"
           options={practitionerOptions}
+          placeholder="Select…"
           onChange={() => setValue("standingOrderId", null)}
           isRequired
         />
-        <ChoiceInput name="sourceKind" label="Received as" options={SOURCE_KINDS} isRequired />
-        <ChoiceInput
+      </div>
+      <div className={styles.sourceChoices}>
+        <SegmentedInput
+          name="sourceKind"
+          label="Received as"
+          options={SOURCE_KINDS}
+          fill
+          isRequired
+        />
+        <SegmentedInput
           name="billingResponsibility"
           label="Billing responsibility"
           options={BILLING_RESPONSIBILITIES}
+          fill
+          tip={
+            <p>
+              Who pays, as the requisition states it; Not supplied when it does not say. The order
+              billing itself is confirmed on the saved order.
+            </p>
+          }
           isRequired
         />
-        <ChoiceInput
+        <SegmentedInput
           name="templateKind"
           label="Template use"
           options={TEMPLATE_KINDS}
-          description="Whether the clinic marked tests on a preset template."
+          fill
+          tip={
+            <p>
+              Whether the clinic marked tests on a preset template. Choosing Clinic template never
+              chooses tests.
+            </p>
+          }
           isRequired
         />
+        {/* A clinic template's details line up under Received as and Billing responsibility. */}
         {templateKind === "clinic_template" && (
           <>
             <TextInput name="templateName" label="Template name" isRequired />
-            <ChoiceInput
+            <SegmentedInput
               name="templateConfirmed"
               label="Confirmed for this patient"
               options={YES_NO}
@@ -90,7 +117,10 @@ export function RequisitionFields({ clients, practitioners }: RequisitionFieldsP
         )}
       </div>
       <details className={styles.references} open={referencesInvalid || undefined}>
-        <summary>Clinic order number and source references</summary>
+        <summary>
+          Clinic order number and source references{" "}
+          <span className={styles.optional}>Optional</span>
+        </summary>
         <div className={styles.fields}>
           <TextInput name="placerOrderId" label="Clinic order number" />
           <TextInput
@@ -124,7 +154,7 @@ function ClientLocationField({ locations }: { locations: ClientView["locations"]
       description={
         locations === null
           ? "Choose the client first."
-          : "Where results go, when the requisition names a location."
+          : "Where results go, if the requisition names one."
       }
     />
   );

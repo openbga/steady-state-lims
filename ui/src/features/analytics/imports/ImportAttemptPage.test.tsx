@@ -35,6 +35,47 @@ const DETAIL: ImportAttemptDetail = {
   registrationId: null,
   file: null,
   setAside: [],
+  rows: [
+    {
+      rowNo: 1,
+      recordPath: "P1/O1/R1",
+      sampleLabel: "C00000012",
+      testCode: "AMPH",
+      analyteCode: "AMPH",
+      analyteName: "Amphetamine",
+      valueText: "530.0",
+      unitsText: "ng/mL",
+      outcome: "new",
+      runId: "00000000-0000-7000-8000-000000007001",
+      specimenId: "00000000-0000-7000-8000-000000006001",
+    },
+    {
+      rowNo: 2,
+      recordPath: "P2/O1/R1",
+      sampleLabel: "QC-LCMS-1",
+      testCode: "METH",
+      analyteCode: "METH",
+      analyteName: "Methamphetamine",
+      valueText: "<0.50",
+      unitsText: null,
+      outcome: "qc",
+      runId: "00000000-0000-7000-8000-000000007001",
+      specimenId: null,
+    },
+    {
+      rowNo: 3,
+      recordPath: "R4",
+      sampleLabel: "C00000001",
+      testCode: "AMP",
+      analyteCode: null,
+      analyteName: null,
+      valueText: "530.0",
+      unitsText: "ng/mL",
+      outcome: "quarantined",
+      runId: null,
+      specimenId: null,
+    },
+  ],
   quarantine: [
     {
       itemId: "item-1",
@@ -78,7 +119,7 @@ function renderPage(path: string, commands: Record<string, (args: unknown) => un
   return renderRoutes(
     [
       { path: "/review/imports", element: <ImportAttemptsPage /> },
-      { path: "/review/imports/:importAttemptId", element: <ImportAttemptPage /> },
+      { path: "/review/imports/:importAttemptId/:tab?", element: <ImportAttemptPage /> },
     ],
     path,
   );
@@ -139,7 +180,7 @@ describe("Result imports (REQ-ANA-003)", { timeout: WALKTHROUGH_TIMEOUT_MS }, ()
     );
     await user.click(screen.getByRole("link", { name: "Next" }));
     expect(await screen.findByRole("heading", { level: 1, name: "Import attempt 2" })).toBeTruthy();
-    expect(screen.getByText("No rows were quarantined.")).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Rows (3)", selected: true })).toBeTruthy();
   });
 
   it("says the whole message was held when it was refused, not that no rows were", async () => {
@@ -153,7 +194,7 @@ describe("Result imports (REQ-ANA-003)", { timeout: WALKTHROUGH_TIMEOUT_MS }, ()
       rowsQuarantined: 3,
       quarantine: [],
     };
-    renderPage(`/review/imports/${ATTEMPT_ID}`, { get_import_attempt: () => refused });
+    renderPage(`/review/imports/${ATTEMPT_ID}/quarantine`, { get_import_attempt: () => refused });
     expect(
       await screen.findByText("The whole message was held: 3 rows. See Message failure above."),
     ).toBeTruthy();
@@ -190,8 +231,59 @@ describe("Result imports (REQ-ANA-003)", { timeout: WALKTHROUGH_TIMEOUT_MS }, ()
     expect(screen.queryByRole("button", { name: "Load older imports" })).toBeNull();
   });
 
+  it("lists every row as received with what happened, linked to its review", async () => {
+    const { container } = renderPage(`/review/imports/${ATTEMPT_ID}`);
+    const grid = await screen.findByRole("grid", { name: "Rows of the attempt" });
+    expect(screen.getByRole("tab", { name: "Rows (3)", selected: true })).toBeTruthy();
+    expect(within(grid).getByRole("gridcell", { name: "Amphetamine" })).toBeTruthy();
+    expect(
+      within(grid).getByRole("gridcell", { name: "<0.50\u00A0(no units reported)" }),
+    ).toBeTruthy();
+    expect(within(grid).getByText("New result")).toBeTruthy();
+    expect(within(grid).getByText("QC row")).toBeTruthy();
+    expect(within(grid).getByRole("gridcell", { name: "Not mapped" })).toBeTruthy();
+    expect(within(grid).getByRole("link", { name: "Result review" }).getAttribute("href")).toBe(
+      "/review/specimens/00000000-0000-7000-8000-000000006001",
+    );
+    expect(within(grid).getByRole("link", { name: "QC review" }).getAttribute("href")).toBe(
+      "/bench/runs/00000000-0000-7000-8000-000000007001/qc",
+    );
+    expect(within(grid).getAllByRole("link")).toHaveLength(2);
+    await expectNoA11yViolations(container, { wholePage: true });
+  });
+
+  it("filters the rows by what happened, from a count or the filter", async () => {
+    const { user, router } = renderPage(`/review/imports/${ATTEMPT_ID}`);
+    await screen.findByRole("grid", { name: "Rows of the attempt" });
+    // A zero count is not a link.
+    expect(screen.queryByRole("link", { name: "Show duplicates: 0" })).toBeNull();
+    await user.click(screen.getByRole("link", { name: "Show qc rows: 1" }));
+    expect(router.state.location.pathname).toBe(`/review/imports/${ATTEMPT_ID}/rows`);
+    expect(router.state.location.search).toBe("?happened=qc");
+    const grid = await screen.findByRole("grid", { name: "Rows of the attempt" });
+    expect(grid.getAttribute("aria-rowcount")).toBe("2");
+    expect(screen.getByText("1 row of 3")).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: /What happened/ }));
+    await user.click(await screen.findByRole("option", { name: "Every row" }));
+    expect(router.state.location.search).toBe("");
+    expect(screen.getByText("3 rows")).toBeTruthy();
+  });
+
+  it("says why an attempt lists no rows", async () => {
+    renderPage(`/review/imports/${ATTEMPT_ID}`, {
+      get_import_attempt: () => ({ ...DETAIL, rows: [] }),
+    });
+    expect(
+      await screen.findByText(
+        "This attempt was imported before rows were listed on the attempt, so only its counts are shown.",
+      ),
+    ).toBeTruthy();
+    // With no rows listed, the counts open nothing.
+    expect(screen.queryByRole("link", { name: /^Show / })).toBeNull();
+  });
+
   it("shows quarantined rows as plain text with why they were held", async () => {
-    const { user, container } = renderPage(`/review/imports/${ATTEMPT_ID}`);
+    const { user, container } = renderPage(`/review/imports/${ATTEMPT_ID}/quarantine`);
     const grid = await screen.findByRole("grid", { name: "Quarantined rows" });
     expect(
       within(grid).getByRole("gridcell", { name: "<b>12</b>\u00A0(no units reported)" }),
@@ -209,7 +301,7 @@ describe("Result imports (REQ-ANA-003)", { timeout: WALKTHROUGH_TIMEOUT_MS }, ()
 
   it("accepts an open row as reprocessing from its panel, as its row menu offers", async () => {
     const resolve = vi.fn(() => DETAIL);
-    const { user } = renderPage(`/review/imports/${ATTEMPT_ID}`, {
+    const { user } = renderPage(`/review/imports/${ATTEMPT_ID}/quarantine`, {
       resolve_quarantine_item: resolve,
     });
     await screen.findByRole("grid", { name: "Quarantined rows" });
@@ -248,7 +340,7 @@ describe("Result imports (REQ-ANA-003)", { timeout: WALKTHROUGH_TIMEOUT_MS }, ()
       recordPath: "R6",
       reason: "unknown_analyte" as const,
     };
-    const { user } = renderPage(`/review/imports/${ATTEMPT_ID}`, {
+    const { user } = renderPage(`/review/imports/${ATTEMPT_ID}/quarantine`, {
       get_import_attempt: () => ({ ...DETAIL, quarantine: [...DETAIL.quarantine, unmapped] }),
     });
     await screen.findByRole("grid", { name: "Quarantined rows" });
@@ -261,7 +353,7 @@ describe("Result imports (REQ-ANA-003)", { timeout: WALKTHROUGH_TIMEOUT_MS }, ()
 
   it("rejects an open row from its row menu, and offers no decision on a decided one", async () => {
     const resolve = vi.fn(() => DETAIL);
-    const { user } = renderPage(`/review/imports/${ATTEMPT_ID}`, {
+    const { user } = renderPage(`/review/imports/${ATTEMPT_ID}/quarantine`, {
       resolve_quarantine_item: resolve,
     });
     await openRow(user, "R5");

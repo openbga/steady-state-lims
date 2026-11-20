@@ -191,3 +191,26 @@
 .field[data-layout="inline"] > .error {
   flex-basis: 100%;
 }
+
+/* FieldTip: the "?" beside a label or note, and its popover. */
+.tipIcon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.tip {
+  max-width: min(28rem, 90vw);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-overlay);
+}
+
+.tipBody {
+  padding: var(--space-3);
+  outline: none;
+}
+
+.tipBody p {
+  margin: 0;
+}

@@ -50,6 +50,13 @@ export const ADD_DELIVERY_OBLIGATION = "add_delivery_obligation";
 export const REDIRECT_DELIVERY_OBLIGATION = "redirect_delivery_obligation";
 /** `list_delivery_destinations({input:{clientId?, state?}}) → DestinationView[]` (session). */
 export const LIST_DELIVERY_DESTINATIONS = "list_delivery_destinations";
+/**
+ * `list_partner_messages({input:{view, reportId}}) → PartnerMessagePage`: the report's messages
+ * through Interfaces, for people with `manage_configuration` (#4725).
+ */
+export const LIST_PARTNER_MESSAGES = "list_partner_messages" satisfies CommandName;
+/** Holds Interfaces: the report's Delivery tab shows its interface messages only to them. */
+export const MANAGE_CONFIGURATION = "manage_configuration";
 /** `list_work_queues() → WorkQueueSummary[]`, filtered by the caller's capabilities. */
 export const LIST_WORK_QUEUES = "list_work_queues";
 /** `list_work_queue_items({input:{queue, limit}}) → WorkQueuePage`, oldest first. */

@@ -27,9 +27,10 @@ described under [security keys without a PIN](installation-and-first-start.md#al
 ## Find a patient
 
 **Front desk → Patients** opens a directory of registered patients, 25 per page. Use
-**Previous** and **Next** to browse, or type the start of a name or identifier in the find field.
-Names ignore case; identifier values are case-sensitive. Full names can be entered as
-“Given Family” or “Family, Given”. Earlier names can match, but the table shows current details.
+**Previous** and **Next** to browse, or type the start of a name or identifier, or an exact
+birth date (YYYY-MM-DD), in the find field. Names ignore case; identifier values are
+case-sensitive. Full names can be entered as “Given Family” or “Family, Given”. Earlier names
+can match, but the table shows current details.
 
 **Detailed search** offers an exact identifier with its assigning authority and type, or a
 family name with optional given names and birth date. **Show all patients** clears the search.
@@ -39,6 +40,19 @@ allow order-entry or quality-management authority. **Register patient**, **Order
 identifier addition and standing-order workflows still require order-entry authority. A quality-only
 account can review and correct identity or resolve holds without gaining order-entry access. Patient
 billing opens only with order-entry or billing authority. Search text is kept out of URLs and browser storage.
+
+**Front desk → Orders → New order** starts with the same search in one box, **Who is the order
+for?**, which lists matching patients as you type with each patient's latest order. The patients
+you entered orders for most recently are offered under the box for one click, **Register patient**
+sits under the results, and the detailed searches are folded under **Exact search**.
+
+The order details then follow the paper requisition in two steps. **Requisition** holds the ordering
+source and the authority to test; **Next: Tests** checks the step and moves on. **Tests** holds the
+tests with their sequence role and reflex testing, and buttons for diagnoses, medications,
+point-of-care results and standing authority when the requisition has them. **Back: Requisition**
+keeps everything entered. The **Order summary** beside the form shows what is still missing; **Save
+order** works once it is complete. Order billing is added on the saved order: an empty one is a
+warning, not a block, and **Add order billing** opens it right after saving.
 
 ## Correct identity and order evidence
 

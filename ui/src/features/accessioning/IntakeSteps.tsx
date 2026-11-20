@@ -1,3 +1,4 @@
+import { Check, ChevronRight } from "lucide-react";
 import styles from "./IntakeSteps.module.css";
 
 const STEPS = [
@@ -7,20 +8,35 @@ const STEPS = [
   { id: "finish", label: "Finish receipt" },
 ] as const;
 
-/** Task position, not a clinical status or an assertion that any safety gate has passed. */
-export function IntakeSteps({ current }: { current: (typeof STEPS)[number]["id"] }) {
+/**
+ * Task position as a row of pills: earlier steps green with a check, the current step filled
+ * with a dot, later steps outlined. Not a clinical status or an assertion that any safety
+ * gate has passed. `complete` marks every step done, as Finish receipt once each specimen has
+ * a receipt decision.
+ */
+export function IntakeSteps({
+  current,
+  complete = false,
+}: {
+  current: (typeof STEPS)[number]["id"];
+  complete?: boolean;
+}) {
+  const position = complete ? STEPS.length : STEPS.findIndex((step) => step.id === current);
   return (
     <ol className={styles.steps} aria-label="Intake progress">
       {STEPS.map((step, index) => (
         <li
           key={step.id}
           className={styles.step}
-          aria-current={step.id === current ? "step" : undefined}
+          aria-current={index === position ? "step" : undefined}
+          data-done={index < position || undefined}
         >
-          <span className={styles.number} aria-hidden="true">
-            {index + 1}
+          {index > 0 && <ChevronRight aria-hidden="true" className={styles.separator} />}
+          <span className={styles.pill}>
+            {index < position && <Check aria-hidden="true" className={styles.check} />}
+            {index === position && <span aria-hidden="true" className={styles.dot} />}
+            {step.label}
           </span>
-          {step.label}
         </li>
       ))}
     </ol>

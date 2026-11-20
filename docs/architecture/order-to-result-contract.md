@@ -46,7 +46,7 @@ Review becomes stale when its revision or required assessment is superseded, QC 
 
 ## Receipt and import
 
-A durable receipt precedes acknowledgement and parsing (REQ-INT-009). The engine reads the content-addressed artifact with digest verification, parses outside the writer transaction, and imports typed rows in an authorized, audited transaction. Import attempts are idempotent by receipt and attempt number; infrastructure retry does not fabricate a second observation.
+A durable receipt precedes acknowledgement and parsing (REQ-INT-009). The engine reads the content-addressed artifact with digest verification, parses outside the writer transaction, and imports typed rows in an authorized, audited transaction. Import attempts are idempotent by receipt and attempt number; infrastructure retry does not fabricate a second observation. Each attempt also records every row it placed, with its text as received and what happened to it (new, kept as measured not ordered, duplicate, reprocessed, QC or quarantined), so an attempt can be reconciled row by row; rows not read as results and set-aside file rows are counted and listed separately.
 
 | Routing boundary | Required behavior |
 | --- | --- |

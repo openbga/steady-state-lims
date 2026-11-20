@@ -4,11 +4,12 @@ use lis_core::{CommandError, UserId};
 use lis_engine::{
     AcceptOrderInput, AmendOrderEvidenceInput, AuthorityEvidenceInput, AuthorityEvidenceKind,
     BillingResponsibility, BillingReviewElement, CreateBillingReviewItemInput,
-    DecideCancellationInput, DecideFollowOnInput, Decision, EvidenceInput, GetOrderInput, ItemKind,
-    ListOrdersInput, ListStandingOrdersInput, OrderEvidenceId, OrderFilter, OrderId, OrderItemId,
-    PlaceClarificationHoldInput, RecordTriggerNotMetInput, ReflexAuthorization, RegisterOrderInput,
-    RegisterStandingOrderInput, RejectOrderInput, RequestCancellationInput, RequestFollowOnInput,
-    ResolveClarificationHoldInput, SourceKind, StandingOrderId, TemplateUseInput, TriggerSource,
+    DecideCancellationInput, DecideFollowOnInput, Decision, EvidenceInput, FindOrderPatientsInput,
+    GetOrderInput, ItemKind, ListOrdersInput, ListStandingOrdersInput, OrderEvidenceId,
+    OrderFilter, OrderId, OrderItemId, PlaceClarificationHoldInput, RecordTriggerNotMetInput,
+    ReflexAuthorization, RegisterOrderInput, RegisterStandingOrderInput, RejectOrderInput,
+    RequestCancellationInput, RequestFollowOnInput, ResolveClarificationHoldInput, SourceKind,
+    StandingOrderId, TemplateUseInput, TriggerSource,
 };
 
 use lis_engine::Engine;
@@ -42,6 +43,13 @@ async fn order_record_call(engine: &Engine, name: &str) -> Option<Result<(), Com
                 before_received_at: None,
                 before_order_id: None,
                 search: None,
+            })
+            .await
+            .map(drop),
+        "find_order_patients" => engine
+            .find_order_patients(FindOrderPatientsInput {
+                query: None,
+                limit: 10,
             })
             .await
             .map(drop),

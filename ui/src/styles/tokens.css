@@ -34,6 +34,9 @@
   --color-accent: #0b5cad;
   --color-accent-hover: #094b8e;
   --color-accent-subtle: #e7eff9;
+  /* A solid blue fill with white text: the current step and a chosen segmented option. */
+  --color-selected: var(--color-accent);
+  --color-on-selected: #ffffff;
   --color-focus: var(--color-accent);
   --color-backdrop: rgb(26 31 38 / 45%);
 
@@ -126,6 +129,7 @@
     --color-accent: #6aa8ec;
     --color-accent-hover: #93c0f2;
     --color-accent-subtle: #1c3250;
+    --color-selected: #2f6fb7;
     --color-backdrop: rgb(0 0 0 / 60%);
 
     --tone-info-bg: #172b42;

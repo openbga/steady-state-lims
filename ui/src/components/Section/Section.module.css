@@ -26,3 +26,16 @@
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
 }
+
+/* The description sits right under its heading, closer than the section's content. */
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.description {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

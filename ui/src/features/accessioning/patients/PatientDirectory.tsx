@@ -53,8 +53,8 @@ export function PatientDirectory({ onChoose, registrationPath }: PatientDirector
         >
           <FindField
             key={findVersion}
-            label="Find by name or identifier"
-            placeholder="Name or identifier"
+            label="Find by name, birth date or identifier"
+            placeholder="Name, birth date or identifier"
             value={criteria.query ?? ""}
             onChange={(query) => setCriteria({ ...ALL_PATIENTS, query })}
           />

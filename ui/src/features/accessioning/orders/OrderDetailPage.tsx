@@ -35,6 +35,7 @@ export function OrderDetailPage() {
   const { orderId = "" } = useParams();
   const [params] = useSearchParams();
   const receiveNext = params.get("next") === "receive";
+  const openBilling = params.get("billing") === "open";
   const order = useCommandQuery<OrderDetail>(GET_ORDER, { input: { orderId } });
   const accessionContext = useOrderAccessionContext(orderId);
   const { list, sequence } = useRecordSequence(orderId, ORDERS, orderPath);
@@ -76,7 +77,13 @@ export function OrderDetailPage() {
         </Alert>
       )}
       <QueryContent query={order} what="order">
-        {(loaded) => <OrderRecord order={loaded} accessionContext={accessionContext} />}
+        {(loaded) => (
+          <OrderRecord
+            order={loaded}
+            accessionContext={accessionContext}
+            openBilling={openBilling}
+          />
+        )}
       </QueryContent>
     </Page>
   );
@@ -92,9 +99,12 @@ function orderTitle(order: OrderDetail): string {
 function OrderRecord({
   order,
   accessionContext,
+  openBilling,
 }: {
   order: OrderDetail;
   accessionContext: ReturnType<typeof useOrderAccessionContext>;
+  /** New order saved this order to add its billing next. */
+  openBilling: boolean;
 }) {
   return (
     <>
@@ -115,6 +125,7 @@ function OrderRecord({
         key={order.orderId}
         orderId={order.orderId}
         subjectId={order.subjectId}
+        initiallyOpen={openBilling}
       />
     </>
   );

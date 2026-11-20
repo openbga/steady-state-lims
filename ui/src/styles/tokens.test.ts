@@ -58,6 +58,7 @@ const pairs: [string, string, number, number | null][] = [
   ["--color-accent", surface, 4.5, 6.7],
   ["--color-text-inverse", "--color-accent", 4.5, 6.7],
   ["--color-text-inverse", "--color-accent-hover", 4.5, 8.7],
+  ["--color-on-selected", "--color-selected", 4.5, 6.7],
   ["--color-text", rowTint, 4.5, 14.3],
   ["--color-focus", surface, 3, 6.7],
   ["--color-focus", rowTint, 3, 5.8],

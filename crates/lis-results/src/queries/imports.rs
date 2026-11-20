@@ -17,8 +17,8 @@ pub(crate) const ATTEMPT_SUMMARY_COLUMNS: &str = "id, receipt_id, attempt_no, in
       WHERE d.receipt_id = res_import_attempts.duplicate_of_receipt_id \
       ORDER BY d.attempt_no DESC LIMIT 1)";
 
-/// Gets one import attempt with its file facts and its quarantined and
-/// set-aside clinical rows. The engine audits this read.
+/// Gets one import attempt with its file facts, every row it recorded, and
+/// its quarantined and set-aside clinical rows. The engine audits this read.
 pub fn get_import_attempt(
     conn: &Connection,
     id: ImportAttemptId,
@@ -60,6 +60,7 @@ pub fn get_import_attempt(
         registration_id,
         quarantine,
         set_aside,
+        rows: super::import_rows::import_rows(conn, id)?,
     })
 }
 

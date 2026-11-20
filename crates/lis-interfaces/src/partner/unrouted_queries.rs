@@ -2,13 +2,15 @@
 //! kept each from its closest connection.
 
 use lis_core::UtcTimestamp;
-use rusqlite::Connection;
+use rusqlite::{Connection, params};
 use serde::Serialize;
 use ts_rs::TS;
 
 use super::error::PartnerError;
-use super::message_queries::ConnectionRef;
-use super::message_repo::{MessageRow, open_unrouted};
+use super::message_queries::{
+    ConnectionRef, ListPartnerMessages, PartnerMessageRow, TransportOutcome,
+};
+use super::message_repo::{MessageRow, NOT_REPLACED, open_unrouted};
 use super::model::{
     MessageSource, PartnerMessageId, PartnerMessageType, RoutingFacts, RoutingRule,
 };
@@ -102,4 +104,53 @@ fn unrouted_view(conn: &Connection, message: MessageRow) -> Result<UnroutedMessa
             .collect(),
         allowed_actions: vec!["resolve_unrouted_message".to_owned()],
     })
+}
+
+/// The log's unrouted rows, newest first, of one report when `input` names it.
+pub(super) fn unrouted_rows(
+    conn: &Connection,
+    input: &ListPartnerMessages,
+    limit: u32,
+) -> Result<Vec<PartnerMessageRow>, PartnerError> {
+    conn.prepare_cached(&format!(
+        "SELECT m.id, m.created_at, m.message_type, m.source_kind, m.source_id, m.source_number, \
+         r.resolution, m.source_label, NOT {NOT_REPLACED} FROM ifc_partner_messages m \
+         LEFT JOIN ifc_partner_unrouted_resolutions r ON r.message_id = m.id \
+         WHERE m.unrouted = 1 AND (?1 IS NULL OR m.created_at >= ?1) \
+         AND (?3 IS NULL OR m.source_group = ?3) ORDER BY m.created_at DESC LIMIT ?2"
+    ))?
+    .query_map(params![input.since, limit, input.report_id], |row| {
+        Ok(PartnerMessageRow {
+            message_id: row.get(0)?,
+            delivery_id: None,
+            at: row.get(1)?,
+            message_type: row.get(2)?,
+            source: row.get(3)?,
+            source_id: row.get(4)?,
+            source_number: row.get(5)?,
+            source_label: row.get(7)?,
+            connection: None,
+            reason: None,
+            transport: TransportOutcome::NotSent,
+            outcome_unknown: false,
+            waiting: None,
+            attempts: 0,
+            given_up: false,
+            superseded: row.get(8)?,
+            next_attempt_at: None,
+            error_code: None,
+            written_path: None,
+            ack_code: None,
+            ack_text: None,
+            awaiting_ack: false,
+            peer: None,
+            unrouted: true,
+            resolution: row.get(6)?,
+            rejection_resolved: None,
+            allowed_actions: Vec::new(),
+            received: None,
+        })
+    })?
+    .collect::<rusqlite::Result<_>>()
+    .map_err(Into::into)
 }

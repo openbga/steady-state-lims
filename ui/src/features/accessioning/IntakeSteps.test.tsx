@@ -10,7 +10,11 @@ it("announces task position without treating earlier steps as clinical approval"
   );
   expect(steps).toHaveLength(4);
   expect(steps.filter((step) => step.getAttribute("aria-current") === "step")).toHaveLength(1);
-  expect(screen.getByText("Receive specimens").getAttribute("aria-current")).toBe("step");
+  expect(screen.getByText("Receive specimens").closest("li")?.getAttribute("aria-current")).toBe(
+    "step",
+  );
+  // Earlier steps are marked done for the green check; later ones are not.
+  expect(steps.map((step) => step.hasAttribute("data-done"))).toEqual([true, true, false, false]);
   expect(screen.queryByText(/accepted|approved|complete/i)).toBeNull();
   await expectNoA11yViolations(container);
 });

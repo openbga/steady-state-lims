@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
@@ -20,6 +20,7 @@ import { PrintLabelsDialog } from "./PrintLabelsDialog";
 import { ReceiptChronologyDialog } from "./ReceiptChronologyDialog";
 import { ReceiptDecisionDialog } from "./ReceiptDecisionDialog";
 import { ReceiptStep } from "./ReceiptStep";
+import receiving from "./receiving.module.css";
 
 type OpenDialog =
   | { kind: "receipt" | "chronology" }
@@ -32,6 +33,8 @@ interface SpecimenPanelProps {
   /** "Specimen 1 (urine)": how the screen names this specimen. */
   title: string;
   accessionNumber: string;
+  /** The accession's receipt progress, on the card when it is the accession's only specimen. */
+  progress?: ReactNode;
 }
 
 const getRowId = (container: ContainerView) => container.containerId;
@@ -44,7 +47,7 @@ const canAliquot = (container: ContainerView) =>
  * jobs. Actions come from the engine's `allowedActions`, per specimen and per container;
  * labels for several containers print together from the selection.
  */
-export function SpecimenPanel({ specimen, title, accessionNumber }: SpecimenPanelProps) {
+export function SpecimenPanel({ specimen, title, accessionNumber, progress }: SpecimenPanelProps) {
   const accession = useHasCapability("accession");
   const quality = useHasCapability("manage_quality");
   const unresolved = specimen.decisions.some((d) => d.causalSequence === null);
@@ -56,7 +59,7 @@ export function SpecimenPanel({ specimen, title, accessionNumber }: SpecimenPane
   }, [accessionNumber, specimen.containers]);
   const selected = specimen.containers.filter((each) => selectedIds.has(each.containerId));
   const printable = accession ? specimen.containers.filter(canPrint) : [];
-  const status = acceptanceStatus(specimen.acceptance);
+  const status = cardStatus(specimen.acceptance);
   const close = () => setDialog(null);
   const rowActions: GridRowActions<ContainerView> = {
     label: (container) => container.labelCode,
@@ -64,78 +67,91 @@ export function SpecimenPanel({ specimen, title, accessionNumber }: SpecimenPane
     items: (container) => (accession ? containerActions(container, setDialog) : []),
   };
 
+  const printAll =
+    selectedIds.size === 0 && printable.length > 0
+      ? () => setDialog({ kind: "print", containers: printable })
+      : undefined;
+
   return (
-    <Section
-      title={title}
-      actions={
-        <>
-          <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
-          {selectedIds.size === 0 && printable.length > 0 && (
-            <Button onPress={() => setDialog({ kind: "print", containers: printable })}>
-              Print labels
-            </Button>
-          )}
-        </>
-      }
-    >
-      {unresolved && (
-        <Alert tone="warning" title="Receipt chronology unresolved">
-          Testing and release remain blocked until reliable evidence establishes the decision order.{" "}
-          {quality && (
-            <Button onPress={() => setDialog({ kind: "chronology" })}>
-              Review receipt chronology
-            </Button>
-          )}
-        </Alert>
-      )}
-      <ReceiptStep specimen={specimen} onDecide={() => setDialog({ kind: "receipt" })} />
-      <ReceiptDecisions specimen={specimen} title={title} />
-      <DataGrid
-        label={`Containers of ${title}`}
-        columns={columns}
-        rows={specimen.containers}
-        getRowId={getRowId}
-        {...(accession
-          ? {
-              rowActions,
-              bulk: {
-                selectedIds,
-                onChange: setSelectedIds,
-                actions: selected.length > 0 && selected.every(canPrint) && (
-                  <>
-                    <Button onPress={() => setDialog({ kind: "print", containers: selected })}>
-                      Print labels
-                    </Button>
-                    <Button onPress={() => setDialog({ kind: "reprint", containers: selected })}>
-                      Reprint labels
-                    </Button>
-                  </>
-                ),
-              },
-            }
-          : {})}
-      />
-      <ul aria-label="Container material records">
-        {specimen.containers.map((container) => (
-          <li key={container.containerId}>
-            <Link to={`/containers?labelCode=${encodeURIComponent(container.labelCode)}`}>
-              Material history and actions: {container.labelCode}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {dialog?.kind === "chronology" && (
-        <ReceiptChronologyDialog specimen={specimen} onClose={close} />
-      )}
-      {dialog?.kind === "receipt" && (
-        <ReceiptDecisionDialog specimen={specimen} title={title} onClose={close} />
-      )}
-      {(dialog?.kind === "print" || dialog?.kind === "reprint") && (
-        <PrintLabelsDialog containers={dialog.containers} kind={dialog.kind} onClose={close} />
-      )}
-      {dialog?.kind === "aliquot" && <AliquotDialog parent={dialog.parent} onClose={close} />}
-    </Section>
+    <div className={receiving.specimenCard} data-state={status.state}>
+      <Section title={title} actions={<StatusBadge tone={status.tone}>{status.label}</StatusBadge>}>
+        {progress}
+        {unresolved && (
+          <Alert tone="warning" title="Receipt chronology unresolved">
+            Testing and release remain blocked until reliable evidence establishes the decision
+            order.{" "}
+            {quality && (
+              <Button onPress={() => setDialog({ kind: "chronology" })}>
+                Review receipt chronology
+              </Button>
+            )}
+          </Alert>
+        )}
+        <ReceiptStep
+          specimen={specimen}
+          onDecide={() => setDialog({ kind: "receipt" })}
+          onPrint={printAll}
+        />
+        <DataGrid
+          label={`Containers of ${title}`}
+          columns={columns}
+          rows={specimen.containers}
+          getRowId={getRowId}
+          {...(accession
+            ? {
+                rowActions,
+                bulk: {
+                  selectedIds,
+                  onChange: setSelectedIds,
+                  actions: selected.length > 0 && selected.every(canPrint) && (
+                    <>
+                      <Button onPress={() => setDialog({ kind: "print", containers: selected })}>
+                        Print labels
+                      </Button>
+                      <Button onPress={() => setDialog({ kind: "reprint", containers: selected })}>
+                        Reprint labels
+                      </Button>
+                    </>
+                  ),
+                },
+              }
+            : {})}
+        />
+        <ul aria-label="Container material records">
+          {specimen.containers.map((container) => (
+            <li key={container.containerId}>
+              <Link to={`/containers?labelCode=${encodeURIComponent(container.labelCode)}`}>
+                Material history and actions: {container.labelCode}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        {specimen.decisions.length > 1 && <ReceiptDecisions specimen={specimen} title={title} />}
+        {dialog?.kind === "chronology" && (
+          <ReceiptChronologyDialog specimen={specimen} onClose={close} />
+        )}
+        {dialog?.kind === "receipt" && (
+          <ReceiptDecisionDialog specimen={specimen} title={title} onClose={close} />
+        )}
+        {(dialog?.kind === "print" || dialog?.kind === "reprint") && (
+          <PrintLabelsDialog containers={dialog.containers} kind={dialog.kind} onClose={close} />
+        )}
+        {dialog?.kind === "aliquot" && <AliquotDialog parent={dialog.parent} onClose={close} />}
+      </Section>
+    </div>
   );
+}
+
+/**
+ * The card's badge and border: waiting for a decision in the accent colour, accepted in
+ * green; held and rejected keep the plain border.
+ */
+function cardStatus(acceptance: AccessionSpecimenView["acceptance"]) {
+  if (acceptance === "received") {
+    return { label: "Waiting for a receipt decision", tone: "warning" as const, state: "pending" };
+  }
+  const status = acceptanceStatus(acceptance);
+  return { ...status, state: status.tone === "success" ? "accepted" : undefined };
 }
 
 /** One container's actions, as its row menu offers them. */
@@ -168,12 +184,11 @@ function containerActions(
   return items;
 }
 
-/** The specimen's receipt decisions, oldest first. */
-function ReceiptDecisions({ specimen, title }: Omit<SpecimenPanelProps, "accessionNumber">) {
+/** The specimen's receipt decisions, oldest first, when there is more than one. */
+function ReceiptDecisions({ specimen, title }: Pick<SpecimenPanelProps, "specimen" | "title">) {
   const person = usePersonText();
   return (
     <ul className={styles.list} aria-label={`Receipt decisions for ${title}`}>
-      {specimen.decisions.length === 0 && <li className={styles.hint}>No receipt decision yet.</li>}
       {specimen.decisions.map((decision) => (
         <li key={decision.decisionId}>
           {labelOf(RECEIPT_DECISIONS, decision.decision)} by{" "}

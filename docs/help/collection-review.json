@@ -2,7 +2,7 @@
   "id": "collection-review",
   "title": "Collection timing review",
   "summary": "Review supplied collection corrections and record the quality decision.",
-  "reviewedOn": "2026-11-02",
+  "reviewedOn": "2026-11-19",
   "routes": ["/accessions/:accessionId/collection-review"],
   "sections": [
     {
@@ -115,8 +115,8 @@
       ],
       "actions": [
         {
-          "name": "Review collection history / Refresh collection history",
-          "does": "Opens or refreshes original timing, corrections and review states.",
+          "name": "Refresh collection history",
+          "does": "Reloads original timing, corrections and review states. The same history opens in a dialog from the Collection history link on Finish receiving.",
           "availableWhen": "Accessioning or quality authority.",
           "result": "Shows the latest collection revision and pending reviews."
         },

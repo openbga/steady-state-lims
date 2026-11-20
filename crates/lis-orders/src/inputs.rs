@@ -148,9 +148,10 @@ pub struct ListOrdersInput {
     #[serde(default)]
     #[ts(optional = nullable)]
     pub before_order_id: Option<OrderId>,
-    /// Find text: the start of a patient's name or identifier, a sample barcode, an
-    /// accession number, the order number or the client's name. Names ignore case and
-    /// Unicode composition; barcodes, accession and order numbers ignore case.
+    /// Find text: the start of a patient's name or identifier, a patient's exact birth
+    /// date, a sample barcode, an accession number, the order number or the client's name.
+    /// Names ignore case and Unicode composition; barcodes, accession and order numbers
+    /// ignore case.
     #[serde(default)]
     #[ts(optional = nullable)]
     pub search: Option<Phi<String>>,

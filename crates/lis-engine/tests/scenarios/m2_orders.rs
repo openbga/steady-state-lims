@@ -6,10 +6,10 @@
 //! and §3.6. Synthetic data only.
 
 use lis_analytical::RevisionIndicator;
-use lis_core::ErrorCode;
+use lis_core::{ErrorCode, Phi};
 use lis_engine::{
-    AcceptOrderInput, DecideCancellationInput, Decision, GetOrderInput, OrderStatus,
-    RegisterStandingOrderInput, RequestCancellationInput,
+    AcceptOrderInput, DecideCancellationInput, Decision, FindOrderPatientsInput, GetOrderInput,
+    OrderStatus, RegisterStandingOrderInput, RequestCancellationInput,
 };
 use lis_orders::ClarificationDeficiency;
 
@@ -202,4 +202,52 @@ async fn standing_order(
     e.register_order(lab.order_input(lab.orderables.panel.1, Some(standing.standing_order_id)))
         .await
         .unwrap()
+}
+
+/// New order's patient step (REQ-ORD-001, REQ-IDN-001): the patients the signed-in
+/// user entered orders for come back as recent patients with their latest order, the
+/// find text matches a birth date, and the audit event never copies the find text.
+#[tokio::test]
+async fn the_patient_step_offers_recent_patients_and_finds_by_birth_date() {
+    let lab = Lab::start(RevisionIndicator::None).await;
+    lab.sign_in(Role::Accessioner).await;
+    let e = lab.engine();
+    let recent = e
+        .find_order_patients(FindOrderPatientsInput {
+            query: None,
+            limit: 10,
+        })
+        .await
+        .unwrap();
+    assert_eq!(recent.recent.len(), 1, "one patient, however many orders");
+    assert_eq!(recent.recent[0].subject.subject_id, lab.parties.subject);
+    let last = recent.recent[0].last_order.as_ref().unwrap();
+    assert_eq!(last.client_name, "Synthetic Clinic");
+    assert!(recent.matches.is_empty());
+
+    let found = e
+        .find_order_patients(FindOrderPatientsInput {
+            query: Some(Phi::new("1980-01-01".to_owned())),
+            limit: 10,
+        })
+        .await
+        .unwrap();
+    assert_eq!(found.matches.len(), 1);
+    assert_eq!(found.matches[0].subject.subject_id, lab.parties.subject);
+    assert!(found.matches[0].last_order.is_some());
+
+    let details: Vec<String> = lab
+        .t()
+        .conn()
+        .prepare(
+            "SELECT details FROM audit_events WHERE action = 'order.find_patients' ORDER BY seq",
+        )
+        .unwrap()
+        .query_map([], |row| row.get(0))
+        .unwrap()
+        .collect::<Result<_, _>>()
+        .unwrap();
+    assert_eq!(details.len(), 2);
+    assert!(details[1].contains("\"returned\":1"), "{}", details[1]);
+    assert!(details.iter().all(|detail| !detail.contains("1980-01-01")));
 }

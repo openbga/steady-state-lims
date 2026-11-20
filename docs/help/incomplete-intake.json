@@ -116,7 +116,7 @@
         {
           "name": "Choose verified patient",
           "meaning": "The dialog opened by Resolve with verified patient: explicit selection of an existing patient after obtaining source-backed complete identity.",
-          "values": "The patient directory with Find by name or identifier and its detailed search; no patient preselected.",
+          "values": "The patient directory with Find by name, birth date or identifier and its detailed search; no patient preselected.",
           "rules": "Register verified patient opens normal matching and registration. Return and choose the patient explicitly; no link is inferred from the intake name."
         },
         {

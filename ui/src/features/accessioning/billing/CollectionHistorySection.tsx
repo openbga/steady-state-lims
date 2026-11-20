@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/Button";
+import { Dialog } from "@/components/Dialog";
 import { Facts } from "@/components/Facts";
 import { TextInput } from "@/components/FormFields";
 import { QueryContent } from "@/components/QueryContent";
@@ -24,12 +25,24 @@ import { FINANCIAL_QUERIES } from "./contract";
 
 const INVALIDATES = [...ACCESSION_QUERIES, ...FINANCIAL_QUERIES, "get_collection_history"] as const;
 
-export function CollectionHistorySection({ accessionId }: { accessionId: string }) {
-  const [opened, setOpened] = useState(false);
-  return opened ? (
-    <HistoryQuery accessionId={accessionId} />
-  ) : (
-    <Button onPress={() => setOpened(true)}>Review collection history</Button>
+/** The accession's collection history and its corrections, opened from Finish receiving. */
+export function CollectionHistoryDialog({
+  accessionId,
+  onClose,
+}: {
+  accessionId: string;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog
+      title="Collection history"
+      size="wide"
+      isOpen
+      onOpenChange={(open) => !open && onClose()}
+      actions={<Button onPress={onClose}>Close</Button>}
+    >
+      <HistoryQuery accessionId={accessionId} />
+    </Dialog>
   );
 }
 
