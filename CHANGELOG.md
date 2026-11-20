@@ -7,7 +7,7 @@ What changed in OpenBGA Toxicology LIMS, newest release first. Changes not yet i
 release are listed under Unreleased. Within a release, changes are ordered by impact, then
 newest first. The application shows the same list under **What's new**.
 
-## Unreleased (2026-11-12 to 2026-11-18)
+## Unreleased (2026-11-12 to 2026-11-20)
 
 ### High impact
 
@@ -22,6 +22,14 @@ newest first. The application shows the same list under **What's new**.
   - The documentation now describes AGPLv3 section 13 for network use, and the notice states that the product name, OpenBGA and their logos are trademarks of BGASoft Inc. that the license does not grant (section 7(e)).
 
 ### Medium impact
+
+- **Changed:** A clearer sign-in screen with the laboratory name and an analyzers card (2026-11-20)
+
+  The sign-in screen names the laboratory under the product name and shows **Sign in** and **Use a security key** as full-width buttons with “or” between them. Under the form, on both the sign-in and lock screens, an **Analyzers** card sums the analyzers up in one line and opens one row per analyzer with its state and last activity, shown as “today 15:53”; whether the rows are open is remembered on this computer. The application version shows at the bottom of the screen.
+
+  Technical notes:
+
+  `setup_status` also returns `laboratoryName`, the current laboratory profile's name or `null`, so the signed-out screens can show it before anyone signs in.
 
 - **Added:** A summary of the report on the report page (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
 
