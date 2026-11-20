@@ -2,14 +2,14 @@
   "id": "new-order",
   "title": "Entering a new order",
   "summary": "Choose the patient and capture the ordering source’s request before acceptance and receipt.",
-  "reviewedOn": "2026-11-19",
+  "reviewedOn": "2026-11-20",
   "routes": ["/orders/new"],
   "sections": [
     {
       "title": "How to use this page",
       "paragraphs": [
         "New order begins with the Patient step: Who is the order for? Type part of the name, the birth date or an identifier in the one search box, which has the focus when the page opens; the matching patients are listed as you type. Click a row, or move to it with the arrow keys and press Enter, to go on to Order details. Patients you entered orders for recently are offered under the box for one click. If nobody matches, Register patient sits right under the results, and you come back to New order with the new patient chosen. The exact searches by identifier or by name and birth date stay available under Exact search. Once a patient is chosen, the patient box (the identity banner) stays visible above the order form, with a Change patient link at its right end.",
-        "Order details follow the paper requisition in two steps (three for people who also receive specimens). Step 1, Requisition, holds the top of the form (Ordering source: who sent it and who pays) and the bottom (Authority to test); Next: Tests checks the step and moves on. Step 2, Tests, holds the tests and panels with their sequence role and reflex testing, then the details only some requisitions have, behind small buttons with their counts. Back: Requisition keeps everything entered. The trail at the top shows Patient › Order details › Receive specimens › Finish receipt as rounded pills: a finished step is green with a check, the current step is filled blue with white text and a dot, and later steps are outlined. The choices with a few options (Received as, Billing responsibility, Template use, As supplied, Sequence role, Reflex testing) are rows of buttons where the chosen one is filled blue; a ? beside a label explains the field. Under each section title, one line says which part of the requisition it covers, and the section you last clicked or focused, anywhere inside it, keeps a blue border until you click or move into another one. On a typical desktop window the whole of step 1 fits without scrolling: Client, Client location and Ordering practitioner on one row, Received as, Billing responsibility and Template use on the next, and As supplied beside Document reference. Next to Next: Tests, a tip recalls that Enter or Next checks the step. The Order summary on the right ticks off Patient, Ordering source, Authority to test and Tests. Save order opens the saved order, which waits for an explicit acceptance on its page. Accept order and receive specimens saves the order, accepts it and goes on, on this page, to step 3, Specimens: the order bar marks Requisition and Tests done, the trail shows Receive specimens, a green Order accepted notice links to the order page, and the collection, the specimens received and the tests in this accession are cards, as on Receive specimens. The order’s tests that can be received are ticked. Receive specimens creates the accession and opens Finish receiving; Finish later, in the Order summary, leaves the accepted order to receive later from its page."
+        "Order details follow the paper requisition in two steps. Step 1 of 2, Requisition, holds the top of the form (Ordering source: who sent it and who pays) and the bottom (Authority to test); Next: Tests checks the step and moves on. Step 2 of 2, Tests, holds the tests and panels with their sequence role and reflex testing, then the details only some requisitions have, behind small buttons with their counts. Back: Requisition keeps everything entered. The trail at the top shows Patient › Order details › Receive specimens › Finish receipt as rounded pills: a finished step is green with a check, the current step is filled blue with white text and a dot, and later steps are outlined. The choices with a few options (Received as, Billing responsibility, Template use, As supplied, Sequence role, Reflex testing) are rows of buttons where the chosen one is filled blue; a ? beside a label explains the field. Under each section title, one line says which part of the requisition it covers, and the section you last clicked or focused, anywhere inside it, keeps a blue border until you click or move into another one. On a typical desktop window the whole of step 1 fits without scrolling: Client, Client location and Ordering practitioner on one row, Received as, Billing responsibility and Template use on the next, and As supplied beside Document reference. Next to Next: Tests, a tip recalls that Enter or Next checks the step. The Order summary on the right ticks off Patient, Ordering source, Authority to test and Tests. Save order opens the saved order, which waits for an explicit acceptance on its page. Accept order and receive specimens saves the order, accepts it and goes on, on this page, to Receive specimens: the trail shows Receive specimens as the current step and the page is the same as Receive specimens (see that help), with its summary line, its three boxes and Next and Order beside them. Receive specimens creates the accession and opens Finish receiving; Cancel opens the accepted order, to receive later from its page."
       ]
     },
     {
@@ -229,16 +229,16 @@
           "rules": "Optional, beside As supplied. Do not claim a signature that was not supplied."
         },
         {
-          "name": "Order details · step N of 2 / step N of 3",
-          "meaning": "Which part of the requisition is being entered: Requisition, then Tests; with accessioning authority, then Specimens, once the order is accepted.",
+          "name": "Order details · step 1 of 2 / step 2 of 2",
+          "meaning": "Which part of the requisition is being entered: Requisition, then Tests.",
           "values": "Read-only. The current step is highlighted in the step bar below the patient box. On step 2, Requisition shows a green check and green text, and the line on to Tests turns thicker and green.",
           "rules": "A task position, not a clinical status. Moving between steps never discards entries."
         },
         {
-          "name": "Order summary: Patient / Ordering source / Authority to test / Tests / Order accepted / Collection / Specimens",
+          "name": "Order summary: Patient / Ordering source / Authority to test / Tests",
           "meaning": "What the order still needs before Save order works.",
           "values": "Each part shows a green check circle when done, or an empty circle while still to do; screen readers hear Done or To do before the part. Patient is done once the patient is chosen; Ordering source when Client, Ordering practitioner, Received as, Billing responsibility and Template use (with Template name and Confirmed for this patient for a clinic template) are chosen; Authority to test when As supplied is chosen; Tests when at least one test is chosen and each has its sequence role and reflex testing.",
-          "rules": "Read-only. The line below reads Save order works once the required fields are filled in, or All required fields are filled in. On step 3 the first five parts are done, Collection is done once Collection time known and the date, time and timezone it needs are filled in, and Specimens once each specimen has a type, a container count and its volume (or Unknown); the line reads Receive specimens works once collection and every specimen are filled in. The engine checks every entry again when saving."
+          "rules": "Read-only. The line below reads Save order works once the required fields are filled in, or All required fields are filled in. The engine checks every entry again when the order is saved."
         },
         {
           "name": "Only if the requisition has them: Diagnoses (n) / Medications (n) / Point-of-care results (n) / Standing authority",
@@ -366,7 +366,7 @@
           "name": "Order billing / Add order billing",
           "does": "Marks the order to have its billing added right after saving.",
           "availableWhen": "On step 2. Order billing is a toggle; Add order billing is in the empty-billing warning.",
-          "result": "After Save order or Accept order and receive specimens, the saved order opens with its Order billing section open, ready to confirm the billing selection; the order is not accepted here and step 3 does not open. Selecting Order billing again undoes this."
+          "result": "After Save order or Accept order and receive specimens, the saved order opens with its Order billing section open, ready to confirm the billing selection; the order is not accepted here and Receive specimens does not open. Selecting Order billing again undoes this."
         },
         {
           "name": "Save order",
@@ -378,19 +378,19 @@
           "name": "Accept order and receive specimens",
           "does": "Saves the request, then accepts it: pressing it is the explicit acceptance, recorded in the audit trail. The application rechecks authority, clarification holds and any standing order first.",
           "availableWhen": "On step 2, once the Order summary shows every part done; accessioning authority in addition to order-entry authority.",
-          "result": "Order received and accepted, then step 3, Specimens, on this page. If the order cannot be accepted (for example a hold, missing authority, or a failed standing-order check that places a hold), Order received, not accepted is shown and the saved order opens on its page with the reason."
+          "result": "Order received and accepted, then Receive specimens, on this page. If the order cannot be accepted (for example a hold, missing authority, or a failed standing-order check that places a hold), Order received, not accepted is shown and the saved order opens on its page with the reason."
         },
         {
           "name": "Receive specimens",
-          "does": "On step 3, records the collection, the specimens received and the chosen tests as a new accession.",
-          "availableWhen": "Step 3, once the order is accepted.",
+          "does": "After acceptance, records the tests for this material, the collection and the specimens received as a new accession.",
+          "availableWhen": "Once the order is accepted and nothing required is missing.",
           "result": "Opens Finish receiving for the new accession, to print labels and record each receipt decision. A refused entry keeps every value for correction."
         },
         {
-          "name": "Finish later",
-          "does": "Leaves step 3 without receiving. In the Order summary on the right.",
-          "availableWhen": "Step 3, while nothing is saving.",
-          "result": "Opens the accepted order; Start receiving specimens there continues later. Entries on step 3 are not kept."
+          "name": "Cancel (after acceptance)",
+          "does": "Leaves Receive specimens without receiving.",
+          "availableWhen": "After acceptance, while nothing is saving.",
+          "result": "Opens the accepted order; Start receiving specimens there continues later. Typed input asks for confirmation first."
         },
         {
           "name": "Cancel",
@@ -411,8 +411,8 @@
         "Step 1, Requisition: choose the ordering source from the top of the requisition and the authority to test from the bottom, then select Next: Tests.",
         "Step 2, Tests: add only the requested tests or panels with the search at the top (for a long catalog, Show also narrows it; you can type the next code immediately after choosing an item). Review Chosen tests against the source, set each test’s explicit sequence role and reflex permission, and choose any authorized reflex scope.",
         "Open Diagnoses, Medications, Point-of-care results or Standing authority only when the requisition supplies them. Select Order billing to add the order's billing right after saving, or save without it.",
-        "Save order to leave the order for acceptance on its page, or Accept order and receive specimens to accept it and go on to step 3.",
-        "Step 3, Specimens: enter the collection as supplied, each specimen received with its containers and volume, check the ticked tests, then Receive specimens and continue on Finish receiving."
+        "Save order to leave the order for acceptance on its page, or Accept order and receive specimens to accept it and go on to Receive specimens.",
+        "After acceptance, on Receive specimens: keep or choose the tests, enter the collection as supplied and each specimen received, then Receive specimens and continue on Finish receiving."
       ],
       "troubleshooting": [
         {

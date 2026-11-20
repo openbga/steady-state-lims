@@ -35,9 +35,11 @@ newest first. The application shows the same list under **What's new**.
 
 ### Medium impact
 
-- **Changed:** New order accepts the order and receives its specimens on the same page (2026-11-19)
+- **Changed:** Receive specimens is simpler, and New order goes straight to it (2026-11-19)
 
-  In **New order**, **Accept order and receive specimens** saves the order, accepts it and goes on to a third step, **Specimens**, without opening the order page: enter the collection, the specimens received and check the order's tests, then **Receive specimens** opens **Finish receiving**. Pressing the button is the explicit acceptance; an order that cannot be accepted, or whose billing was asked for next, opens on its page as before. **Finish later** leaves the accepted order to receive later.
+  In **New order**, **Accept order and receive specimens** saves the order, accepts it and opens **Receive specimens** on the same page. Pressing the button is the explicit acceptance; an order that cannot be accepted, or whose billing was asked for next, opens on its page as before.
+
+  **Receive specimens** now has one summary line (patient, order, client, ordering practitioner) and three numbered boxes. **Tests for this material** chooses the only waiting test for you. In **Collection**, the date and time start empty; **Time not on the requisition** and **Date not on the requisition** replace the old dropdown, and the laboratory's time zone is one press away. **Specimens received** has one row per specimen, filled in from the tests' specimen types, with mL to start and **Measured** or **Estimated**. **Next** and **Order** sit beside the boxes. **Receive specimens** works once the line beside it says nothing is missing.
 
 - **Changed:** Find a report by its accession number or any part of its number (2026-11-18, [#124](https://github.com/openbga/toxicology-lims/pull/124))
 
