@@ -62,13 +62,7 @@ impl DeliveryStatus {
 pub fn delivery_status_label(channel: DeliveryChannel, status: &DeliveryStatus) -> String {
     let evidence = match status {
         DeliveryStatus::Closed(cause) => format!("closed ({})", closure_text(*cause)),
-        DeliveryStatus::Blocked(BlockedBy::Unverified) => {
-            "blocked (destination not verified)".to_owned()
-        }
-        DeliveryStatus::Blocked(BlockedBy::Retired) => "blocked (destination retired)".to_owned(),
-        DeliveryStatus::Blocked(BlockedBy::ReportedWrong) => {
-            "blocked (destination reported wrong)".to_owned()
-        }
+        DeliveryStatus::Blocked(by) => format!("blocked ({})", blocked_text(*by)),
         DeliveryStatus::Paused => "paused (impact review open)".to_owned(),
         DeliveryStatus::HandedOff {
             attested_by,
@@ -79,6 +73,30 @@ pub fn delivery_status_label(channel: DeliveryChannel, status: &DeliveryStatus) 
         DeliveryStatus::Awaiting => "awaiting delivery".to_owned(),
     };
     format!("{}: {evidence}", channel_phrase(channel))
+}
+
+/// The status in a few words, for a badge beside the method, when and by
+/// whom (#4835): "Handed off", "Awaiting", "Failed: refused", "Blocked:
+/// destination not verified". Like the full label it never says
+/// "delivered"; who attested a hand-off and when are separate columns.
+#[must_use]
+pub fn delivery_status_short_label(status: &DeliveryStatus) -> String {
+    match status {
+        DeliveryStatus::Closed(cause) => format!("Closed: {}", closure_text(*cause)),
+        DeliveryStatus::Blocked(by) => format!("Blocked: {}", blocked_text(*by)),
+        DeliveryStatus::Paused => "Paused: impact review open".to_owned(),
+        DeliveryStatus::HandedOff { .. } => "Handed off".to_owned(),
+        DeliveryStatus::Failed(code) => format!("Failed: {}", failure_text(*code)),
+        DeliveryStatus::OutcomeUnknown => "Outcome unknown".to_owned(),
+        DeliveryStatus::Awaiting => "Awaiting".to_owned(),
+    }
+}
+
+/// How the channel delivers, the first part of every full label, such as
+/// "Fax by staff" or "Collected at the laboratory".
+#[must_use]
+pub fn delivery_method_label(channel: DeliveryChannel) -> &'static str {
+    channel_phrase(channel)
 }
 
 /// "PDF exported by J. Doe (not a delivery)".
@@ -94,6 +112,14 @@ fn channel_phrase(channel: DeliveryChannel) -> &'static str {
         DeliveryChannel::Mail => "Mailed by staff",
         DeliveryChannel::Courier => "Handed to courier",
         DeliveryChannel::Pickup => "Collected at the laboratory",
+    }
+}
+
+fn blocked_text(by: BlockedBy) -> &'static str {
+    match by {
+        BlockedBy::Unverified => "destination not verified",
+        BlockedBy::Retired => "destination retired",
+        BlockedBy::ReportedWrong => "destination reported wrong",
     }
 }
 
@@ -172,6 +198,32 @@ mod tests {
         }
         let export = export_label("J. Doe");
         assert!(export.ends_with("(not a delivery)") && !export.contains("Delivered"));
+    }
+
+    // #4835: the badge text is short, never claims delivery, and leaves the
+    // channel and the attestation to their own columns.
+    #[test]
+    fn short_labels_are_short_and_never_say_delivered() {
+        for status in every_status() {
+            let label = delivery_status_short_label(&status);
+            assert!(!label.to_lowercase().contains("delivered"), "{label}");
+            assert!(
+                !label.contains("J. Doe") && !label.contains("staff"),
+                "{label}"
+            );
+        }
+        assert_eq!(
+            delivery_status_short_label(&DeliveryStatus::Blocked(BlockedBy::Unverified)),
+            "Blocked: destination not verified"
+        );
+        assert_eq!(
+            delivery_status_short_label(&DeliveryStatus::Awaiting),
+            "Awaiting"
+        );
+        assert_eq!(
+            delivery_method_label(DeliveryChannel::Pickup),
+            "Collected at the laboratory"
+        );
     }
 
     #[test]

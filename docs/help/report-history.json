@@ -3,13 +3,13 @@
   "title": "Reports and revisions",
   "summary": "Inspect issued reports, preserved revisions, delivery history and post-release work.",
   "reviewedOn": "2026-11-18",
-  "routes": ["/reports", "/reports/:reportId", "/reports/revisions/:revisionId"],
+  "routes": ["/reports", "/reports/:reportId/:tab?", "/reports/revisions/:revisionId"],
   "sections": [
     {
       "title": "How to use this page",
       "paragraphs": [
-        "Open a report from Reports to see its revision history, delivery obligations and attempts, exports, and any impact assessment or preservation incident. Open a revision to inspect the content exactly as issued and its recorded provenance.",
-        "Status chips under the title show availability, completeness, the revision and delivery; the Summary card under the patient banner shows the client, practitioner, specimen, tests, collection, release, last export and impact after release. Export PDF (revision N, current) is the main button; Prepare next revision, Add destination and Withdraw report are in More actions when permitted. Impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, open it and use its Export PDF. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
+        "Open a report from Reports to see its results, its printed content, delivery obligations and attempts, revision history, exports, and any impact assessment or preservation incident, each on its own tab under the summary. Results is the tab shown first. Open a revision to inspect the content exactly as issued and its recorded provenance.",
+        "Status chips under the title show availability, completeness, the revision and delivery; the Summary card under the patient banner shows the client, practitioner, specimen, tests, collection, release, last export and impact after release. Export PDF (revision N, current) is the main button; Prepare next revision, Add destination and Withdraw report are in More actions when permitted. Impact actions appear according to the report’s state and your authority. Export PDF (revision N, current) saves the current revision; to export an earlier revision, choose it on the Preview tab and use Export revision N. Every export asks for a purpose and is listed under PDF exports; an export is not a delivery."
       ]
     },
     {
@@ -36,7 +36,7 @@
       "title": "Refresh and exact record navigation",
       "paragraphs": [
         "Refresh shows the current read time and explicitly reloads the opened workspace, candidate or report. If a stale submission is refused, cancel its confirmation, refresh and review the current content/gates before reopening an action. Refresh never authorizes a changed candidate.",
-        "Report history loads older pages using release time and report identity together, so equal timestamps remain reachable. Refresh checks the loaded pages again. A preservation incident link identifies its exact incident within the report and focuses it; a missing requested incident produces a warning rather than selecting another incident."
+        "Report history loads older pages using release time and report identity together, so equal timestamps remain reachable. Refresh checks the loaded pages again. A preservation incident link opens the report’s Incidents tab, identifies its exact incident and focuses it; a missing requested incident produces a warning rather than selecting another incident."
       ]
     }
   ],
@@ -46,6 +46,10 @@
     "ui/src/features/reports/history/ReportPage.tsx",
     "ui/src/features/reports/history/ReportHeader.tsx",
     "ui/src/features/reports/history/ReportSummary.tsx",
+    "ui/src/features/reports/history/ResultsTab.tsx",
+    "ui/src/features/reports/history/PreviewTab.tsx",
+    "ui/src/components/Tabs/Tabs.tsx",
+    "ui/src/features/workqueues/itemPath.ts",
     "crates/lis-reporting/src/queries/overview.rs",
     "ui/src/features/reports/history/RevisionPage.tsx",
     "ui/src/features/reports/history/RevisionsSection.tsx",
@@ -58,6 +62,8 @@
     "ui/src/features/reports/content/ReportContent.tsx",
     "ui/src/features/reports/content/ResultGroups.tsx",
     "ui/src/features/reports/delivery/DeliverySection.tsx",
+    "ui/src/features/reports/delivery/deliveryCount.ts",
+    "crates/lis-reporting/src/delivery/labels.rs",
     "ui/src/features/reports/delivery/ObligationDialog.tsx",
     "ui/src/features/reports/delivery/ObligationGrid.tsx",
     "ui/src/features/reports/delivery/RecordAttemptDialog.tsx",
@@ -196,7 +202,7 @@
     },
     {
       "title": "Report history",
-      "routes": ["/reports/:reportId"],
+      "routes": ["/reports/:reportId/:tab?"],
       "purpose": "Inspect preserved revisions, delivery work, exports and quality follow-up for one report.",
       "access": "Reading requires report-delivery or quality-management authority. Next revision and withdrawal require report-release authority. Impact/incident decisions require quality-management authority. Delivery actions require report-delivery authority. Opening the report is audited.",
       "fields": [
@@ -246,7 +252,37 @@
           "name": "Summary: Impact after release",
           "meaning": "Shows at a glance whether changes after release wait for quality assessment.",
           "values": "Nothing open (green); N open items or Correction due (warning); Not applicable when the report has no current revision or its stored content is damaged.",
-          "rules": "Read-only. The Impact after release section below is shown only when something is open, a correction is due or an assessment was recorded."
+          "rules": "Read-only. The Impact tab shows the open items, any correction due and every assessment."
+        },
+        {
+          "name": "Tabs",
+          "meaning": "Splits the report into views used one at a time, under the summary and any withdrawal notice.",
+          "values": "Results, Preview, Delivery, Revisions, PDF exports and Impact, each but Preview with a count: result rows printed, delivery obligations, revisions, exports and open impact items. Incidents, with the number of preservation incidents, appears only when the report has one or a work-queue item leads to one.",
+          "rules": "Results is selected when the report opens. Each tab has its own address, so Back, reload and a link return to the same tab; Previous and Next open the neighbouring report on its Results tab. The Results count shows once the revision has been read."
+        },
+        {
+          "name": "Results: Analyte / Result / Units / Limits / Comparison",
+          "meaning": "Shows every result the current revision prints, without exporting the PDF.",
+          "values": "The analyte; the exact printed result, such as 512.4, <5.0 or Below LOD; units, or — for a qualitative result; the printed cutoff and quantitation limits, such as Cutoff 50 ng/mL; LOQ 5 ng/mL; the comparison wording: Meets cutoff, Does not meet cutoff or Not classifiable. With more than one test, a Test column names each row's test first. Tests the revision does not report are listed under the table with their status, such as Pending.",
+          "rules": "Read-only and taken from the revision's stored content, the same data the PDF is rendered from; values are never reformatted. Meets cutoff is a neutral grey badge; the other comparisons are plain text. Results are never colored as positive or negative: only flags from the laboratory's rules color a result. A withdrawn report shows its last revision. Opening the tab reads the revision, which is recorded in the audit trail; damaged stored content shows an error instead."
+        },
+        {
+          "name": "Preview: Showing",
+          "meaning": "Chooses which released revision the Preview tab shows.",
+          "values": "Every released revision, newest first, as Revision N (current), (superseded) or (withdrawn). Defaults to the current revision, or to the last revision of a withdrawn report.",
+          "rules": "The choice is kept in the address as ?revision=N, so reload and Back show the same revision; choosing the default removes it. Reading a revision is recorded in the audit trail. The revision's own page, opened from the Revisions tab, still shows its provenance and digests."
+        },
+        {
+          "name": "Preview: content",
+          "meaning": "Shows the chosen revision's printed content as the PDF prints it: report, changes in a correction, laboratory, patient and order, specimen, results, tests not reported and validity.",
+          "values": "The engine's printed text for each part, exactly as issued.",
+          "rules": "Read-only; from the revision's stored content, the same data the PDF is rendered from. The PDF itself is saved with Export PDF or Export revision N. Damaged stored content shows an error instead."
+        },
+        {
+          "name": "Preview: Superseded badge and notice",
+          "meaning": "Warns that the revision on screen is not the current one.",
+          "values": "A Superseded (or Withdrawn) badge beside the picker; for a superseded revision, a warning such as You are viewing revision 1, which was replaced by revision 2 (Correction) on 2026-11-17 10:20, with a Show current revision link.",
+          "rules": "Shown only when the chosen revision is not current. Show current revision returns the picker to the current revision; it is not offered when the report is withdrawn. Do not use an earlier revision's content as the current result."
         },
         {
           "name": "Revisions: Revision / Kind",
@@ -270,7 +306,7 @@
           "name": "Impact after release: Open impact / Correction due",
           "meaning": "Shows changes needing quality assessment after issuance.",
           "values": "Explanatory change messages; Correction due when a quality decision requires a new revision.",
-          "rules": "Read-only. Open impact pauses delivery of the current report revision. The section is shown only when something is open, a correction is due or an assessment was recorded; otherwise the summary shows Nothing open."
+          "rules": "Read-only. Open impact pauses delivery of the current report revision. The Impact tab says Nothing open when no change waits; it says Not applicable when the report has no current revision or its stored content cannot be read."
         },
         {
           "name": "Impact history: Assessment / Reason / Assessed",
@@ -327,38 +363,32 @@
           "rules": "Required; no default. Selecting this records a resolution; it does not itself restore bytes or issue a new revision."
         },
         {
-          "name": "Delivery status",
-          "meaning": "Names the channel and the strongest evidence recorded so far.",
-          "values": "Fax by staff, Email by staff, Mailed by staff, Handed to courier or Collected at the laboratory, followed by awaiting, failed, outcome unknown, blocked, paused, handed off with attestation, or closed with reason.",
-          "rules": "Read-only. Handed off is staff attestation; it does not prove recipient receipt."
+          "name": "Delivery: X of Y handed off",
+          "meaning": "Counts the destinations staff have attested as handed off, out of those still owed.",
+          "values": "Such as 1 of 3 handed off; green when every owed destination is handed off, warning while any is not.",
+          "rules": "Read-only; the same count as the Handed off X of Y chip under the title. Closed obligations are no longer owed and are left out; the badge is not shown when nothing is owed. The tab's own count is every obligation, closed ones included."
         },
         {
-          "name": "Report / Sends",
-          "meaning": "Identifies the exact artifact owed to a destination.",
-          "values": "Report number and revision, or Withdrawal notice and revision.",
-          "rules": "Read-only; verify revision before using any exported file."
+          "name": "Delivery: Destination / Method",
+          "meaning": "Names where the report goes and how, one row per obligation.",
+          "values": "The ordering client’s configured destination label; Fax by staff, Email by staff, Mailed by staff, Handed to courier or Collected at the laboratory.",
+          "rules": "Read-only. Redirecting creates a new obligation, a new row, rather than editing this one."
         },
         {
-          "name": "Destination",
-          "meaning": "Identifies the configured recipient endpoint.",
-          "values": "The ordering client’s configured destination label.",
-          "rules": "Read-only on an obligation; redirecting creates a new obligation rather than editing this history."
+          "name": "Delivery: Status",
+          "meaning": "Shows in a few words where delivery to the destination stands, in the engine's wording.",
+          "values": "Handed off (green); Closed: redirected, Closed: newer revision released or Closed: report withdrawn (green); Awaiting (blue); Failed: busy or no answer, wrong destination, returned, refused or other reason, and Outcome unknown (warning); Paused: impact review open (grey); Blocked: destination not verified, destination retired or destination reported wrong (red).",
+          "rules": "Read-only. Handed off is staff attestation; it does not prove the recipient received the report, so the badge never says Delivered. Blocked names its reason; replace or verify the destination, then redirect. Paused lasts until quality staff assess the open impact."
         },
         {
-          "name": "Why",
-          "meaning": "Explains how the obligation arose.",
-          "values": "Release, Follow-up of an earlier revision, Withdrawal notice, Added by staff or Redirected, with reason when recorded.",
-          "rules": "Read-only; supplied by the current record."
-        },
-        {
-          "name": "Last attempt / Created",
-          "meaning": "Dates the obligation and its most recent attempt.",
-          "values": "Date/time or None for no attempt.",
-          "rules": "Read-only; supplied by the current record."
+          "name": "Delivery: When / By",
+          "meaning": "Dates the last recorded attempt and names who attested it.",
+          "values": "Date/time and the person's name, or — when no attempt has been recorded.",
+          "rules": "Read-only. For Handed off, these are when and by whom the hand-off was attested; for Failed or Outcome unknown, the failed or uncertain attempt."
         },
         {
           "name": "Attempts",
-          "meaning": "Preserves every attempt in order.",
+          "meaning": "Preserves every attempt in order; the obligation's panel in Delivery shows them.",
           "values": "Handed off, Failed or Outcome unknown; failure cause, observed time, recorder and note.",
           "rules": "Read-only; a retry is another recorded attempt, not an edit to an earlier one."
         },
@@ -410,7 +440,13 @@
           "name": "Export PDF (revision N, current)",
           "does": "Opens Export PDF for the current revision N, where you choose the purpose and select Export PDF.",
           "availableWhen": "The report has a current revision (not withdrawn). The engine still requires report-delivery authority and an intact stored file; a refusal is shown in the dialog.",
-          "result": "Saves the exact issued PDF to Downloads, records the export in the audit trail and adds it to PDF exports. No attempt or delivery is recorded. To export a superseded or withdrawn revision, open that revision and use its Export PDF."
+          "result": "Saves the exact issued PDF to Downloads, records the export in the audit trail and adds it to PDF exports. No attempt or delivery is recorded. It always exports the current revision, whichever revision the Preview tab shows. To export a superseded or withdrawn revision, use Export revision N on the Preview tab or Export PDF on that revision's page."
+        },
+        {
+          "name": "Export revision N",
+          "does": "On the Preview tab, opens Export PDF of <report> revision N for the revision shown, where you choose the purpose and select Export PDF.",
+          "availableWhen": "The Preview tab shows a revision that is not current (superseded, or the last revision of a withdrawn report). Not shown for the current revision: Export PDF at the top exports it. The engine still requires report-delivery authority and an intact stored file.",
+          "result": "Saves that revision's exact issued PDF to Downloads and adds it to PDF exports as Revision N (superseded) or (withdrawn). No attempt or delivery is recorded."
         },
         {
           "name": "More actions",
@@ -444,13 +480,13 @@
         },
         {
           "name": "Add destination",
-          "does": "From More actions, opens Add a destination, which creates an additional obligation for the current revision.",
+          "does": "From More actions or the Add destination button on the Delivery tab, opens Add a destination, which creates an additional obligation for the current revision.",
           "availableWhen": "Report-delivery authority; current usable revision and a verified destination belonging to the ordering client.",
           "result": "Records the reason and adds delivery work; one obligation per revision, destination and kind is allowed."
         },
         {
-          "name": "Open delivery row",
-          "does": "Opens the matching obligation in Delivery.",
+          "name": "Open delivery row / Open in Delivery",
+          "does": "Opens the matching obligation in Delivery. Open in Delivery, beside the count on the Delivery tab, opens the first obligation not yet closed.",
           "availableWhen": "The obligation is not closed.",
           "result": "Shows loaded open-obligation details; closed obligations currently have only their history row here."
         },
@@ -498,7 +534,7 @@
         "The current interface has no separate detail view for a closed delivery obligation. Its row remains in report history."
       ],
       "workflow": [
-        "Confirm identity and the current revision; use the accession link or View order in the banner to check the received material or the order as entered. Open earlier revisions when investigating a change.",
+        "Confirm identity and the current revision; use the accession link or View order in the banner to check the received material or the order as entered. Check the results on the Results tab. Open earlier revisions from the Revisions tab when investigating a change.",
         "Review open impact, correction-due and preservation incidents before further report handling.",
         "Use a new revision for corrected content; document quality decisions with the specific changes they cover.",
         "For a records or internal copy of the current revision, choose Export PDF (revision N, current), select the purpose and check the Downloads confirmation and the new PDF exports row.",

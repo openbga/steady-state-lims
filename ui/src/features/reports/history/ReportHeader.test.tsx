@@ -12,6 +12,7 @@ import {
   REPORT,
   REPORT_ID,
   REVISION,
+  REVISION_DETAIL,
   sessionWith,
 } from "../testData";
 import { deliveryChip } from "./ReportHeader";
@@ -19,12 +20,13 @@ import { ReportPage } from "./ReportPage";
 
 /** The report page's header, patient banner and summary (#4831, #4832, #4833). */
 
-const ROUTE = { path: "/reports/:reportId", element: <ReportPage /> };
+const ROUTE = { path: "/reports/:reportId/:tab?", element: <ReportPage /> };
 
 function renderPage(capabilities: string[], report = REPORT) {
   mockCommands({
     current_session: () => sessionWith(capabilities),
     get_report: () => report,
+    get_report_revision: () => REVISION_DETAIL,
     list_delivery_destinations: () => [DESTINATION],
   });
   return renderRoutes([ROUTE], `/reports/${REPORT_ID}`);
@@ -76,7 +78,7 @@ const withStatus = (...codes: ObligationStatus[]) =>
   codes.map((code, index) => ({
     ...OBLIGATION,
     obligationId: `${OBLIGATION.obligationId}-${index}`,
-    status: { code, label: code },
+    status: { ...OBLIGATION.status, code, label: code },
   }));
 
 describe("Report page status chips and actions (#4831)", () => {
@@ -91,6 +93,7 @@ describe("Report page status chips and actions (#4831)", () => {
     for (const chip of ["Current", "Partial", "Revision 1 · Initial report", "Handed off 0 of 1"]) {
       expect(within(header).getByText(chip)).toBeTruthy();
     }
+    // REQ-RPT-011: never a bare claim of receipt (the word is assembled, as in deliveryWording).
     expect(within(header).queryByText(new RegExp(["Deliver", "ed"].join("")))).toBeNull();
   });
 
@@ -169,11 +172,10 @@ describe("Report page summary card (#4832)", () => {
     expect(facts.Released).toContain("by Test Releaser");
     expect(facts["Last export"]).toContain("For the laboratory's records");
     expect(facts["Impact after release"]).toBe("Nothing open");
-    // With nothing open, due or assessed, impact needs no section of its own.
-    expect(screen.queryByRole("region", { name: "Impact after release" })).toBeNull();
+    expect(screen.getByRole("tab", { name: "Impact 0" })).toBeTruthy();
   });
 
-  it("counts open impact in warning tone and keeps the impact section", async () => {
+  it("counts open impact in warning tone, also on the Impact tab", async () => {
     renderPage(["release_reports"], {
       ...REPORT,
       impact: {
@@ -194,7 +196,7 @@ describe("Report page summary card (#4832)", () => {
         .closest("[data-tone]")
         ?.getAttribute("data-tone"),
     ).toBe("warning");
-    expect(screen.getByRole("region", { name: "Impact after release" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Impact 2" })).toBeTruthy();
   });
 
   it("says when the printed content cannot be read and nothing was exported", async () => {

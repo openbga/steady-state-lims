@@ -162,6 +162,11 @@ pub struct ObligationDestinationView {
 pub struct DeliveryStatusView {
     pub code: ObligationStatus,
     pub label: String,
+    /// The status in a few words for a badge, such as "Handed off" or
+    /// "Blocked: destination not verified"; never "delivered".
+    pub short_label: String,
+    /// How the channel delivers, such as "Fax by staff".
+    pub method: String,
 }
 
 /// One attested attempt.

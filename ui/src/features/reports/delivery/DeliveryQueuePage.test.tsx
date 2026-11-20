@@ -64,7 +64,12 @@ describe("DeliveryQueuePage (REQ-RPT-003, REQ-RPT-011)", () => {
   it("opens the exact obligation a link names, with its attempts", async () => {
     const attempted: ObligationView = {
       ...OBLIGATION,
-      status: { code: "attention", label: "Fax by staff: failed, no answer or busy" },
+      status: {
+        code: "attention",
+        label: "Fax by staff: failed (busy or no answer)",
+        shortLabel: "Failed: busy or no answer",
+        method: "Fax by staff",
+      },
       attempts: [
         {
           evidence: "failed",
@@ -92,7 +97,7 @@ describe("DeliveryQueuePage (REQ-RPT-003, REQ-RPT-011)", () => {
     const exact = vi.fn(() => ({
       ...OBLIGATION,
       obligationId: "outside-page",
-      status: { code: "closed", label: "Closed delivery evidence" },
+      status: { ...OBLIGATION.status, code: "closed", label: "Closed delivery evidence" },
       allowedActions: [],
     }));
     const { router } = renderPage("/delivery?open=outside-page", {
@@ -159,7 +164,12 @@ describe("DeliveryQueuePage (REQ-RPT-003, REQ-RPT-011)", () => {
     };
     const HANDED: ObligationView = {
       ...OBLIGATION,
-      status: { code: "handed_off", label: "Fax by staff: handed off, attested by Test Releaser" },
+      status: {
+        code: "handed_off",
+        label: "Fax by staff: handed off, attested by Test Releaser",
+        shortLabel: "Handed off",
+        method: "Fax by staff",
+      },
       allowedActions: ["export_report_pdf"],
     };
     // After the attempt the engine no longer lists it under "Awaiting delivery".
@@ -195,7 +205,12 @@ describe("DeliveryQueuePage (REQ-RPT-003, REQ-RPT-011)", () => {
     expect(screen.queryByText(/not in “Awaiting delivery”/)).toBeNull();
     current = {
       ...HANDED,
-      status: { code: "paused", label: "Paused after external impact review" },
+      status: {
+        code: "paused",
+        label: "Paused after external impact review",
+        shortLabel: "Paused: impact review open",
+        method: "Fax by staff",
+      },
       allowedActions: [],
     };
     await user.click(within(panel()).getByRole("button", { name: "Refresh" }));
@@ -303,7 +318,12 @@ describe("DeliveryQueuePage (REQ-RPT-003, REQ-RPT-011)", () => {
   it("offers only the actions the engine allows, in the panel and the row menu", async () => {
     const blocked: ObligationView = {
       ...OBLIGATION,
-      status: { code: "blocked", label: "Fax by staff: blocked (destination not verified)" },
+      status: {
+        code: "blocked",
+        label: "Fax by staff: blocked (destination not verified)",
+        shortLabel: "Blocked: destination not verified",
+        method: "Fax by staff",
+      },
       allowedActions: ["redirect_delivery_obligation"],
     };
     const closed: ObligationView = {

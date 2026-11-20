@@ -7,6 +7,7 @@ import type {
   ObligationView,
   ReportDetail,
   ReportWorkspace,
+  RevisionDetail,
   RevisionSummary,
 } from "./contract";
 
@@ -108,6 +109,7 @@ export const CONTENT: ToxReportData = {
           units: "ng/mL",
           limits: "Cutoff 50 ng/mL; LOQ 5 ng/mL",
           comparison: "Meets cutoff",
+          comparisonCode: "meets_cutoff",
           recordedAt: "2026-10-12 08:30 CDT",
           firstReportedAt: null,
           referenceInterval: null,
@@ -119,6 +121,7 @@ export const CONTENT: ToxReportData = {
           units: "ng/mL",
           limits: "Cutoff 50 ng/mL; LOQ 5 ng/mL",
           comparison: "Does not meet cutoff",
+          comparisonCode: "does_not_meet_cutoff",
           recordedAt: "2026-10-12 08:30 CDT",
           firstReportedAt: null,
           referenceInterval: null,
@@ -183,6 +186,25 @@ export const REVISION: RevisionSummary = {
   artifactSha256: "a1".repeat(32),
 };
 
+/** Revision 1 as `get_report_revision` reads it: its printed content and provenance. */
+export const REVISION_DETAIL: RevisionDetail = {
+  reportId: REPORT_ID,
+  reportNumber: "A26000001-URN",
+  summary: REVISION,
+  content: CONTENT,
+  provenance: {
+    layoutName: null,
+    templateId: "tox-report",
+    templateVersion: 2,
+    templateSha256: "b2".repeat(32),
+    rendererVersion: "synthetic-renderer 1.0",
+    contentSha256: "c3".repeat(32),
+    dataSha256: "d4".repeat(32),
+    artifactSha256: REVISION.artifactSha256,
+    fonts: ["Synthetic Sans"],
+  },
+};
+
 export const WORKSPACE: ReportWorkspace = {
   unavailableCandidateId: null,
   conditionReviewSource: { sourceSha256: "0".repeat(64), latestDecisionId: null, conditions: [] },
@@ -218,7 +240,12 @@ export const OBLIGATION: ObligationView = {
     label: "Synthetic Clinic fax",
     verified: true,
   },
-  status: { code: "awaiting", label: "Fax by staff: awaiting delivery" },
+  status: {
+    code: "awaiting",
+    label: "Fax by staff: awaiting delivery",
+    shortLabel: "Awaiting",
+    method: "Fax by staff",
+  },
   attempts: [],
   origin: "release",
   originReason: null,

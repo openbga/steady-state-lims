@@ -10,6 +10,7 @@ import {
   type ReportDetail,
   WITHDRAW_REPORT,
 } from "../contract";
+import { deliveryCount } from "../delivery/deliveryCount";
 import { ExportDialog } from "../delivery/ExportDialog";
 import { ObligationDialog } from "../delivery/ObligationDialog";
 import { AVAILABILITY, COMPLETENESS, RELATIONSHIP } from "../labels";
@@ -17,24 +18,19 @@ import { workspacePath } from "../paths";
 import { WithdrawDialog } from "./WithdrawDialog";
 
 /** The current revision, the one released and not yet superseded. */
-const currentOf = (report: ReportDetail) =>
+export const currentOf = (report: ReportDetail) =>
   report.revisions.find((each) => each.availability === "current");
 
 /**
- * Delivery in one chip: obligations handed off out of those still owed. A closed obligation
- * (redirected, or closed with a reason) is owed no longer and is left out. Green once every
- * owed obligation is handed off, warning while any is open; `null` when none is owed.
- * "Handed off" is staff attestation, never proof of receipt, so the chip never claims
- * delivery (REQ-RPT-011).
+ * The revision the report page shows by default: the current one, or the last one of a
+ * withdrawn report; `undefined` before the first release.
  */
+export const shownRevision = (report: ReportDetail) => currentOf(report) ?? report.revisions.at(-1);
+
+/** The header's delivery chip, "Handed off X of Y", with `deliveryCount`'s rule and tone. */
 export function deliveryChip(obligations: readonly ObligationView[]) {
-  const owed = obligations.filter((each) => each.status.code !== "closed");
-  if (owed.length === 0) return null;
-  const handedOff = owed.filter((each) => each.status.code === "handed_off").length;
-  return {
-    label: `Handed off ${handedOff} of ${owed.length}`,
-    tone: handedOff === owed.length ? ("success" as const) : ("warning" as const),
-  };
+  const count = deliveryCount(obligations);
+  return count && { label: `Handed off ${count.handedOff} of ${count.owed}`, tone: count.tone };
 }
 
 /**
@@ -47,7 +43,7 @@ export function ReportChips({ report }: { report: ReportDetail }) {
   const delivery = deliveryChip(report.obligations);
   return (
     <>
-      <StatusBadge tone={availability?.tone ?? "neutral"}>
+      <StatusBadge tone={availability?.tone ?? "neutral"} variant={availability?.variant}>
         {availability?.label ?? "Not released"}
       </StatusBadge>
       {latest && (
@@ -71,7 +67,7 @@ type OpenDialog = "export" | "add" | "withdraw" | null;
  * Export PDF of the current revision is the one main button. Preparing the next revision and
  * adding a destination sit in More actions, with Withdraw report last, below a line, in
  * danger text, each only when the engine's `allowedActions` names it; the engine still
- * decides. An earlier revision is exported from its own page.
+ * decides. An earlier revision is exported from the Preview tab or its own page.
  */
 export function ReportActions({ report }: { report: ReportDetail }) {
   const navigate = useNavigate();
