@@ -7,7 +7,7 @@ What changed in OpenBGA Toxicology LIMS, newest release first. Changes not yet i
 release are listed under Unreleased. Within a release, changes are ordered by impact, then
 newest first. The application shows the same list under **What's new**.
 
-## Unreleased (2026-11-12 to 2026-11-18)
+## Unreleased (2026-11-12 to 2026-11-20)
 
 ### High impact
 
@@ -22,6 +22,14 @@ newest first. The application shows the same list under **What's new**.
   - The documentation now describes AGPLv3 section 13 for network use, and the notice states that the product name, OpenBGA and their logos are trademarks of BGASoft Inc. that the license does not grant (section 7(e)).
 
 ### Medium impact
+
+- **Fixed:** Reject an incoming order held for review (2026-11-20)
+
+  **Reject…** on an incoming order message that is **Held for review** in Interfaces › Logs now rejects it with the reason entered, as it does for one waiting for its patient. The row shows who rejected it and why, and no order is made from it.
+
+  Technical notes:
+
+  Interfaces migration 0018 lets a held received message change state once, as a waiting one could. It adds no columns and changes no stored data.
 
 - **Added:** A summary of the report on the report page (2026-11-18, [#125](https://github.com/openbga/toxicology-lims/pull/125))
 

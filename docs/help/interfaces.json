@@ -2,7 +2,7 @@
   "id": "interfaces",
   "title": "Interfaces",
   "summary": "Receive HL7 orders from a clinic's EMR and send HL7 results, report PDFs and billing handoff files to outside systems, through a folder or the partner's SFTP server, or HL7 over MLLP with a partner on the lab network; map codes between the LIS and each partner, follow every message in Logs, and decide on messages no connection matched.",
-  "reviewedOn": "2026-11-17",
+  "reviewedOn": "2026-11-20",
   "routes": [
     "/interfaces/connections",
     "/interfaces/connections/:connectionId/:tab?",
@@ -516,7 +516,7 @@
         },
         {
           "problem": "An incoming order shows Held for review",
-          "recovery": "The same message ID came with other content, or the registered patient's name or birth date differs from the message. Check with the clinic; enter the order by hand if it is right. Nothing was ordered."
+          "recovery": "The same message ID came with other content, or the registered patient's name or birth date differs from the message. Check with the clinic; enter the order by hand if it is right. Nothing was ordered. To close it, use Reject… on its row in Logs with the reason: it shows Rejected – by a person, Details show who rejected it and why, and no order is ever made from it."
         },
         {
           "problem": "An incoming order shows Rejected",
