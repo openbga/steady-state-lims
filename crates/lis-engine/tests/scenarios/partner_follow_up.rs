@@ -179,7 +179,10 @@ async fn a_person_rejects_a_held_message_and_a_waiting_one() {
 
     let engine = orders.bench.lab().engine();
     let reasons = [
-        (&held, "Synthetic: the clinic sent a corrected copy under a new ID"),
+        (
+            &held,
+            "Synthetic: the clinic sent a corrected copy under a new ID",
+        ),
         (&waiting, "Synthetic: the clinic cancelled it by phone"),
     ];
     for (message, reason) in reasons {
