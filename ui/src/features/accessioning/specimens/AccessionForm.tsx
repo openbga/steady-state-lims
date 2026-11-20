@@ -10,6 +10,7 @@ import type { CreateAccessionInput } from "@/generated/CreateAccessionInput";
 import type { OrderAccessionContext } from "@/generated/OrderAccessionContext";
 import type { OrderDetail } from "@/generated/OrderDetail";
 import type { SpecimenTypeView } from "@/generated/SpecimenTypeView";
+import { activeCards, useClearActiveCardOutside } from "@/lib/activeCards";
 import { useCommandMutation } from "@/lib/commands";
 import { UnsavedChangesGuard } from "@/lib/UnsavedChangesGuard";
 import { GET_ORDER, LIST_ORDERS } from "../orders/contract";
@@ -54,6 +55,7 @@ export function AccessionForm({ order, context, specimenTypes }: AccessionFormPr
     },
   });
   const [savedId, setSavedId] = useState<string | null>(null);
+  useClearActiveCardOutside();
   const create = useCreateAccession(order.orderId, setSavedId);
   // Keep this component mounted while mutation invalidation updates eligibility, so its
   // success callback can release the unsaved-input guard and open the created accession.
@@ -75,7 +77,7 @@ export function AccessionForm({ order, context, specimenTypes }: AccessionFormPr
           <AccessionTestSelection order={order} context={context} />
         </>
       ) : (
-        <div className={styles.receiveLayout}>
+        <div className={styles.receiveLayout} {...activeCards}>
           <Form
             aria-label="Receive specimens"
             stickyActions

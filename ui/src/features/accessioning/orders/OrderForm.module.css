@@ -24,11 +24,6 @@
   padding: var(--space-3) var(--space-4);
 }
 
-.stepFields > section[data-active] {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 1px var(--color-accent);
-}
-
 .stepFields[hidden] {
   display: none;
 }

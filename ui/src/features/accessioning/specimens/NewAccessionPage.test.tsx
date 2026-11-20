@@ -148,6 +148,16 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     });
   });
 
+  it("marks the box being worked in, until a click outside every box", async () => {
+    const { user } = renderPage();
+    await screen.findByRole("checkbox", { name: /SYN-SCR/ });
+    const collection = screen.getByRole("region", { name: "2 · Collection" });
+    await user.click(within(collection).getByRole("textbox", { name: /^Collected by/ }));
+    expect(collection.hasAttribute("data-active")).toBe(true);
+    await user.click(screen.getByRole("heading", { level: 1 }));
+    expect(collection.hasAttribute("data-active")).toBe(false);
+  });
+
   it("sends a UTC offset as supplied when the requisition gives one", async () => {
     const create = vi.fn(() => ACCESSION);
     const { user } = renderPage({ create_accession: create });
@@ -179,7 +189,7 @@ describe("NewAccessionPage (REQ-SPC-001, REQ-SPC-002)", { timeout: WALKTHROUGH_T
     expect(time).toHaveProperty("disabled", true);
     expect(time.getAttribute("placeholder")).toBe("Not on the requisition");
     expect(screen.getByText('The report will show "time not recorded".')).toBeTruthy();
-    expect(screen.queryByText(/^Time zone:/)).toBeNull();
+    expect(screen.queryByText("not set")).toBeNull();
     await typeInto(user, /^Collection date/, "2026-10-12");
     await typeInto(user, /^Containers/, "1");
     await user.click(screen.getByRole("radio", { name: /Unknown/ }));

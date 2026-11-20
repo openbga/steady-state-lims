@@ -7,11 +7,11 @@ import { Form } from "@/components/Form";
 import { useToast } from "@/components/Toast";
 import type { OrderDetail } from "@/generated/OrderDetail";
 import type { RegisterOrderInput } from "@/generated/RegisterOrderInput";
+import { activeCards, useClearActiveCardOutside } from "@/lib/activeCards";
 import { useCommandMutation, useHasCapability } from "@/lib/commands";
 import { toValidationErrors } from "@/lib/errors";
 import { UnsavedChangesGuard } from "@/lib/UnsavedChangesGuard";
 import { AuthorityFields } from "./AuthorityFields";
-import { activeSection, useClearActiveSectionOutside } from "./activeSection";
 import { FIND_ORDER_PATIENTS, LIST_ORDERS, REGISTER_ORDER } from "./contract";
 import { OptionalDetails } from "./OptionalDetails";
 import styles from "./OrderForm.module.css";
@@ -163,10 +163,10 @@ interface StepFieldsProps extends OrderFormProps {
 
 /** Both steps stay mounted, so Back keeps every value and every field's error. */
 function StepFields({ step, subjectId, references, addBilling, onAddBilling }: StepFieldsProps) {
-  useClearActiveSectionOutside();
+  useClearActiveCardOutside();
   return (
     <>
-      <div hidden={step !== "requisition"} className={styles.stepFields} {...activeSection}>
+      <div hidden={step !== "requisition"} className={styles.stepFields} {...activeCards}>
         <RequisitionFields
           clients={references.clients
             .filter((c) => c.active)
@@ -175,7 +175,7 @@ function StepFields({ step, subjectId, references, addBilling, onAddBilling }: S
         />
         <AuthorityFields />
       </div>
-      <div hidden={step !== "tests"} className={styles.stepFields} {...activeSection}>
+      <div hidden={step !== "tests"} className={styles.stepFields} {...activeCards}>
         <TestSelection orderables={references.orderables} />
         <OptionalDetails
           subjectId={subjectId}

@@ -1,10 +1,12 @@
 import { Globe } from "lucide-react";
 import { useContext, useState } from "react";
+import { VisuallyHidden } from "react-aria-components";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Alert } from "@/components/Alert";
 import { Button } from "@/components/Button";
 import { Checkbox } from "@/components/Checkbox";
 import { TimePickerButton } from "@/components/FieldPicker";
+import formStyles from "@/components/Form/Form.module.css";
 import { DATE_FORMAT, TextInput } from "@/components/FormFields";
 import { Section } from "@/components/Section";
 import { LabTimeZoneContext } from "@/lib/format";
@@ -137,7 +139,14 @@ function TimeZoneLine() {
   return (
     <div className={styles.timeZoneLine}>
       <Globe aria-hidden="true" />
-      Time zone: {!other && <span className={styles.notSet}>not set</span>}
+      <span>
+        Time zone
+        <span className={formStyles.required} aria-hidden="true">
+          {" *"}
+        </span>
+        <VisuallyHidden> (required)</VisuallyHidden>:
+      </span>
+      {!other && <span className={styles.notSet}>not set</span>}
       {labTimeZone && (
         <Button onPress={() => choose(labTimeZone)}>
           Use laboratory time zone ({labTimeZone})
