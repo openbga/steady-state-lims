@@ -91,11 +91,14 @@ foreach ($update in @($true,$false)) {
     }
 }
 # Distinct old roots and explicit unrelated /D paths must fail before replacing executable bytes.
+$oldest = Seed $pairs[0] '-ambiguity'
 $first = Seed $pairs[1] '-ambiguity'
 $second = Seed $pairs[2] '-ambiguity'
-Run-Installer -Failure $true
+foreach ($update in @($true,$false)) { Run-Installer -Update $update -Failure $true }
+Assert ((Get-Content "$oldest\lis-desktop.exe") -match '^Synthetic') 'Ambiguous installation changed'
 Assert ((Get-Content "$first\lis-desktop.exe") -match '^Synthetic') 'Ambiguous installation changed'
 Assert ((Get-Content "$second\lis-desktop.exe") -match '^Synthetic') 'Ambiguous installation changed'
+Remove-Seed $pairs[0]
 Remove-Seed $pairs[1]
 Remove-Seed $pairs[2]
 $directory = Seed $pairs[2] '-different'
