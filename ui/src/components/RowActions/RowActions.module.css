@@ -56,6 +56,14 @@
   outline-offset: calc(-1 * var(--focus-ring-width));
 }
 
+/* A choice-of-one menu reserves the check mark's space on every item, so labels line up. */
+.check {
+  flex: none;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  margin-inline-end: var(--space-2);
+}
+
 /* Destructive actions are red text; red fill is for status only. */
 .danger {
   color: var(--tone-danger-text);

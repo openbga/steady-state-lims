@@ -1,13 +1,15 @@
-import { Ellipsis, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronsDownUp, Ellipsis, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { type ReactNode, useRef } from "react";
 import { Button, MenuTrigger, Tooltip, TooltipTrigger } from "react-aria-components";
 import { ActionMenu } from "@/components/RowActions/ActionMenu";
 import styles from "./Sidebar.module.css";
-import { SideNav } from "./SideNav";
-import { NAV_DEFAULT, NAV_MAX, NAV_RAIL, NAV_STEP, useSidebarLayout } from "./useSidebarLayout";
+import { SideNav, useNavState } from "./SideNav";
+import { NAV_MAX, NAV_PRESETS, NAV_RAIL, useSidebarLayout } from "./useSidebarLayout";
 
 /** The navigation frame keeps its controls fixed while the work-area list scrolls. */
 export function Sidebar({ capabilities }: { capabilities: readonly string[] }) {
   const layout = useSidebarLayout();
+  const nav = useNavState(capabilities);
   return (
     <aside
       aria-label="Navigation sidebar"
@@ -17,8 +19,8 @@ export function Sidebar({ capabilities }: { capabilities: readonly string[] }) {
       // Runtime geometry from the resize control; all visual styling stays in the CSS module.
       style={{ width: layout.width }}
     >
-      <SidebarControls layout={layout} />
-      <SideNav capabilities={capabilities} collapsed={layout.collapsed} />
+      <SidebarControls layout={layout} onCollapseAll={nav.anyOpen ? nav.collapseAll : undefined} />
+      <SideNav nav={nav} collapsed={layout.collapsed} />
       {/* biome-ignore lint/a11y/useSemanticElements: A focusable ARIA window splitter has drag and keyboard behavior; it is not a static hr. */}
       <div
         role="separator"
@@ -37,39 +39,55 @@ export function Sidebar({ capabilities }: { capabilities: readonly string[] }) {
   );
 }
 
-function SidebarControls({ layout }: { layout: ReturnType<typeof useSidebarLayout> }) {
+/**
+ * The header buttons. Collapse all sections shows only while an area is open; it hides once
+ * pressed, so focus moves to the width options button beside it.
+ */
+function SidebarControls({
+  layout,
+  onCollapseAll,
+}: {
+  layout: ReturnType<typeof useSidebarLayout>;
+  onCollapseAll: (() => void) | undefined;
+}) {
+  const options = useRef<HTMLButtonElement>(null);
   const ToggleIcon = layout.collapsed ? PanelLeftOpen : PanelLeftClose;
   const toggleLabel = layout.collapsed ? "Expand navigation" : "Collapse navigation";
   return (
     <div className={styles.controls}>
       {!layout.collapsed && <span className={styles.title}>Navigation</span>}
+      {!layout.collapsed && onCollapseAll && (
+        <ControlTooltip label="Collapse all sections" placement="bottom">
+          <Button
+            aria-label="Collapse all sections"
+            aria-controls="main-navigation"
+            onPress={() => {
+              onCollapseAll();
+              options.current?.focus();
+            }}
+            className={styles.control}
+          >
+            <ChevronsDownUp aria-hidden="true" />
+          </Button>
+        </ControlTooltip>
+      )}
       {!layout.collapsed && (
         <MenuTrigger>
-          <Button aria-label="Navigation width options" className={styles.control}>
+          <Button ref={options} aria-label="Navigation width options" className={styles.control}>
             <Ellipsis aria-hidden="true" />
           </Button>
           <ActionMenu
-            items={[
-              {
-                id: "narrower",
-                label: "Narrower navigation",
-                onAction: () => layout.resize(layout.width - NAV_STEP),
-              },
-              {
-                id: "wider",
-                label: "Wider navigation",
-                onAction: () => layout.resize(layout.width + NAV_STEP),
-              },
-              {
-                id: "reset",
-                label: "Reset navigation width",
-                onAction: () => layout.resize(NAV_DEFAULT),
-              },
-            ]}
+            placement="bottom start"
+            selectedId={layout.preset}
+            items={NAV_PRESETS.map((option) => ({
+              id: option.id,
+              label: option.label,
+              onAction: () => layout.choose(option.id),
+            }))}
           />
         </MenuTrigger>
       )}
-      <TooltipTrigger>
+      <ControlTooltip label={toggleLabel}>
         <Button
           aria-label={toggleLabel}
           aria-expanded={!layout.collapsed}
@@ -79,10 +97,26 @@ function SidebarControls({ layout }: { layout: ReturnType<typeof useSidebarLayou
         >
           <ToggleIcon aria-hidden="true" />
         </Button>
-        <Tooltip placement="right" className={styles.tooltip}>
-          {toggleLabel}
-        </Tooltip>
-      </TooltipTrigger>
+      </ControlTooltip>
     </div>
+  );
+}
+
+function ControlTooltip({
+  label,
+  placement = "right",
+  children,
+}: {
+  label: string;
+  placement?: "right" | "bottom";
+  children: ReactNode;
+}) {
+  return (
+    <TooltipTrigger>
+      {children}
+      <Tooltip placement={placement} className={styles.tooltip}>
+        {label}
+      </Tooltip>
+    </TooltipTrigger>
   );
 }
