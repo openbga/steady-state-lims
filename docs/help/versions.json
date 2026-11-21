@@ -2,7 +2,7 @@
   "id": "versions",
   "title": "Versions and updates",
   "summary": "Install a newer published update from the app, accept the detected running version, or record approval and backup evidence before installing an update.",
-  "reviewedOn": "2026-11-03",
+  "reviewedOn": "2026-11-20",
   "routes": ["/operations/versions/:tab?"],
   "sections": [
     {
@@ -371,6 +371,10 @@
         {
           "problem": "The update could not be installed",
           "recovery": "The running version is unchanged and a failed installation is recorded in the audit trail. Read the correlation ID, check free disk space and, on Linux, the administrator password prompt or the AppImage’s file permissions, then try again."
+        },
+        {
+          "problem": "On Windows, the installer says more than one previous installation exists",
+          "recovery": "The computer has installations under earlier product names (Vibe Tox LIS, OpenBGA Tox or Steady State LIMS) in different folders. Nothing was installed or removed. The installer message lists each one with its version and folder and names the one to keep: the newest version. Remove the others in Windows Settings › Apps › Installed apps. When the uninstaller asks, leave Delete the application data unchecked; the laboratory data is then not removed. Start the remaining app and update again. The app does not remove installations itself."
         },
         {
           "problem": "Choose where backups are saved, or Your account cannot start backups",
