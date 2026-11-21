@@ -46,6 +46,14 @@ newest first. The application shows the same list under **What's new**.
   The window state is kept per computer in `<identifier>.window.json` beside the data folder,
   outside the data folder, backups and exports. It holds only window geometry.
 
+- **Changed:** The Windows installer lists duplicate earlier installations (2026-11-20)
+
+  When a Windows computer has more than one installation under an earlier product name (Vibe Tox LIS, OpenBGA Tox or Steady State LIMS) in different folders, the installer still stops, but its message now lists each installation with its version and folder, names the one to keep and tells you to remove the others in Windows Settings › Apps › Installed apps. Leave **Delete the application data** unchecked when uninstalling; the laboratory data is then not removed. The installer does not uninstall anything itself.
+
+  Technical notes:
+
+  The NSIS pre-install hook collects every validated former registration and keeps the newest version (the most recent product name on equal versions). The downgrade check now runs once against the kept installation.
+
 - **Changed:** Receive specimens is simpler, and New order goes straight to it (2026-11-19)
 
   In **New order**, **Accept order and receive specimens** saves the order, accepts it and opens **Receive specimens** on the same page. Pressing the button is the explicit acceptance; an order that cannot be accepted, or whose billing was asked for next, opens on its page as before.
@@ -143,6 +151,18 @@ newest first. The application shows the same list under **What's new**.
   The reason is computed when read and never stored, so there is no migration.
 
 ### Low impact
+
+- **Changed:** Choose Compact, Default or Wide navigation width (2026-11-20)
+
+  The … menu at the top of the navigation now offers Compact, Default and Wide instead of Narrower navigation, Wider navigation and Reset navigation width, with a check mark on the width in use. Default is a little wider than before and is the width the navigation opens with the first time. Dragging the right edge still sets any width in between, and the width is remembered across restarts.
+
+  Technical notes:
+
+  The saved navigation layout (`vibe-tox.navigation.layout-v1` in the webview's local storage) gains a `preset` field. A layout saved without it at the old 256-pixel first-start width opens at Default (288 pixels); any other saved width is kept.
+
+- **Added:** Collapse all navigation areas with one button (2026-11-20)
+
+  A Collapse all sections button beside … at the top of the navigation closes every open area at once, including the current page’s, which stays highlighted. It shows only while an area is open.
 
 - **Changed:** One clear quit warning for unsaved input (2026-11-20)
 

@@ -36,7 +36,16 @@ The Windows NSIS hook reads only validated former per-user registrations for
 executable directory, migrates matching shortcuts and retires the selected old
 uninstall metadata after the new registration exists. Distinct legacy directories
 or an explicitly selected different directory stop installation for manual
-reconciliation; the hook never removes application data. The Debian bundle declares
+reconciliation; the hook never uninstalls anything and never removes application data.
+For distinct legacy directories the stop message lists each validated registration
+with its product name, version and folder, and names the one to keep: the newest
+version, or the most recent product name when versions are equal. It tells the user
+to remove the others in Windows Settings › Apps › Installed apps and to leave the
+uninstaller's **Delete the application data** box unchecked. That box would remove
+`%APPDATA%\org.vibetox.lis` and `%LOCALAPPDATA%\org.vibetox.lis`, which every former
+name shares; unchecked, removing a duplicate does not remove laboratory data. The
+in-app updater runs the installer after the app closes, so this message comes from
+the installer window, not the update dialog. The Debian bundle declares
 `Conflicts`, `Replaces` and `Provides` for the published former package names
 `vibe-tox-lis`, `open-bga-tox` and `steady-state-lims`, so `dpkg -i` can replace
 ownership of `lis-desktop` instead of colliding with the old package.

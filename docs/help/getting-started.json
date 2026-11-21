@@ -9,6 +9,7 @@
       "title": "How to use this page",
       "paragraphs": [
         "Use the navigation to choose a work area. Open a record by clicking its row or pressing Enter on a focused row. Related records and breadcrumbs help you move between the list and its details.",
+        "Set the navigation’s width with … at the top of the navigation: Compact is the narrowest, Default the width it opens with the first time, and Wide the widest. A check mark shows the option in use. You can also drag the navigation’s right edge to any width between Compact and Wide, or focus the edge with Tab and use Left and Right arrows; a width set this way checks no option. The width is remembered on this computer across restarts. Collapse navigation, beside …, shrinks it to icons; Expand navigation returns it to its width.",
         "On lists such as Practitioners, Clients or Instruments, the record opens in a side panel on the right. Drag the panel’s left edge to make it wider or narrower, or focus the edge with Tab and use Left and Right arrows (32 pixels a step), Home for the narrowest width (22rem) and End for the widest. The widest leaves the list at least 38rem wide and is never more than 64rem. The width you choose is remembered on this computer for each page. Some content, such as a correction history, widens the panel while it is shown; hiding it returns the panel to your width. When the window is too narrow for both, the panel replaces the list and offers Back to list."
       ],
       "steps": [
@@ -38,6 +39,8 @@
   ],
   "reviewSources": [
     "ui/src/app/AppShell.tsx",
+    "ui/src/app/Sidebar.tsx",
+    "ui/src/app/useSidebarLayout.ts",
     "ui/src/components/DetailPanel/DetailLayout.tsx",
     "ui/src/components/DetailPanel/DetailPanel.tsx",
     "ui/src/components/DetailPanel/usePanelWidth.ts",
@@ -128,6 +131,12 @@
           "does": "Offers Wider/Narrower panel on wide windows, Taller/Shorter panel below the page, and Reset panel size.",
           "availableWhen": "Help is open. Use the three-dot button beside the Page help heading.",
           "result": "Changes size without dragging. Reset restores the default for the current layout, limited by available space. It does not change the saved size of the other layout."
+        },
+        {
+          "name": "Navigation width options (Compact, Default, Wide)",
+          "does": "Sets the navigation to its narrowest width, its first-start width or its widest width.",
+          "availableWhen": "The navigation is expanded. Use the … button at the top of the navigation.",
+          "result": "The navigation changes width at once and the chosen option is checked. The choice is remembered on this computer. Dragging the right edge or using the arrow keys on it sets any width in between and checks no option."
         },
         {
           "name": "Escape",
