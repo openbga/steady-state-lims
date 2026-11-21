@@ -35,6 +35,14 @@ newest first. The application shows the same list under **What's new**.
 
 ### Medium impact
 
+- **Changed:** The Windows installer lists duplicate earlier installations (2026-11-20)
+
+  When a Windows computer has more than one installation under an earlier product name (Vibe Tox LIS, OpenBGA Tox or Steady State LIMS) in different folders, the installer still stops, but its message now lists each installation with its version and folder, names the one to keep and tells you to remove the others in Windows Settings › Apps › Installed apps. Leave **Delete the application data** unchecked when uninstalling; the laboratory data is then not removed. The installer does not uninstall anything itself.
+
+  Technical notes:
+
+  The NSIS pre-install hook collects every validated former registration and keeps the newest version (the most recent product name on equal versions). The downgrade check now runs once against the kept installation.
+
 - **Changed:** Receive specimens is simpler, and New order goes straight to it (2026-11-19)
 
   In **New order**, **Accept order and receive specimens** saves the order, accepts it and opens **Receive specimens** on the same page. Pressing the button is the explicit acceptance; an order that cannot be accepted, or whose billing was asked for next, opens on its page as before.
