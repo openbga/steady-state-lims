@@ -2,7 +2,7 @@
   "id": "work-queues",
   "title": "Work queues",
   "summary": "Find work that needs attention and open the record where it can be resolved.",
-  "reviewedOn": "2026-11-16",
+  "reviewedOn": "2026-11-20",
   "routes": ["/work-queues", "/work-queues/:queue"],
   "sections": [
     {
@@ -18,7 +18,7 @@
       "title": "Counts in the navigation",
       "paragraphs": [
         "The navigation shows a queue’s count beside its entry, for example Result imports 2, and the total of every queue you can see beside Work queues. A number followed by + means at least that many; ? means the count is unknown. No number means nothing is waiting, or the counts could not be read. Counts refresh about once a minute.",
-        "Work areas such as Front desk, Review and Billing are closed when you sign in. Select an area’s name to open or close it. A closed area shows the total of its entries’ counts: 2 in Result review and 2 in Result imports show 4 beside Review. When you open the area, the total disappears and each entry shows its own count. Areas you open or close stay that way until you sign out or the app locks; every sign-in or unlock starts with all areas closed. Going to a page opens its area.",
+        "Work areas such as Front desk, Review and Billing are closed when you sign in. Select an area’s name to open or close it. A closed area shows the total of its entries’ counts: 2 in Result review and 2 in Result imports show 4 beside Review. When you open the area, the total disappears and each entry shows its own count. Areas you open or close stay that way until you sign out or the app locks; every sign-in or unlock starts with all areas closed. Going to a page opens its area. While any area is open, Collapse all sections (the double-chevron button beside … at the top of the navigation) closes every area at once, including the current page’s, which stays highlighted; the button then hides until you open an area again.",
         "Front desk › Incomplete identity intake shows how many incomplete intake records are awaiting verified identity, the same count as the Incomplete identity intake queue."
       ]
     },
@@ -54,6 +54,7 @@
     "ui/src/features/workqueues/QueueCount.tsx",
     "ui/src/features/workqueues/queueRows.ts",
     "ui/src/app/navigation.ts",
+    "ui/src/app/Sidebar.tsx",
     "crates/lis-engine/src/commands/work_queues/intake_items.rs",
     "crates/lis-identity/src/intake.rs",
     "ui/src/features/workqueues/Age.tsx",

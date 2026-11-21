@@ -5,13 +5,24 @@ import { useResizeDrag } from "@/lib/useResizeDrag";
 const LAYOUT_KEY = "vibe-tox.navigation.layout-v1";
 const NAV_MIN = 224;
 export const NAV_MAX = 360;
-export const NAV_DEFAULT = 256;
+const NAV_DEFAULT = 288;
+/** The first-start width before Default existed; such a saved width still means Default. */
+const OLD_DEFAULT = 256;
 export const NAV_RAIL = 56;
-export const NAV_STEP = 16;
+const NAV_STEP = 16;
+
+/** The widths the navigation menu offers; a dragged or keyboard width is none of them. */
+export const NAV_PRESETS = [
+  { id: "compact", label: "Compact", width: NAV_MIN },
+  { id: "default", label: "Default", width: NAV_DEFAULT },
+  { id: "wide", label: "Wide", width: NAV_MAX },
+] as const;
+export type NavPreset = (typeof NAV_PRESETS)[number]["id"];
 
 interface Layout {
   width: number;
   collapsed: boolean;
+  preset: NavPreset | null;
 }
 
 function clampWidth(width: number) {
@@ -19,17 +30,21 @@ function clampWidth(width: number) {
 }
 
 function readLayout(): Layout {
-  const fallback = { width: NAV_DEFAULT, collapsed: false };
+  const fallback: Layout = { width: NAV_DEFAULT, collapsed: false, preset: "default" };
   try {
     const value: unknown = JSON.parse(localStorage.getItem(LAYOUT_KEY) ?? "null");
     if (typeof value !== "object" || value === null) return fallback;
-    return {
-      width:
-        "width" in value && typeof value.width === "number" && Number.isFinite(value.width)
-          ? clampWidth(value.width)
-          : NAV_DEFAULT,
-      collapsed: "collapsed" in value && value.collapsed === true,
-    };
+    const collapsed = "collapsed" in value && value.collapsed === true;
+    const saved =
+      "width" in value && typeof value.width === "number" && Number.isFinite(value.width)
+        ? clampWidth(value.width)
+        : null;
+    // A layout saved before the presets has no preset; an untouched one kept the old first width.
+    const chosen =
+      "preset" in value ? value.preset : saved === null || saved === OLD_DEFAULT ? "default" : null;
+    const preset = NAV_PRESETS.find((option) => option.id === chosen);
+    if (preset) return { width: preset.width, collapsed, preset: preset.id };
+    return { width: saved ?? NAV_DEFAULT, collapsed, preset: null };
   } catch {
     // Preferences are optional: a damaged or unavailable store must not prevent navigation.
     return fallback;
@@ -40,7 +55,12 @@ function readLayout(): Layout {
 export function useSidebarLayout() {
   const [layout, setLayout] = useState(readLayout);
   const width = layout.collapsed ? NAV_RAIL : layout.width;
-  const resize = (next: number) => setLayout({ width: clampWidth(next), collapsed: false });
+  const resize = (next: number) =>
+    setLayout({ width: clampWidth(next), collapsed: false, preset: null });
+  const choose = (preset: NavPreset) => {
+    const option = NAV_PRESETS.find((candidate) => candidate.id === preset);
+    if (option) setLayout({ width: option.width, collapsed: false, preset });
+  };
   const toggle = () => setLayout((last) => ({ ...last, collapsed: !last.collapsed }));
 
   const { dragging, pointerProps } = useResizeDrag({
@@ -82,8 +102,9 @@ export function useSidebarLayout() {
   return {
     width,
     collapsed: layout.collapsed,
+    preset: layout.preset,
     dragging,
-    resize,
+    choose,
     toggle,
     separatorProps: { onKeyDown, ...pointerProps },
   };
